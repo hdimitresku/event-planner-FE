@@ -1,0 +1,264 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 210 50% 60%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 0 0% 95%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 0 70% 69%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+    --success: 120 40% 55%;
+    --warning: 45 100% 60%;
+  }
+
+  .dark {
+    /* Updated dark mode colors for better contrast and readability */
+    --background: 220 20% 10%; /* Dark blue-gray #141A22 instead of pure black */
+    --foreground: 210 20% 98%; /* Off-white #F5F8FA for better readability */
+    --card: 220 16% 16%; /* Slightly lighter than background #202A36 */
+    --card-foreground: 210 20% 98%; /* Same as foreground */
+    --popover: 220 16% 16%; /* Same as card */
+    --popover-foreground: 210 20% 98%; /* Same as foreground */
+    --primary: 196 80% 65%; /* Brighter blue #47B4E0 */
+    --primary-foreground: 220 20% 10%; /* Same as background */
+    --secondary: 220 10% 22%; /* Slightly lighter than card #2A3441 */
+    --secondary-foreground: 210 20% 98%; /* Same as foreground */
+    --muted: 220 10% 22%; /* Same as secondary */
+    --muted-foreground: 210 10% 70%; /* Light gray #A9B6C8 */
+    --accent: 0 90% 72%; /* Vibrant coral #FF6B6B */
+    --accent-foreground: 210 20% 98%; /* Same as foreground */
+    --destructive: 0 90% 60%; /* Slightly darker red #E05252 */
+    --destructive-foreground: 210 20% 98%; /* Same as foreground */
+    --border: 220 13% 25%; /* Visible but not harsh #2F3A4A */
+    --input: 220 13% 25%; /* Same as border */
+    --ring: 196 80% 65%; /* Same as primary */
+    --success: 142 60% 55%; /* Brighter green #4AD66D */
+    --warning: 38 95% 65%; /* Brighter amber #FFBA30 */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+.card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.1);
+}
+
+.dark .card-hover:hover {
+  box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced styling for buttons and interactive elements */
+.btn-primary {
+  @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-colors;
+  box-shadow: 0 2px 10px rgba(79, 195, 247, 0.3);
+}
+
+.dark .btn-primary {
+  box-shadow: 0 2px 10px rgba(71, 180, 224, 0.2);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 4px 14px rgba(79, 195, 247, 0.4);
+}
+
+.dark .btn-primary:hover {
+  box-shadow: 0 4px 14px rgba(71, 180, 224, 0.3);
+}
+
+/* Enhanced calendar styling */
+.rdp {
+  --rdp-cell-size: 40px;
+  --rdp-accent-color: hsl(var(--primary));
+  --rdp-background-color: hsl(var(--primary) / 0.2);
+  --rdp-accent-color-dark: hsl(var(--primary));
+  --rdp-background-color-dark: hsl(var(--primary) / 0.2);
+  --rdp-outline: 2px solid hsl(var(--primary) / 0.2);
+  --rdp-outline-selected: 2px solid hsl(var(--primary));
+  margin: 1rem 0;
+}
+
+.rdp-day_selected,
+.rdp-day_selected:focus-visible,
+.rdp-day_selected:hover {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+/* Enhanced card styling */
+.venue-card {
+  @apply border rounded-lg overflow-hidden transition-all duration-300;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.dark .venue-card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.venue-card:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.dark .venue-card:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Date range styling */
+.date-range-container {
+  @apply p-4 border rounded-lg bg-card;
+}
+
+.dark .date-range-container {
+  border-color: hsl(var(--border));
+}
+
+/* Success and warning colors */
+.text-success {
+  color: hsl(var(--success));
+}
+
+.bg-success {
+  background-color: hsl(var(--success));
+}
+
+.text-warning {
+  color: hsl(var(--warning));
+}
+
+.bg-warning {
+  background-color: hsl(var(--warning));
+}
+
+/* Enhanced button styling */
+.cta-button {
+  @apply bg-primary text-primary-foreground font-medium rounded-lg px-6 py-3 transition-all;
+  box-shadow: 0 4px 14px rgba(79, 195, 247, 0.25);
+}
+
+.cta-button:hover {
+  @apply bg-primary/90;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(79, 195, 247, 0.35);
+}
+
+.dark .cta-button {
+  box-shadow: 0 4px 14px rgba(71, 180, 224, 0.15);
+}
+
+.dark .cta-button:hover {
+  box-shadow: 0 6px 20px rgba(71, 180, 224, 0.25);
+}
+
+/* Service option styling */
+.service-option {
+  @apply border rounded-lg p-4 transition-all cursor-pointer;
+}
+
+.service-option:hover {
+  @apply border-primary;
+  transform: translateY(-2px);
+}
+
+.service-option.selected {
+  @apply border-primary bg-primary/10;
+}
+
+.dark .service-option.selected {
+  @apply bg-primary/20;
+}
+
+/* Date picker styling */
+.date-picker-trigger {
+  @apply w-full flex items-center justify-between border rounded-md px-3 py-2 bg-background hover:bg-muted/50 transition-colors;
+}
+
+.dark .date-picker-trigger {
+  @apply hover:bg-muted/30;
+}
+
+/* Message styling */
+.message {
+  @apply p-4 rounded-lg max-w-[80%] mb-4;
+}
+
+.message-sent {
+  @apply bg-primary/20 ml-auto rounded-tr-none;
+}
+
+.dark .message-sent {
+  @apply bg-primary/30;
+}
+
+.message-received {
+  @apply bg-secondary mr-auto rounded-tl-none;
+}
+
+/* Price filter styling */
+.price-filter-option {
+  @apply flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-all;
+}
+
+.price-filter-option:hover {
+  @apply border-primary;
+}
+
+.price-filter-option.selected {
+  @apply border-primary bg-primary/10;
+}
+
+.dark .price-filter-option.selected {
+  @apply bg-primary/20;
+}
+
+/* Help card styling */
+.help-card {
+  @apply p-6 border rounded-lg transition-all hover:border-primary;
+}
+
+.help-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.1);
+}
+
+.dark .help-card:hover {
+  box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.3);
+}
+
+/* Settings section styling */
+.settings-section {
+  @apply p-6 border rounded-lg mb-6;
+}
+
+.settings-section h3 {
+  @apply text-lg font-medium mb-4;
+}
