@@ -83,7 +83,7 @@ export default function BusinessVenuesPage() {
         {venues.map((venue) => (
           <div
             key={venue.id}
-            className="overflow-hidden rounded-lg border bg-white shadow-sm transition-all hover:shadow"
+            className="overflow-hidden rounded-lg border bg-white shadow-sm transition-all hover:shadow space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-soft"
           >
             <div className="aspect-video w-full overflow-hidden">
               <img src={venue.image || "/placeholder.svg"} alt={venue.name} className="h-full w-full object-cover" />

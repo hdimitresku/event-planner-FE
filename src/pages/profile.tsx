@@ -112,7 +112,7 @@ export default function ProfilePage() {
         </div>
 
         <Tabs defaultValue="personal" className="w-full">
-          <TabsList className="grid grid-cols-4 md:w-[400px]">
+          <TabsList className="grid grid-cols-4 md:w-full">
             <TabsTrigger value="personal">{t("profile.tabs.personal") || "Personal"}</TabsTrigger>
             <TabsTrigger value="security">{t("profile.tabs.security") || "Security"}</TabsTrigger>
             <TabsTrigger value="notifications">{t("profile.tabs.notifications") || "Notifications"}</TabsTrigger>

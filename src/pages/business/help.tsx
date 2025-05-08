@@ -95,7 +95,7 @@ export default function HelpPage() {
       </div>
 
       <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 mb-12">
-        <div className="help-card">
+        <div className="help-card space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-soft">
           <div className="rounded-full bg-primary/10 p-3 w-12 h-12 flex items-center justify-center mb-4">
             <Calendar className="h-6 w-6 text-primary" />
           </div>
@@ -105,7 +105,7 @@ export default function HelpPage() {
             {t("help.viewMore")} <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         </div>
-        <div className="help-card">
+        <div className="help-card space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-soft">
           <div className="rounded-full bg-primary/10 p-3 w-12 h-12 flex items-center justify-center mb-4">
             <CreditCard className="h-6 w-6 text-primary" />
           </div>
@@ -115,7 +115,7 @@ export default function HelpPage() {
             {t("help.viewMore")} <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         </div>
-        <div className="help-card">
+        <div className="help-card space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-soft">
           <div className="rounded-full bg-primary/10 p-3 w-12 h-12 flex items-center justify-center mb-4">
             <User className="h-6 w-6 text-primary" />
           </div>
@@ -125,7 +125,7 @@ export default function HelpPage() {
             {t("help.viewMore")} <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         </div>
-        <div className="help-card">
+        <div className="help-card space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-soft">
           <div className="rounded-full bg-primary/10 p-3 w-12 h-12 flex items-center justify-center mb-4">
             <Building className="h-6 w-6 text-primary" />
           </div>

@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom"
 import { useLanguage } from "../../context/language-context"
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
-import { Upload } from "lucide-react"
+import { Upload, Plus, X } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -22,9 +22,40 @@ interface ServiceNewModalProps {
   onClose: () => void
 }
 
+interface ServiceOption {
+  id: string
+  name: string
+  description: string
+  price: number
+  pricingType: string
+}
+
 export function ServiceNewModal({ isOpen, onClose }: ServiceNewModalProps) {
   const { t } = useLanguage()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [options, setOptions] = useState<ServiceOption[]>([])
+  const [showOptions, setShowOptions] = useState(false)
+
+  const addOption = () => {
+    const newOption: ServiceOption = {
+      id: crypto.randomUUID(),
+      name: "",
+      description: "",
+      price: 0,
+      pricingType: "flat"
+    }
+    setOptions([...options, newOption])
+  }
+
+  const removeOption = (id: string) => {
+    setOptions(options.filter(option => option.id !== id))
+  }
+
+  const updateOption = (id: string, field: keyof ServiceOption, value: string | number) => {
+    setOptions(options.map(option => 
+      option.id === id ? { ...option, [field]: value } : option
+    ))
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -95,31 +126,112 @@ export function ServiceNewModal({ isOpen, onClose }: ServiceNewModalProps) {
               ></textarea>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label htmlFor="price" className="text-sm font-medium">
-                  {t("business.common.price")}*
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">
+                  {t("business.serviceNew.serviceOptions")}
                 </label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
-                  <Input id="price" type="number" min="0" step="0.01" className="pl-7" placeholder="0.00" required />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="pricingType" className="text-sm font-medium">
-                  {t("business.serviceNew.pricingType")}*
-                </label>
-                <select
-                  id="pricingType"
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  required
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowOptions(!showOptions)}
                 >
-                  <option value="flat">{t("business.pricing.fixed")}</option>
-                  <option value="hourly">{t("business.pricing.hourly")}</option>
-                  <option value="person">{t("business.pricing.perPerson")}</option>
-                  <option value="custom">{t("business.pricing.custom")}</option>
-                </select>
+                  {showOptions ? t("business.common.hide") : t("business.common.show")}
+                </Button>
               </div>
+
+              {showOptions && (
+                <div className="space-y-4">
+                  {options.map((option) => (
+                    <div key={option.id} className="p-4 border rounded-lg space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-medium">{t("business.serviceNew.option")} #{options.indexOf(option) + 1}</h4>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeOption(option.id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">
+                            {t("business.common.name")}*
+                          </label>
+                          <Input
+                            value={option.name}
+                            onChange={(e) => updateOption(option.id, "name", e.target.value)}
+                            placeholder={t("business.serviceNew.optionNamePlaceholder")}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">
+                            {t("business.serviceNew.pricingType")}*
+                          </label>
+                          <select
+                            value={option.pricingType}
+                            onChange={(e) => updateOption(option.id, "pricingType", e.target.value)}
+                            className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            required
+                          >
+                            <option value="flat">{t("business.pricing.fixed")}</option>
+                            <option value="hourly">{t("business.pricing.hourly")}</option>
+                            <option value="person">{t("business.pricing.perPerson")}</option>
+                            <option value="custom">{t("business.pricing.custom")}</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">
+                          {t("business.common.description")}
+                        </label>
+                        <textarea
+                          value={option.description}
+                          onChange={(e) => updateOption(option.id, "description", e.target.value)}
+                          rows={2}
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          placeholder={t("business.serviceNew.optionDescriptionPlaceholder")}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">
+                          {t("business.common.price")}*
+                        </label>
+                        <div className="relative">
+                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={option.price}
+                            onChange={(e) => updateOption(option.id, "price", parseFloat(e.target.value))}
+                            className="pl-7"
+                            placeholder="0.00"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addOption}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t("business.serviceNew.addOption")}
+                  </Button>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">

@@ -50,6 +50,31 @@ const translations: Translations = {
     "nav.login": "Log In",
     "nav.signup": "Sign Up",
 
+    // Login page
+    "login.title": "Log In",
+    "login.description": "Log in to your account to discover and book amazing venues for your events.",
+    "login.email": "Email",
+    "login.emailPlaceholder": "m@example.com",
+    "login.password": "Password",
+    "login.forgotPassword": "Forgot your password?",
+    "login.rememberMe": "Remember me",
+    "login.login": "Log In",
+    "login.noAccount": "Don't have an account?",
+    "login.signUp": "Sign Up",
+
+    // Signup page
+    "signup.title": "Sign Up",
+    "signup.description": "Create an account to start exploring and booking amazing venues for your events.",
+    "signup.firstName": "First Name",
+    "signup.lastName": "Last Name",
+    "signup.email": "Email",
+    "signup.emailPlaceholder": "m@example.com",
+    "signup.password": "Password",
+    "signup.agreeTerms": "I agree to the Terms and Conditions",
+    "signup.createAccount": "Create Account",
+    "signup.alreadyHaveAccount": "Already have an account?",
+    "signup.login": "Log In",
+
     // Common elements across the business section
     "business.common.add": "Add",
     "business.common.edit": "Edit",
@@ -110,6 +135,8 @@ const translations: Translations = {
     "venues.searchBar.guests": "Guests",
     "venues.searchBar.guestsPlaceholder": "How many people?",
     "venues.searchBar.button": "Search Venues",
+    "venues.noResults": "No results found",
+    "venues.tryAdjusting": "Try adjusting your filters or search terms",
 
     "venues.filters.title": "Filter Results",
     "venues.filters.clearAll": "Clear All",
@@ -267,6 +294,8 @@ const translations: Translations = {
     "business.bookings.cancelled": "Cancelled",
     "business.bookings.guests": "Guests",
     "business.bookings.total": "Total",
+    "business.bookings.favorites": "Favorites",
+    "business.bookings.reviews": "Reviews",
     "business.bookings.actions": "Actions",
     "business.bookings.searchBookings": "Search Bookings",
     "business.bookings.acceptBooking": "Accept Booking",
@@ -379,9 +408,6 @@ const translations: Translations = {
 
     "venueBook.catering": "Catering",
     "venueBook.cateringDescription": "Choose from a variety of food and drink services",
-    "venueBook.fullService": "Full Service",
-    "venueBook.buffet": "Buffet",
-    "venueBook.cocktailHour": "Cocktail Hour",
 
     "venueBook.music": "Music",
     "venueBook.musicDescription": "Set the mood with professional music services",
@@ -390,9 +416,20 @@ const translations: Translations = {
 
     "venueBook.decoration": "Decoration",
     "venueBook.decorationDescription": "Create the perfect ambiance for your event",
-    "venueBook.fullDecoration": "Full Decoration",
-    "venueBook.basicDecoration": "Basic Decoration",
-    "venueBook.customTheme": "Custom Theme",
+    "venueBook.photography": "Photography",
+    "venueBook.photographyDescription": "Capture your event with professional photography",
+    "venueBook.videography": "Videography",
+    "venueBook.videographyDescription": "Create a video of your event",
+    "venueBook.transportation": "Transportation",
+    "venueBook.transportationDescription": "Transport your guests to and from your event",
+    "venueBook.security": "Security",
+    "venueBook.securityDescription": "Ensure the safety of your event",
+    "venueBook.staffing": "Staffing",
+    "venueBook.staffingDescription": "Provide staff for your event",
+    "venueBook.entertainment": "Entertainment",
+    "venueBook.entertainmentDescription": "Add entertainment to your event",
+    "venueBook.other": "Other",
+    "venueBook.otherDescription": "Add any other services you need",
 
     "venueBook.contactDetails": "Contact Details",
     "venueBook.firstName": "First Name",
@@ -427,22 +464,30 @@ const translations: Translations = {
     "howItWorks.step1.title": "Search for Venues",
     "howItWorks.step1.description": "Use filters like location, date, and guest count to find the perfect venue",
     "howItWorks.step1.cta": "Explore Venues",
+    "howItWorks.step1.tag": "Find Venue",
+
 
     "howItWorks.step2.title": "Compare and Choose",
     "howItWorks.step2.description": "Review venue details, amenities, photos, and availability to make your pick",
     "howItWorks.step2.cta": "Select Venue",
+    "howItWorks.step2.tag": "Compare Options",
+
 
     "howItWorks.step3.title": "Customize Your Event",
     "howItWorks.step3.description": "Add services like catering, music, decoration, and more to match your event style",
     "howItWorks.step3.cta": "Customize Your Event",
+    "howItWorks.step3.tag": "Add Services",
 
     "howItWorks.step4.title": "Book and Pay Securely",
     "howItWorks.step4.description": "Complete your booking with secure online payment and instant confirmation",
     "howItWorks.step4.cta": "Book and Pay",
+    "howItWorks.step4.tag": "Secure Booking",
 
     "howItWorks.step5.title": "Enjoy Your Event",
     "howItWorks.step5.description": "Arrive at your venue and enjoy a seamless, unforgettable experience",
     "howItWorks.step5.cta": "Enjoy Your Event",
+    "howItWorks.step5.tag": "Celebrate",
+
 
     "howItWorks.faq.title": "Frequently Asked Questions",
     "howItWorks.faq.q1": "How do I know if a venue is available?",
@@ -641,6 +686,31 @@ const translations: Translations = {
     "nav.login": "Hyr",
     "nav.signup": "Regjistrohu",
 
+    // Login page
+    "login.title": "Hyr",
+    "login.description": "Hyni në llogarinë tuaj për të zbuluar dhe rezervuar vende të mrekullueshme për ngjarjet tuaja.",
+    "login.email": "Email",
+    "login.emailPlaceholder": "m@example.com",
+    "login.password": "Fjalëkalimi",
+    "login.forgotPassword": "Keni harruar fjalëkalimin?",
+    "login.rememberMe": "Më mbaj mend",
+    "login.login": "Hyr",
+    "login.noAccount": "Nuk keni llogari?",
+    "login.signUp": "Regjistrohu",
+
+    // Signup page
+    "signup.title": "Regjistrohu",
+    "signup.description": "Krijo një llogari për të filluar të eksplorosh dhe rezervosh vende për ngjarjet e tua.",
+    "signup.firstName": "Emri",
+    "signup.lastName": "Mbiemri",
+    "signup.email": "Email",
+    "signup.emailPlaceholder": "m@example.com",
+    "signup.password": "Fjalëkalimi",
+    "signup.agreeTerms": "Pajtohem me Kushtet dhe Rregullat",
+    "signup.createAccount": "Krijo Llogari",
+    "signup.alreadyHaveAccount": "Keni tashmë një llogari?",
+    "signup.login": "Hyr",
+
     // Venues
     "venues.searchBar.title": "Gjej Ambientin Ideal",
     "venues.searchBar.location": "Vendndodhja",
@@ -663,6 +733,8 @@ const translations: Translations = {
     "venues.sort.capacityLowToHigh": "Kapaciteti: Nga i Ulët në të Lartë",
     "venues.sort.capacityHighToLow": "Kapaciteti: Nga i Lartë në të Ulët",
     "venues.sort.topRated": "Më të Vlerësuara",
+    "venues.noResults": "Asnjë rezultat nuk u gjet",
+    "venues.tryAdjusting": "Ndrysho kriteret e filtrimit",
 
     "venues.filters.applyFilters": "Apliko Filtër",
 
@@ -866,6 +938,8 @@ const translations: Translations = {
     "business.bookings.total": "Totali",
     "business.bookings.actions": "Veprimet",
     "business.bookings.searchBookings": "Kërko Rezervime",
+    "business.bookings.favorites": "Të preferuarat",
+    "business.bookings.reviews": "Vlerësime",
     "business.bookings.acceptBooking": "Prano Rezervimin",
     "business.bookings.declineBooking": "Refuzo Rezervimin",
     "business.bookings.cancelBooking": "Anulo Rezervimin",
@@ -1074,20 +1148,26 @@ const translations: Translations = {
 
     "venueBook.catering": "Katering",
     "venueBook.cateringDescription": "Zgjidhni nga një gamë e gjerë ushqimesh dhe pijesh",
-    "venueBook.fullService": "Shërbim i Plotë",
-    "venueBook.buffet": "Bufe",
-    "venueBook.cocktailHour": "Orë Kokteji",
 
     "venueBook.music": "Muzikë",
     "venueBook.musicDescription": "Krijoni atmosferën perfekte me shërbime profesionale muzike",
-    "venueBook.dj": "DJ",
-    "venueBook.liveMusic": "Muzikë Live",
 
     "venueBook.decoration": "Dekorim",
-    "venueBook.decorationDescription": "Krijoni ambientin ideal për eventin tuaj",
-    "venueBook.fullDecoration": "Dekorim i Plotë",
-    "venueBook.basicDecoration": "Dekorim Bazë",
-    "venueBook.customTheme": "Temë e Personalizuar",
+    "venueBook.decorationDescription": "Krijoni atmosferën perfekte për eventin tuaj",
+    "venueBook.photography": "Fotografi Profesionale",
+    "venueBook.photographyDescription": "Kapni momentet e eventit tuaj me fotografi profesionale",
+    "venueBook.videography": "Videografi Profesionale",
+    "venueBook.videographyDescription": "Regjistroni eventin tuaj me një video cilësore",
+    "venueBook.transportation": "Transport",
+    "venueBook.transportationDescription": "Organizoni transportin për të ftuarit në vendin e eventit",
+    "venueBook.security": "Siguri",
+    "venueBook.securityDescription": "Siguroni mbrojtje profesionale për eventin tuaj",
+    "venueBook.staffing": "Staf Mbështetës",
+    "venueBook.staffingDescription": "Përfshini staf profesional për të ndihmuar në eventin tuaj",
+    "venueBook.entertainment": "Argëtim",
+    "venueBook.entertainmentDescription": "Shtoni argëtim të veçantë për të bërë eventin tuaj të paharrueshëm",
+    "venueBook.other": "Shërbime të Tjera",
+    "venueBook.otherDescription": "Shtoni çdo shërbim tjetër sipas nevojës suaj",
 
     "venueBook.contactDetails": "Detajet e Kontaktit",
     "venueBook.firstName": "Emri",

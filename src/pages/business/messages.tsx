@@ -202,18 +202,18 @@ export default function MessagesPage() {
 
           <Tabs defaultValue="all" onValueChange={setActiveTab}>
             <TabsList className="grid grid-cols-3 h-9">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="unread">Unread</TabsTrigger>
-              <TabsTrigger value="archived">Archived</TabsTrigger>
+              <TabsTrigger className="text-muted-foreground hover:text-foreground transition-colors hover-underline" value="all">All</TabsTrigger>
+              <TabsTrigger className="text-muted-foreground hover:text-foreground transition-colors hover-underline" value="unread">Unread</TabsTrigger>
+              <TabsTrigger className="text-muted-foreground hover:text-foreground transition-colors hover-underline" value="archived">Archived</TabsTrigger>
             </TabsList>
           </Tabs>
 
           <div className="space-y-2">
             {filteredConversations.length > 0 ? (
               filteredConversations.map((conversation) => (
-                <div
+                <div 
                   key={conversation.id}
-                  className={`p-3 rounded-lg cursor-pointer transition-all ${
+                  className={`space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-soft p-3 rounded-lg cursor-pointer transition-all ${
                     selectedConversation === conversation.id
                       ? "bg-primary/10 border-primary"
                       : "hover:bg-muted/50"

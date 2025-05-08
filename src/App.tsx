@@ -68,7 +68,7 @@ function App() {
 
                   {/* Business routes */}
                   <Route
-                    path="/business"
+                    path="/business/dashboard"
                     element={
                       //   <ProtectedRoute>
                       <BusinessDashboardPage />

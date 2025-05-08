@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "../components/ui/button"
-import { Search, Eye, Palette, CreditCard, PartyPopper, ArrowRight } from "lucide-react"
+import { Search, Eye, Palette, CreditCard, PartyPopper, ArrowRight, ChevronRight } from 'lucide-react'
 import { Link } from "react-router-dom"
 import { useLanguage } from "../context/language-context"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../components/ui/accordion"
@@ -11,14 +11,17 @@ export default function HowItWorksPage() {
 
   return (
     <>
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-[#F7F3ED]">
+      <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-sky-50 to-white dark:from-slate-900 dark:to-slate-800">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl md:text-6xl text-[#1E2D3B]">
+            <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-2">
+              <span>{t("howItWorks.badge") || "Simple Process"}</span>
+            </div>
+            <div className="space-y-2 max-w-3xl">
+              <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl md:text-6xl text-gray-800 dark:text-gray-50">
                 {t("howItWorks.hero.title")}
               </h1>
-              <p className="max-w-[900px] text-[#3D3D3D] md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+              <p className="max-w-[900px] text-gray-600 dark:text-gray-300 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                 {t("howItWorks.hero.subtitle")}
               </p>
             </div>
@@ -26,189 +29,227 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
-      <section className="w-full py-12 md:py-24 lg:py-32">
+      <section className="w-full py-16 md:py-24 lg:py-32">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col space-y-16">
             {/* Step 1 */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="order-2 md:order-1">
+              <div className="order-2 md:order-1 space-y-6">
+                <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-2">
+                  <span>Step 1</span>
+                </div>
                 <div className="flex items-center mb-4">
-                  <div className="bg-[#D72638] text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4">
+                  <div className="bg-sky-500 dark:bg-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4 shadow-sm">
                     <Search className="h-6 w-6" />
                   </div>
-                  <h3 className="text-2xl font-bold text-[#1E2D3B]">{t("howItWorks.step1.title")}</h3>
+                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-50">{t("howItWorks.step1.title")}</h3>
                 </div>
-                <p className="text-[#3D3D3D] text-lg mb-4">{t("howItWorks.step1.description")}</p>
-                <Button
-                  variant="outline"
-                  className="border-[#D72638] text-[#D72638] hover:bg-[#D72638] hover:text-white"
-                  asChild
-                >
-                  <Link to="/venues">{t("howItWorks.step1.cta")}</Link>
-                </Button>
+                <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">{t("howItWorks.step1.description")}</p>
+                
               </div>
-              <div className="order-1 md:order-2 rounded-xl overflow-hidden shadow-lg">
-                <img
-                  src="/placeholder.svg?height=400&width=600&text=Search+Venues"
-                  alt="Search for venues"
-                  width={600}
-                  height={400}
-                  className="w-full h-auto object-cover"
-                />
+              <div className="order-1 md:order-2 rounded-xl overflow-hidden shadow-lg border border-gray-100 dark:border-gray-700">
+                <div className="relative">
+                  <img
+                    src="/placeholder.svg?height=400&width=600&text=Search+Venues"
+                    alt="Search for venues"
+                    width={600}
+                    height={400}
+                    className="w-full h-auto object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 bg-white dark:bg-slate-800 rounded-lg px-3 py-1 text-sm font-medium text-gray-800 dark:text-gray-50 shadow-sm">
+                    {t("howItWorks.step1.tag") || "Find Your Space"}
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Step 2 */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="rounded-xl overflow-hidden shadow-lg">
-                <img
-                  src="/placeholder.svg?height=400&width=600&text=Explore+Venues"
-                  alt="Explore venues"
-                  width={600}
-                  height={400}
-                  className="w-full h-auto object-cover"
-                />
+              <div className="rounded-xl overflow-hidden shadow-lg border border-gray-100 dark:border-gray-700">
+                <div className="relative">
+                  <img
+                    src="/placeholder.svg?height=400&width=600&text=Explore+Venues"
+                    alt="Explore venues"
+                    width={600}
+                    height={400}
+                    className="w-full h-auto object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 bg-white dark:bg-slate-800 rounded-lg px-3 py-1 text-sm font-medium text-gray-800 dark:text-gray-50 shadow-sm">
+                    {t("howItWorks.step2.tag") || "Explore Options"}
+                  </div>
+                </div>
               </div>
-              <div>
+              <div className="space-y-6">
+                <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-2">
+                  <span>Step 2</span>
+                </div>
                 <div className="flex items-center mb-4">
-                  <div className="bg-[#D72638] text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4">
+                  <div className="bg-sky-500 dark:bg-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4 shadow-sm">
                     <Eye className="h-6 w-6" />
                   </div>
-                  <h3 className="text-2xl font-bold text-[#1E2D3B]">{t("howItWorks.step2.title")}</h3>
+                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-50">{t("howItWorks.step2.title")}</h3>
                 </div>
-                <p className="text-[#3D3D3D] text-lg mb-4">{t("howItWorks.step2.description")}</p>
-                <Button
-                  variant="outline"
-                  className="border-[#D72638] text-[#D72638] hover:bg-[#D72638] hover:text-white"
-                  asChild
-                >
-                  <Link to="/venues">{t("howItWorks.step2.cta")}</Link>
-                </Button>
+                <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">{t("howItWorks.step2.description")}</p>
               </div>
             </div>
 
             {/* Step 3 */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="order-2 md:order-1">
+              <div className="order-2 md:order-1 space-y-6">
+                <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-2">
+                  <span>Step 3</span>
+                </div>
                 <div className="flex items-center mb-4">
-                  <div className="bg-[#D72638] text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4">
+                  <div className="bg-sky-500 dark:bg-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4 shadow-sm">
                     <Palette className="h-6 w-6" />
                   </div>
-                  <h3 className="text-2xl font-bold text-[#1E2D3B]">{t("howItWorks.step3.title")}</h3>
+                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-50">{t("howItWorks.step3.title")}</h3>
                 </div>
-                <p className="text-[#3D3D3D] text-lg mb-4">{t("howItWorks.step3.description")}</p>
-                <Button
-                  variant="outline"
-                  className="border-[#D72638] text-[#D72638] hover:bg-[#D72638] hover:text-white"
-                  asChild
-                >
-                  <Link to="/venues">{t("howItWorks.step3.cta")}</Link>
-                </Button>
+                <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">{t("howItWorks.step3.description")}</p>
               </div>
-              <div className="order-1 md:order-2 rounded-xl overflow-hidden shadow-lg">
-                <img
-                  src="/placeholder.svg?height=400&width=600&text=Customize+Event"
-                  alt="Customize your event"
-                  width={600}
-                  height={400}
-                  className="w-full h-auto object-cover"
-                />
+              <div className="order-1 md:order-2 rounded-xl overflow-hidden shadow-lg border border-gray-100 dark:border-gray-700">
+                <div className="relative">
+                  <img
+                    src="/placeholder.svg?height=400&width=600&text=Customize+Event"
+                    alt="Customize your event"
+                    width={600}
+                    height={400}
+                    className="w-full h-auto object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 bg-white dark:bg-slate-800 rounded-lg px-3 py-1 text-sm font-medium text-gray-800 dark:text-gray-50 shadow-sm">
+                    {t("howItWorks.step3.tag") || "Personalize"}
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Step 4 */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="rounded-xl overflow-hidden shadow-lg">
-                <img
-                  src="/placeholder.svg?height=400&width=600&text=Book+and+Pay"
-                  alt="Book and pay"
-                  width={600}
-                  height={400}
-                  className="w-full h-auto object-cover"
-                />
+              <div className="rounded-xl overflow-hidden shadow-lg border border-gray-100 dark:border-gray-700">
+                <div className="relative">
+                  <img
+                    src="/placeholder.svg?height=400&width=600&text=Book+and+Pay"
+                    alt="Book and pay"
+                    width={600}
+                    height={400}
+                    className="w-full h-auto object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 bg-white dark:bg-slate-800 rounded-lg px-3 py-1 text-sm font-medium text-gray-800 dark:text-gray-50 shadow-sm">
+                    {t("howItWorks.step4.tag") || "Secure Booking"}
+                  </div>
+                </div>
               </div>
-              <div>
+              <div className="space-y-6">
+                <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-2">
+                  <span>Step 4</span>
+                </div>
                 <div className="flex items-center mb-4">
-                  <div className="bg-[#D72638] text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4">
+                  <div className="bg-sky-500 dark:bg-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4 shadow-sm">
                     <CreditCard className="h-6 w-6" />
                   </div>
-                  <h3 className="text-2xl font-bold text-[#1E2D3B]">{t("howItWorks.step4.title")}</h3>
+                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-50">{t("howItWorks.step4.title")}</h3>
                 </div>
-                <p className="text-[#3D3D3D] text-lg mb-4">{t("howItWorks.step4.description")}</p>
-                <Button
-                  variant="outline"
-                  className="border-[#D72638] text-[#D72638] hover:bg-[#D72638] hover:text-white"
-                  asChild
-                >
-                  <Link to="/venues">{t("howItWorks.step4.cta")}</Link>
-                </Button>
+                <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">{t("howItWorks.step4.description")}</p>
               </div>
             </div>
 
             {/* Step 5 */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="order-2 md:order-1">
+              <div className="order-2 md:order-1 space-y-6">
+                <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-2">
+                  <span>Step 5</span>
+                </div>
                 <div className="flex items-center mb-4">
-                  <div className="bg-[#D72638] text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4">
+                  <div className="bg-sky-500 dark:bg-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4 shadow-sm">
                     <PartyPopper className="h-6 w-6" />
                   </div>
-                  <h3 className="text-2xl font-bold text-[#1E2D3B]">{t("howItWorks.step5.title")}</h3>
+                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-50">{t("howItWorks.step5.title")}</h3>
                 </div>
-                <p className="text-[#3D3D3D] text-lg mb-4">{t("howItWorks.step5.description")}</p>
-                <Button
-                  variant="outline"
-                  className="border-[#D72638] text-[#D72638] hover:bg-[#D72638] hover:text-white"
-                  asChild
-                >
-                  <Link to="/venues">{t("howItWorks.step5.cta")}</Link>
-                </Button>
+                <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">{t("howItWorks.step5.description")}</p>
               </div>
-              <div className="order-1 md:order-2 rounded-xl overflow-hidden shadow-lg">
-                <img
-                  src="/placeholder.svg?height=400&width=600&text=Enjoy+Your+Event"
-                  alt="Enjoy your event"
-                  width={600}
-                  height={400}
-                  className="w-full h-auto object-cover"
-                />
+              <div className="order-1 md:order-2 rounded-xl overflow-hidden shadow-lg border border-gray-100 dark:border-gray-700">
+                <div className="relative">
+                  <img
+                    src="/placeholder.svg?height=400&width=600&text=Enjoy+Your+Event"
+                    alt="Enjoy your event"
+                    width={600}
+                    height={400}
+                    className="w-full h-auto object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 bg-white dark:bg-slate-800 rounded-lg px-3 py-1 text-sm font-medium text-gray-800 dark:text-gray-50 shadow-sm">
+                    {t("howItWorks.step5.tag") || "Celebrate"}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-[#F7F3ED]">
+      <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-sky-50 dark:from-slate-800 dark:to-slate-900">
         <div className="container px-4 md:px-6">
-          <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
-            <div className="relative aspect-video overflow-hidden rounded-xl shadow-lg">
+          <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
+            <div className="relative aspect-video overflow-hidden rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
               <img
                 src="/placeholder.svg?height=600&width=800&text=Booking+Process+Demo"
                 alt="How VenueSpace Works"
                 className="object-cover w-full h-full"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+              <div className="absolute bottom-4 left-4 bg-white dark:bg-slate-800 rounded-lg px-3 py-1 text-sm font-medium text-gray-800 dark:text-gray-50 shadow-sm">
+                {t("howItWorks.faq.videoTag") || "Watch Demo"}
+              </div>
             </div>
-            <div className="space-y-4">
-              <h2 className="text-3xl font-bold tracking-tighter text-[#1E2D3B]">{t("howItWorks.faq.title")}</h2>
+            <div className="space-y-6">
+              <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-2">
+                <span>{t("howItWorks.faq.badge") || "Common Questions"}</span>
+              </div>
+              <h2 className="text-3xl font-bold tracking-tighter text-gray-800 dark:text-gray-50">{t("howItWorks.faq.title")}</h2>
               <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="item-1">
-                  <AccordionTrigger className="text-[#1E2D3B] font-medium">{t("howItWorks.faq.q1")}</AccordionTrigger>
-                  <AccordionContent className="text-[#3D3D3D]">{t("howItWorks.faq.a1")}</AccordionContent>
+                <AccordionItem value="item-1" className="border-b border-gray-200 dark:border-gray-700">
+                  <AccordionTrigger className="text-gray-800 dark:text-gray-50 font-medium hover:text-sky-500 dark:hover:text-sky-400">
+                    {t("howItWorks.faq.q1")}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-600 dark:text-gray-300">
+                    {t("howItWorks.faq.a1")}
+                  </AccordionContent>
                 </AccordionItem>
-                <AccordionItem value="item-2">
-                  <AccordionTrigger className="text-[#1E2D3B] font-medium">{t("howItWorks.faq.q2")}</AccordionTrigger>
-                  <AccordionContent className="text-[#3D3D3D]">{t("howItWorks.faq.a2")}</AccordionContent>
+                <AccordionItem value="item-2" className="border-b border-gray-200 dark:border-gray-700">
+                  <AccordionTrigger className="text-gray-800 dark:text-gray-50 font-medium hover:text-sky-500 dark:hover:text-sky-400">
+                    {t("howItWorks.faq.q2")}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-600 dark:text-gray-300">
+                    {t("howItWorks.faq.a2")}
+                  </AccordionContent>
                 </AccordionItem>
-                <AccordionItem value="item-3">
-                  <AccordionTrigger className="text-[#1E2D3B] font-medium">{t("howItWorks.faq.q3")}</AccordionTrigger>
-                  <AccordionContent className="text-[#3D3D3D]">{t("howItWorks.faq.a3")}</AccordionContent>
+                <AccordionItem value="item-3" className="border-b border-gray-200 dark:border-gray-700">
+                  <AccordionTrigger className="text-gray-800 dark:text-gray-50 font-medium hover:text-sky-500 dark:hover:text-sky-400">
+                    {t("howItWorks.faq.q3")}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-600 dark:text-gray-300">
+                    {t("howItWorks.faq.a3")}
+                  </AccordionContent>
                 </AccordionItem>
-                <AccordionItem value="item-4">
-                  <AccordionTrigger className="text-[#1E2D3B] font-medium">{t("howItWorks.faq.q4")}</AccordionTrigger>
-                  <AccordionContent className="text-[#3D3D3D]">{t("howItWorks.faq.a4")}</AccordionContent>
+                <AccordionItem value="item-4" className="border-b border-gray-200 dark:border-gray-700">
+                  <AccordionTrigger className="text-gray-800 dark:text-gray-50 font-medium hover:text-sky-500 dark:hover:text-sky-400">
+                    {t("howItWorks.faq.q4")}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-600 dark:text-gray-300">
+                    {t("howItWorks.faq.a4")}
+                  </AccordionContent>
                 </AccordionItem>
-                <AccordionItem value="item-5">
-                  <AccordionTrigger className="text-[#1E2D3B] font-medium">{t("howItWorks.faq.q5")}</AccordionTrigger>
-                  <AccordionContent className="text-[#3D3D3D]">{t("howItWorks.faq.a5")}</AccordionContent>
+                <AccordionItem value="item-5" className="border-b border-gray-200 dark:border-gray-700">
+                  <AccordionTrigger className="text-gray-800 dark:text-gray-50 font-medium hover:text-sky-500 dark:hover:text-sky-400">
+                    {t("howItWorks.faq.q5")}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-600 dark:text-gray-300">
+                    {t("howItWorks.faq.a5")}
+                  </AccordionContent>
                 </AccordionItem>
               </Accordion>
             </div>
@@ -216,19 +257,17 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
-      <section className="w-full py-12 md:py-24 lg:py-32">
+      <section className="w-full py-16 md:py-24 lg:py-32 bg-sky-500 dark:bg-sky-600">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-[#1E2D3B]">
+            <div className="space-y-2 max-w-3xl">
+              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-white">
                 {t("howItWorks.cta.title")}
               </h2>
+              <p className="max-w-[900px] text-sky-100 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                {t("howItWorks.cta.description") || "Ready to find the perfect venue for your next event? Start browsing now."}
+              </p>
             </div>
-            <Button size="lg" className="bg-[#D72638] hover:bg-[#D72638]/90 mt-4" asChild>
-              <Link to="/venues">
-                {t("howItWorks.cta.button")} <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
           </div>
         </div>
       </section>

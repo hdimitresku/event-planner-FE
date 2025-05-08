@@ -30,7 +30,7 @@ export default function BusinessAnalyticsPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-soft">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               {t("business.analytics.totalBookings") || "Total Bookings"}
@@ -43,7 +43,7 @@ export default function BusinessAnalyticsPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-soft">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("business.analytics.revenue") || "Revenue"}</CardTitle>
           </CardHeader>
@@ -54,7 +54,7 @@ export default function BusinessAnalyticsPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-soft">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               {t("business.analytics.averageBookingValue") || "Avg. Booking Value"}
@@ -67,7 +67,7 @@ export default function BusinessAnalyticsPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-soft">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               {t("business.analytics.occupancyRate") || "Occupancy Rate"}
@@ -84,10 +84,10 @@ export default function BusinessAnalyticsPage() {
 
       <Tabs defaultValue="revenue" className="mt-8">
         <TabsList>
-          <TabsTrigger value="revenue">{t("business.analytics.revenue") || "Revenue"}</TabsTrigger>
-          <TabsTrigger value="bookings">{t("business.analytics.bookings") || "Bookings"}</TabsTrigger>
-          <TabsTrigger value="venues">{t("business.analytics.venues") || "Venues"}</TabsTrigger>
-          <TabsTrigger value="customers">{t("business.analytics.customers") || "Customers"}</TabsTrigger>
+          <TabsTrigger className="text-muted-foreground hover:text-foreground transition-colors hover-underline" value="revenue">{t("business.analytics.revenue") || "Revenue"}</TabsTrigger>
+          <TabsTrigger className="text-muted-foreground hover:text-foreground transition-colors hover-underline" value="bookings">{t("business.analytics.bookings") || "Bookings"}</TabsTrigger>
+          <TabsTrigger className="text-muted-foreground hover:text-foreground transition-colors hover-underline" value="venues">{t("business.analytics.venues") || "Venues"}</TabsTrigger>
+          <TabsTrigger className="text-muted-foreground hover:text-foreground transition-colors hover-underline" value="customers">{t("business.analytics.customers") || "Customers"}</TabsTrigger>
         </TabsList>
         <TabsContent value="revenue" className="mt-4 space-y-4">
           <Card>

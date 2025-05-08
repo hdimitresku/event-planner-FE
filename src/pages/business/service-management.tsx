@@ -305,7 +305,7 @@ export default function ServicesManagementPage() {
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredServices.length > 0 ? (
                   filteredServices.map((service) => (
-                    <Card key={service.id} className="overflow-hidden">
+                    <Card key={service.id} className="overflow-hidden space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-soft">
                       <div className="aspect-video relative">
                         <img
                           src={service.image || "/placeholder.svg"}
@@ -367,8 +367,48 @@ export default function ServicesManagementPage() {
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredServices.length > 0 ? (
                   filteredServices.map((service) => (
-                    <Card key={service.id} className="overflow-hidden">
-                      {/* Same card structure as above */}
+                    <Card key={service.id} className="overflow-hidden space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-soft">
+                      <div className="aspect-video relative">
+                        <img
+                          src={service.image || "/placeholder.svg"}
+                          alt={service.name}
+                          className="object-cover w-full h-full"
+                        />
+                        <Badge className={`absolute top-2 right-2 ${service.status === 'active' ? 'bg-success hover:bg-success/80' : 'bg-muted-foreground hover:bg-muted-foreground/80'}`}>
+                          {t(`business.common.status.${service.status}`)}
+                        </Badge>
+                      </div>
+                      <CardHeader className="p-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <service.icon className="h-4 w-4 text-primary" />
+                          </div>
+                          <CardTitle className="text-lg">{service.name}</CardTitle>
+                        </div>
+                        <CardDescription className="line-clamp-2 mt-2">
+                          {service.description}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-0">
+                        <div className="flex items-center justify-between">
+                          <Badge variant="outline">
+                            {t(`business.categories.${service.category}`)}
+                          </Badge>
+                          <span className="font-medium">
+                            {getPriceDisplay(service.priceType, service.price)}
+                          </span>
+                        </div>
+                      </CardContent>
+                      <CardFooter className="p-4 pt-0 flex gap-2">
+                        <Button variant="outline" size="sm" className="flex-1">
+                          <Edit className="mr-2 h-4 w-4" />
+                          {t("business.common.edit")}
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1">
+                          <Eye className="mr-2 h-4 w-4" />
+                          {t("business.common.view")}
+                        </Button>
+                      </CardFooter>
                     </Card>
                   ))
                 ) : (
