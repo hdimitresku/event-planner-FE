@@ -82,6 +82,7 @@ const translations: Translations = {
     "business.common.save": "Save",
     "business.common.cancel": "Cancel",
     "business.common.view": "View",
+    "business.common.close": "Close",
     "business.common.search": "Search",
     "business.common.filter": "Filter",
     "business.common.status": "Status",
@@ -398,7 +399,7 @@ const translations: Translations = {
     "venueBook.dateRange": "Date Range",
     "venueBook.from": "From",
     "venueBook.to": "To",
-    "venueBook.duration": "Duration: 3 hours",
+    "venueBook.duration": "Duration",
 
     "venueBook.guests": "Guests",
     "venueBook.guestCapacity": "Guest Capacity",
@@ -775,6 +776,7 @@ const translations: Translations = {
     "business.common.status": "Statusi",
     "business.common.status.active": "Aktiv",
     "business.common.status.inactive": "Joaktiv",
+    "business.common.close": "Mbyll",
     "business.common.price": "Çmimi",
     "business.common.description": "Përshkrimi",
     "business.common.category": "Kategoria",
@@ -1138,7 +1140,7 @@ const translations: Translations = {
     "venueBook.dateRange": "Data",
     "venueBook.from": "Nga",
     "venueBook.to": "Deri më",
-    "venueBook.duration": "Kohëzgjatja: 3 orë",
+    "venueBook.duration": "Kohëzgjatja",
 
     "venueBook.guests": "Të Ftuar",
     "venueBook.guestCapacity": "Kapaciteti i të Ftuarve",

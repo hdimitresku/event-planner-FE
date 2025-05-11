@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 
 import { useRef, useState } from "react"
 import { Button } from "../components/ui/button"
@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Badge } from "../components/ui/badge"
 import {
   MapPin,
-  Calendar,
   Users,
   Search,
   Filter,
@@ -28,11 +27,15 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  CalendarIcon,
 } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useLanguage } from "../context/language-context"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
+import { Calendar } from "@/components/ui/calendar"
+import { cn } from "@/lib/utils"
+import { enUS } from "date-fns/locale"
 
 // Define price type interface
 type PriceType = "hourly" | "perPerson" | "fixed" | "custom"
@@ -242,6 +245,8 @@ export default function VenuesPage() {
     },
   ]
 
+  const [date, setDate] = React.useState<Date>()
+
   // Filter venues based on selected filters
   const filteredVenues = allVenues.filter((venue) => {
     // Price filter
@@ -293,7 +298,8 @@ export default function VenuesPage() {
   const selectedDate = searchParams.date ? new Date(searchParams.date) : "";
 
 
-  const handleDateChange = (date: Date) => {
+  const handleDateChange = (date: Date | undefined) => {
+    setDate(date);
     handleSearchChange({
       target: {
         name: "date",
@@ -427,16 +433,31 @@ export default function VenuesPage() {
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300" htmlFor="date">
                   {t("venues.searchBar.date") || "Date"}
                 </label>
-                <div className="rounded-lg border border-transparent transition-all hover:border-primary hover:shadow-sm flex items-center gap-2 border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 transition-all">
-                  <Calendar className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                  <Input
-                    id="date"
-                    name="date"
-                    value={searchParams.date}
-                    onChange={handleSearchChange}
-                    className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
-                    type="date"
-                  />
+                <div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal rounded-lg border border-transparent transition-all hover:border-primary hover:shadow-sm bg-gray-50 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 transition-all",
+                          !date && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" />
+                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={handleDateChange}
+                        initialFocus
+                        className="rounded-md border"
+                        weekStartsOn={0} // 0 for Sunday, 1 for Monday, etc.
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
               <div className="space-y-2">
@@ -639,7 +660,7 @@ export default function VenuesPage() {
               {t("venues.title") || "Venues in New York"}
             </h1>
             <div className="rounded-md bg-background border border-muted shadow-sm hover:border-primary hover:ring-1 hover:ring-primary"
->
+            >
               <Select defaultValue="recommended">
                 <SelectTrigger className="w-[180px] border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-700/50">
                   <SelectValue placeholder={t("venues.sortBy") || "Sort by"} />

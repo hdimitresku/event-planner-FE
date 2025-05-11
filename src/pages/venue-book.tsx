@@ -1,637 +1,674 @@
 "use client"
 
+import React from "react"
+
+import { buttonVariants } from "@/components/ui/button"
+
+import type { FormEvent } from "react"
+
 import { useState } from "react"
-import { useParams } from "react-router-dom"
+import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Textarea } from "../components/ui/textarea"
-import { Checkbox } from "../components/ui/checkbox"
-import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group"
-import { Label } from "../components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { Calendar } from "../components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover"
 import { format, addHours } from "date-fns"
-import { CalendarIcon, Clock, Users, Utensils, Music, Palette, ArrowRight, Info } from "lucide-react"
-import { Link } from "react-router-dom"
+import {
+  CalendarIcon,
+  Clock,
+  Users,
+  Info,
+  ArrowRight,
+  Utensils,
+  Music,
+  Sparkles,
+  Check,
+  ChevronDown,
+  ShieldCheck,
+  PartyPopper,
+  Car,
+  Camera,
+  HelpCircle,
+  User,
+  Video,
+} from "lucide-react"
 import { useLanguage } from "../context/language-context"
+import { cn } from "../lib/utils"
 
-export default function BookingPage() {
-  const { t } = useLanguage()
-  const params = useParams()
-  const venueId = params.id
+export default function VenueBookPage() {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { t, language } = useLanguage()
 
-  // State for date range selection
-  const [startDate, setStartDate] = useState<Date | undefined>(new Date())
-  const [endDate, setEndDate] = useState<Date | undefined>(addHours(new Date(), 3))
-  const [guests, setGuests] = useState(50)
-  const [selectedServices, setSelectedServices] = useState({
-    catering: "none",
-    music: "none",
-    decor: "none",
-  })
+  const { startDate: initialStartDate, endDate: initialEndDate, guests: initialGuests } = location.state || {}
+  const [startDate, setStartDate] = useState<Date | undefined>(
+    initialStartDate ? new Date(initialStartDate) : new Date(),
+  )
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    initialEndDate ? new Date(initialEndDate) : addHours(new Date(), 3),
+  )
+  const [guests, setGuests] = useState(initialGuests || 50)
 
-  // This would normally be fetched from an API
-  const venue = {
-    id: venueId,
-    name: "Stunning Loft Space with City Views",
-    location: "SoHo, New York",
-    price: 150,
-    image: "/placeholder.svg?height=300&width=400&text=Venue Image",
+  const [selectedServices, setSelectedServices] = useState<Record<string, string[]>>({})
+
+  interface PriceInfo {
+    price: number
+    pricingType: string
   }
 
-  // Calculate duration in hours
+  interface OptionsInfo {
+    optionName: string
+    optionJsonKey: string
+  }
+
+  interface ServiceData {
+    options: OptionsInfo[]
+    prices: Record<string, PriceInfo>
+    icon: React.ElementType
+  }
+
+  interface Services {
+    [key: string]: ServiceData
+  }
+
+  // This would normally be fetched from an API with language parameter
+  const venue = {
+    id,
+    name: {
+      en: "Stunning Loft Space with City Views",
+      sq: "Hapësirë Loft Mahnitëse me Pamje nga Qyteti",
+    },
+    location: {
+      en: "SoHo, New York",
+      sq: "SoHo, New York",
+    },
+    price: 150,
+    capacity: {
+      min: 10,
+      max: 100,
+    },
+  }
+
+  const services: Services = {
+    catering: {
+      options: [
+        { optionName: "Full Service", optionJsonKey: "fullService" },
+        { optionName: "Buffet", optionJsonKey: "buffet" },
+        { optionName: "Cocktail Hour", optionJsonKey: "cocktailHour" },
+      ],
+      prices: {
+        fullService: { price: 45, pricingType: "fixed" },
+        buffet: { price: 30, pricingType: "fixed" },
+        cocktailHour: { price: 20, pricingType: "fixed" },
+      },
+      icon: Utensils,
+    },
+    music: {
+      options: [
+        { optionName: "DJ", optionJsonKey: "dj" },
+        { optionName: "Live Music", optionJsonKey: "liveMusic" },
+      ],
+      prices: {
+        dj: { price: 100, pricingType: "fixed" },
+        liveMusic: { price: 250, pricingType: "fixed" },
+      },
+      icon: Music,
+    },
+    decoration: {
+      options: [
+        { optionName: "Full Decoration", optionJsonKey: "fullDecoration" },
+        { optionName: "Basic Decoration", optionJsonKey: "basicDecoration" },
+        { optionName: "Custom Theme", optionJsonKey: "customTheme" },
+      ],
+      prices: {
+        fullDecoration: { price: 300, pricingType: "fixed" },
+        basicDecoration: { price: 150, pricingType: "fixed" },
+        customTheme: { price: 200, pricingType: "fixed" },
+      },
+      icon: Sparkles,
+    },
+    photography: {
+      options: [
+        { optionName: "Basic Package", optionJsonKey: "basicPackage" },
+        { optionName: "Full Day Coverage", optionJsonKey: "fullDayCoverage" },
+        { optionName: "Photo Booth", optionJsonKey: "photoBooth" },
+      ],
+      prices: {
+        basicPackage: { price: 200, pricingType: "fixed" },
+        fullDayCoverage: { price: 500, pricingType: "fixed" },
+        photoBooth: { price: 150, pricingType: "fixed" },
+      },
+      icon: Camera,
+    },
+    videography: {
+      options: [
+        { optionName: "Highlight Reel", optionJsonKey: "highlightReel" },
+        { optionName: "Full Event", optionJsonKey: "fullEvent" },
+      ],
+      prices: {
+        highlightReel: { price: 300, pricingType: "fixed" },
+        fullEvent: { price: 600, pricingType: "fixed" },
+      },
+      icon: Video,
+    },
+    transportation: {
+      options: [
+        { optionName: "Limousine", optionJsonKey: "limousine" },
+        { optionName: "Shuttle Bus", optionJsonKey: "shuttleBus" },
+        { optionName: "Car Rental", optionJsonKey: "carRental" },
+      ],
+      prices: {
+        limousine: { price: 400, pricingType: "fixed" },
+        shuttleBus: { price: 300, pricingType: "fixed" },
+        carRental: { price: 100, pricingType: "fixed" },
+      },
+      icon: Car,
+    },
+    security: {
+      options: [
+        { optionName: "Basic Security", optionJsonKey: "basicSecurity" },
+        { optionName: "Full Event Security", optionJsonKey: "fullEventSecurity" },
+      ],
+      prices: {
+        basicSecurity: { price: 100, pricingType: "fixed" },
+        fullEventSecurity: { price: 300, pricingType: "fixed" },
+      },
+      icon: ShieldCheck,
+    },
+    staffing: {
+      options: [
+        { optionName: "Wait Staff", optionJsonKey: "waitStaff" },
+        { optionName: "Bartenders", optionJsonKey: "bartenders" },
+        { optionName: "Coat Check", optionJsonKey: "coatCheck" },
+      ],
+      prices: {
+        waitStaff: { price: 80, pricingType: "fixed" },
+        bartenders: { price: 90, pricingType: "fixed" },
+        coatCheck: { price: 40, pricingType: "fixed" },
+      },
+      icon: User,
+    },
+    entertainment: {
+      options: [
+        { optionName: "Magician", optionJsonKey: "magician" },
+        { optionName: "Dancer", optionJsonKey: "dancer" },
+        { optionName: "Fire Show", optionJsonKey: "fireShow" },
+      ],
+      prices: {
+        magician: { price: 250, pricingType: "fixed" },
+        dancer: { price: 200, pricingType: "fixed" },
+        fireShow: { price: 350, pricingType: "fixed" },
+      },
+      icon: PartyPopper,
+    },
+    other: {
+      options: [{ optionName: "Custom Request", optionJsonKey: "customRequest" }],
+      prices: {
+        customRequest: { price: 0, pricingType: "fixed" },
+      },
+      icon: HelpCircle,
+    },
+  }
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault()
+    // In a real app, this would send the booking data to an API
+    navigate(`/venues/${id}/checkout`)
+  }
+
   const calculateDuration = () => {
     if (!startDate || !endDate) return 0
-    return Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60)))
+    const diffInHours = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60)
+    console.log(diffInHours)
+    return Math.max(1, Math.ceil(diffInHours))
   }
 
-  const duration = calculateDuration()
-
-  // Calculate total price
   const calculateTotal = () => {
+    const duration = calculateDuration()
     const basePrice = venue.price * duration
+    const serviceFee = Math.round(basePrice * 0.15)
 
-    // Add service costs
-    let serviceCosts = 0
-    if (selectedServices.catering === "basic") serviceCosts += 25 * guests
-    if (selectedServices.catering === "premium") serviceCosts += 45 * guests
-    if (selectedServices.music === "dj") serviceCosts += 150 * duration
-    if (selectedServices.music === "band") serviceCosts += 350 * duration
-    if (selectedServices.music === "playlist") serviceCosts += 50
-    if (selectedServices.decor === "basic") serviceCosts += 300
-    if (selectedServices.decor === "premium") serviceCosts += 800
-
-    const serviceFee = Math.round((basePrice + serviceCosts) * 0.15)
+    // Calculate additional services cost
+    let servicesCost = 0
+    Object.entries(selectedServices).forEach(([service, options]) => {
+      if (options && services[service as keyof typeof services]) {
+        const serviceData = services[service as keyof typeof services]
+        options.forEach((option) => {
+          const priceInfo = serviceData.prices[option]
+          if (priceInfo) {
+            servicesCost += priceInfo.price
+          }
+        })
+      }
+    })
 
     return {
       basePrice,
-      serviceCosts,
       serviceFee,
-      total: basePrice + serviceCosts + serviceFee,
+      servicesCost,
+      total: basePrice + serviceFee + servicesCost,
     }
   }
 
-  const { basePrice, serviceFee, total } = calculateTotal()
+  const toggleService = (service: string, option: string) => {
+    setSelectedServices((prev) => {
+      const newServices = { ...prev }
+
+      // Initialize array if it doesn't exist
+      if (!newServices[service]) {
+        newServices[service] = []
+      }
+
+      // Check if option is already selected
+      const optionIndex = newServices[service].indexOf(option)
+
+      if (optionIndex === -1) {
+        // Add option if not selected
+        newServices[service] = [...newServices[service], option]
+      } else {
+        // Remove option if already selected
+        newServices[service] = newServices[service].filter((opt) => opt !== option)
+
+        // Remove service entry if no options left
+        if (newServices[service].length === 0) {
+          delete newServices[service]
+        }
+      }
+
+      return { ...newServices }
+    })
+  }
+
+  const { basePrice, serviceFee, servicesCost, total } = calculateTotal()
+  const duration = calculateDuration()
+
+  // Custom calendar component with fixed days of the week
+  const CustomCalendar = ({ selected, onSelect, ...props }: any) => {
+    return (
+      <div className="calendar-wrapper">
+        <Calendar
+          mode="single"
+          selected={selected}
+          onSelect={onSelect}
+          initialFocus
+          classNames={{
+            months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+            month: "space-y-4",
+            caption: "flex justify-center pt-2 relative items-center",
+            caption_label: "text-base font-semibold text-foreground",
+            nav: "space-x-2 flex items-center",
+            nav_button: cn(
+              buttonVariants({ variant: "outline" }),
+              "h-8 w-8 bg-white/80 dark:bg-card/80 backdrop-blur-sm p-0 rounded-md border border-border hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary transition-all duration-200",
+            ),
+            nav_button_previous: "absolute left-2",
+            nav_button_next: "absolute right-2",
+            table: "w-full border-collapse space-y-1",
+            head_row: "flex w-full mt-2",
+            head_cell:
+              "text-muted-foreground rounded-md w-10 font-normal text-[0.8rem] flex-1 flex items-center justify-center",
+            row: "flex w-full mt-2",
+            cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent/50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md",
+            day: cn(
+              buttonVariants({ variant: "ghost" }),
+              "h-10 w-10 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            ),
+            day_selected:
+              "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+            day_today: "bg-accent/50 text-accent-foreground",
+            day_outside: "text-muted-foreground opacity-50",
+            day_disabled: "text-muted-foreground opacity-50",
+            day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+            day_hidden: "invisible",
+            ...props.classNames,
+          }}
+          {...props}
+        />
+      </div>
+    )
+  }
+
+  // Custom scrollbar styling
+  const scrollbarStyles = `
+  .services-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  .services-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .services-container::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.5);
+    border-radius: 20px;
+  }
+  .services-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(156, 163, 175, 0.7);
+  }
+  .dark .services-container::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 116, 139, 0.5);
+  }
+  .dark .services-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(100, 116, 139, 0.7);
+  }
+`
 
   return (
-      <div className="flex flex-col min-h-screen">
-        <main className="flex-1">
-          <div className="container px-4 md:px-6 py-6">
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold md:text-3xl">Book {venue.name}</h1>
-              <p className="text-muted-foreground">Customize your event and complete your booking</p>
-            </div>
+    <>
+      <style>{scrollbarStyles}</style>
+      <div className="container px-4 md:px-6 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold md:text-3xl mb-2">{t("venueBook.title")}</h1>
+            <p className="text-muted-foreground">{t("venueBook.subtitle", { venue: venue.name[language] })}</p>
+          </div>
 
-            <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
-              <div className="space-y-6">
-                <div className="rounded-lg border p-6 space-y-4 bg-card shadow-sm">
-                  <h2 className="text-xl font-semibold">Booking Details</h2>
+          <div className="grid gap-8 md:grid-cols-[1fr_350px]">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                <h2 className="text-xl font-semibold">{t("venueBook.eventDetails")}</h2>
 
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="event-type" className="text-base">
-                        Event Type
-                      </Label>
-                      <select
-                          id="event-type"
-                          className="w-full p-3 border rounded-md bg-background focus:ring-2 focus:ring-primary/50 transition-all"
-                      >
-                        <option value="">Select event type</option>
-                        <option value="corporate">Corporate Event</option>
-                        <option value="wedding">Wedding</option>
-                        <option value="birthday">Birthday Party</option>
-                        <option value="photoshoot">Photo Shoot</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-
-                    <div className="date-range-container space-y-4">
-                      <Label className="text-base">Event Date & Time</Label>
-
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label htmlFor="start-date">Start Date & Time</Label>
-                          <div className="flex flex-col space-y-2">
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button variant="outline" className="w-full justify-start text-left font-normal h-12">
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={startDate}
-                                    onSelect={setStartDate}
-                                    initialFocus
-                                    className="rounded-md border"
-                                />
-                              </PopoverContent>
-                            </Popover>
-
-                            <div className="flex items-center border rounded-md bg-background">
-                              <Clock className="ml-3 h-4 w-4 text-muted-foreground" />
-                              <Input
-                                  type="time"
-                                  value={startDate ? format(startDate, "HH:mm") : ""}
-                                  onChange={(e) => {
-                                    if (startDate && e.target.value) {
-                                      const [hours, minutes] = e.target.value.split(":").map(Number)
-                                      const newDate = new Date(startDate)
-                                      newDate.setHours(hours, minutes)
-                                      setStartDate(newDate)
-                                    }
-                                  }}
-                                  className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-12"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="end-date">End Date & Time</Label>
-                          <div className="flex flex-col space-y-2">
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button variant="outline" className="w-full justify-start text-left font-normal h-12">
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={endDate}
-                                    onSelect={setEndDate}
-                                    initialFocus
-                                    className="rounded-md border"
-                                />
-                              </PopoverContent>
-                            </Popover>
-
-                            <div className="flex items-center border rounded-md bg-background">
-                              <Clock className="ml-3 h-4 w-4 text-muted-foreground" />
-                              <Input
-                                  type="time"
-                                  value={endDate ? format(endDate, "HH:mm") : ""}
-                                  onChange={(e) => {
-                                    if (endDate && e.target.value) {
-                                      const [hours, minutes] = e.target.value.split(":").map(Number)
-                                      const newDate = new Date(endDate)
-                                      newDate.setHours(hours, minutes)
-                                      setEndDate(newDate)
-                                    }
-                                  }}
-                                  className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-12"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between p-3 bg-muted/30 rounded-md">
-                        <div className="flex items-center">
-                          <Clock className="h-5 w-5 text-primary mr-2" />
-                          <span className="font-medium">Duration:</span>
-                        </div>
-                        <span className="font-medium">{duration} hours</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-base flex items-center">
-                        <Users className="mr-2 h-5 w-5 text-primary" />
-                        Number of Guests
-                      </Label>
-                      <div className="flex items-center border rounded-md bg-background p-1">
-                        <Button
-                            variant="ghost"
-                            className="rounded-md h-10 w-10"
-                            onClick={() => setGuests(Math.max(10, guests - 5))}
-                        >
-                          -
-                        </Button>
-                        <div className="flex-1 text-center font-medium">{guests}</div>
-                        <Button
-                            variant="ghost"
-                            className="rounded-md h-10 w-10"
-                            onClick={() => setGuests(Math.min(100, guests + 5))}
-                        >
-                          +
-                        </Button>
-                      </div>
-                      <p className="text-xs text-muted-foreground">This venue can accommodate 10-100 guests</p>
-                    </div>
+                <div className="space-y-3">
+                  <label className="text-sm font-medium" htmlFor="event-type">
+                    {t("venueBook.eventType")}
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="event-type"
+                      className="hover:border-primary hover:shadow-sm w-full p-3 pr-10 border rounded-md bg-background appearance-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                      required
+                    >
+                      <option value="">{t("venueBook.selectEventType")}</option>
+                      <option value="corporate">{t("venueBook.corporate")}</option>
+                      <option value="wedding">{t("venueBook.wedding")}</option>
+                      <option value="birthday">{t("venueBook.birthday")}</option>
+                      <option value="photoshoot">{t("venueBook.photoshoot")}</option>
+                      <option value="other">{t("venueBook.other")}</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   </div>
                 </div>
 
-                <Tabs defaultValue="catering" className="border rounded-lg bg-card shadow-sm">
-                  <div className="p-6 pb-2">
-                    <h2 className="text-xl font-semibold mb-4">Add Services</h2>
-                    <TabsList className="grid w-full grid-cols-3 mb-4 bg-muted/50 p-1 rounded-md">
-                      <TabsTrigger value="catering" className="rounded-sm data-[state=active]:bg-background">
-                        <Utensils className="mr-2 h-4 w-4" />
-                        {t("business.categories.catering")}
-                      </TabsTrigger>
-                      <TabsTrigger value="music" className="rounded-sm data-[state=active]:bg-background">
-                        <Music className="mr-2 h-4 w-4" />
-                        {t("business.categories.music")}
-                      </TabsTrigger>
-                      <TabsTrigger value="decor" className="rounded-sm data-[state=active]:bg-background">
-                        <Palette className="mr-2 h-4 w-4" />
-                        {t("business.categories.decoration")}
-                      </TabsTrigger>
-                    </TabsList>
-                  </div>
-
-                  <TabsContent value="catering" className="p-6 pt-2 space-y-4">
-                    <p className="text-muted-foreground">Select catering options for your event</p>
-
-                    <RadioGroup
-                        defaultValue="none"
-                        value={selectedServices.catering}
-                        onValueChange={(value: string) => setSelectedServices({ ...selectedServices, catering: value })}
-                        className="space-y-3"
-                    >
-                      <div className="flex items-center justify-between space-x-2 border p-4 rounded-md hover:bg-muted/10 transition-colors">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="none" id="catering-none" className="border-primary" />
-                          <Label htmlFor="catering-none" className="font-medium cursor-pointer">
-                            No catering needed
-                          </Label>
-                        </div>
-                        <div className="font-medium">$0</div>
-                      </div>
-
-                      <div className="flex items-center justify-between space-x-2 border p-4 rounded-md hover:bg-muted/10 transition-colors">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="basic" id="catering-basic" className="border-primary" />
-                          <div>
-                            <Label htmlFor="catering-basic" className="font-medium cursor-pointer">
-                              Basic Package
-                            </Label>
-                            <p className="text-sm text-muted-foreground">Appetizers, soft drinks, and desserts</p>
-                          </div>
-                        </div>
-                        <div className="font-medium">$25/{t("business.pricing.perPerson")}</div>
-                      </div>
-
-                      <div className="flex items-center justify-between space-x-2 border p-4 rounded-md hover:bg-muted/10 transition-colors">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="premium" id="catering-premium" className="border-primary" />
-                          <div>
-                            <Label htmlFor="catering-premium" className="font-medium cursor-pointer">
-                              Premium Package
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                              Full meal service with appetizers, main course, desserts, and beverages
-                            </p>
-                          </div>
-                        </div>
-                        <div className="font-medium">$45/{t("business.pricing.perPerson")}</div>
-                      </div>
-
-                      <div className="flex items-center justify-between space-x-2 border p-4 rounded-md hover:bg-muted/10 transition-colors">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="custom" id="catering-custom" className="border-primary" />
-                          <div>
-                            <Label htmlFor="catering-custom" className="font-medium cursor-pointer">
-                              Custom Menu
-                            </Label>
-                            <p className="text-sm text-muted-foreground">Work with our chef to create a custom menu</p>
-                          </div>
-                        </div>
-                        <div className="font-medium">Custom pricing</div>
-                      </div>
-                    </RadioGroup>
-
+                <div className="space-y-4">
+                  <label className="text-sm font-semibold text-foreground">{t("venueBook.dateRange")}</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Start Date Display */}
                     <div className="space-y-2">
-                      <Label htmlFor="catering-notes">Special dietary requirements or notes</Label>
-                      <Textarea
-                          id="catering-notes"
-                          placeholder="Please list any dietary restrictions or special requests..."
-                          className="min-h-[100px] resize-none focus:ring-2 focus:ring-primary/50 transition-all"
-                      />
+                      <label className="text-xs font-medium text-muted-foreground">{t("venueBook.from")}</label>
+                      <div className="flex items-center border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50">
+                        <CalendarIcon className="h-4 w-4 text-muted-foreground mr-2" />
+                        <span className="text-sm">
+                          {startDate ? (
+                            <>
+                              {format(startDate, "PPP")} {format(startDate, "p")}
+                            </>
+                          ) : (
+                            t("venueBook.startDateTime")
+                          )}
+                        </span>
+                      </div>
                     </div>
-                  </TabsContent>
 
-                  <TabsContent value="music" className="p-6 pt-2 space-y-4">
-                    <p className="text-muted-foreground">Select music and entertainment options</p>
-
-                    <RadioGroup
-                        defaultValue="none"
-                        value={selectedServices.music}
-                        onValueChange={(value: string) => setSelectedServices({ ...selectedServices, music: value })}
-                        className="space-y-3"
-                    >
-                      <div className="flex items-center justify-between space-x-2 border p-4 rounded-md hover:bg-muted/10 transition-colors">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="none" id="music-none" className="border-primary" />
-                          <Label htmlFor="music-none" className="font-medium cursor-pointer">
-                            No music services needed
-                          </Label>
-                        </div>
-                        <div className="font-medium">$0</div>
-                      </div>
-
-                      <div className="flex items-center justify-between space-x-2 border p-4 rounded-md hover:bg-muted/10 transition-colors">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="dj" id="music-dj" className="border-primary" />
-                          <div>
-                            <Label htmlFor="music-dj" className="font-medium cursor-pointer">
-                              Professional DJ
-                            </Label>
-                            <p className="text-sm text-muted-foreground">Experienced DJ with professional equipment</p>
-                          </div>
-                        </div>
-                        <div className="font-medium">$150/{t("business.pricing.hourly")}</div>
-                      </div>
-
-                      <div className="flex items-center justify-between space-x-2 border p-4 rounded-md hover:bg-muted/10 transition-colors">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="band" id="music-band" className="border-primary" />
-                          <div>
-                            <Label htmlFor="music-band" className="font-medium cursor-pointer">
-                              Live Band
-                            </Label>
-                            <p className="text-sm text-muted-foreground">Professional musicians for live performance</p>
-                          </div>
-                        </div>
-                        <div className="font-medium">$350/{t("business.pricing.hourly")}</div>
-                      </div>
-
-                      <div className="flex items-center justify-between space-x-2 border p-4 rounded-md hover:bg-muted/10 transition-colors">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="playlist" id="music-playlist" className="border-primary" />
-                          <div>
-                            <Label htmlFor="music-playlist" className="font-medium cursor-pointer">
-                              Custom Playlist
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                              We'll create a custom playlist based on your preferences
-                            </p>
-                          </div>
-                        </div>
-                        <div className="font-medium">$50 flat fee</div>
-                      </div>
-                    </RadioGroup>
-
+                    {/* End Date Display */}
                     <div className="space-y-2">
-                      <Label htmlFor="music-notes">Music preferences or special requests</Label>
-                      <Textarea
-                          id="music-notes"
-                          placeholder="Please list your preferred genres, artists, or songs..."
-                          className="min-h-[100px] resize-none focus:ring-2 focus:ring-primary/50 transition-all"
-                      />
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="decor" className="p-6 pt-2 space-y-4">
-                    <p className="text-muted-foreground">Select decoration options for your event</p>
-
-                    <RadioGroup
-                        defaultValue="none"
-                        value={selectedServices.decor}
-                        onValueChange={(value: string) => setSelectedServices({ ...selectedServices, decor: value })}
-                        className="space-y-3"
-                    >
-                      <div className="flex items-center justify-between space-x-2 border p-4 rounded-md hover:bg-muted/10 transition-colors">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="none" id="decor-none" className="border-primary" />
-                          <Label htmlFor="decor-none" className="font-medium cursor-pointer">
-                            No decoration needed
-                          </Label>
-                        </div>
-                        <div className="font-medium">$0</div>
+                      <label className="text-xs font-medium text-muted-foreground">{t("venueBook.to")}</label>
+                      <div className="flex items-center border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50">
+                        <CalendarIcon className="h-4 w-4 text-muted-foreground mr-2" />
+                        <span className="text-sm">
+                          {endDate ? (
+                            <>
+                              {format(endDate, "PPP")} {format(endDate, "p")}
+                            </>
+                          ) : (
+                            t("venueBook.endDateTime")
+                          )}
+                        </span>
                       </div>
-
-                      <div className="flex items-center justify-between space-x-2 border p-4 rounded-md hover:bg-muted/10 transition-colors">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="basic" id="decor-basic" className="border-primary" />
-                          <div>
-                            <Label htmlFor="decor-basic" className="font-medium cursor-pointer">
-                              Basic Package
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                              Table centerpieces, basic lighting, and simple decorations
-                            </p>
-                          </div>
-                        </div>
-                        <div className="font-medium">$300</div>
-                      </div>
-
-                      <div className="flex items-center justify-between space-x-2 border p-4 rounded-md hover:bg-muted/10 transition-colors">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="premium" id="decor-premium" className="border-primary" />
-                          <div>
-                            <Label htmlFor="decor-premium" className="font-medium cursor-pointer">
-                              Premium Package
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                              Elaborate decorations, custom lighting, floral arrangements, and themed decor
-                            </p>
-                          </div>
-                        </div>
-                        <div className="font-medium">$800</div>
-                      </div>
-
-                      <div className="flex items-center justify-between space-x-2 border p-4 rounded-md hover:bg-muted/10 transition-colors">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="custom" id="decor-custom" className="border-primary" />
-                          <div>
-                            <Label htmlFor="decor-custom" className="font-medium cursor-pointer">
-                              Custom Theme
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                              Work with our decorator to create a custom themed environment
-                            </p>
-                          </div>
-                        </div>
-                        <div className="font-medium">Custom pricing</div>
-                      </div>
-                    </RadioGroup>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="decor-notes">Decoration theme or special requests</Label>
-                      <Textarea
-                          id="decor-notes"
-                          placeholder="Please describe your preferred theme or specific decoration requests..."
-                          className="min-h-[100px] resize-none focus:ring-2 focus:ring-primary/50 transition-all"
-                      />
-                    </div>
-                  </TabsContent>
-                </Tabs>
-
-                <div className="rounded-lg border p-6 space-y-4 bg-card shadow-sm">
-                  <h2 className="text-xl font-semibold">Additional Information</h2>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="special-requests" className="text-base">
-                        Special Requests
-                      </Label>
-                      <Textarea
-                          id="special-requests"
-                          placeholder="Any additional requests or information we should know..."
-                          className="min-h-[100px] resize-none focus:ring-2 focus:ring-primary/50 transition-all"
-                      />
-                    </div>
-                    <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-md">
-                      <Checkbox
-                          id="terms"
-                          className="border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                      />
-                      <label htmlFor="terms" className="text-sm font-medium leading-none cursor-pointer">
-                        I agree to the{" "}
-                        <Link to="/terms" className="text-primary underline hover:text-primary/80 transition-colors">
-                          terms and conditions
-                        </Link>
-                      </label>
                     </div>
                   </div>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    <span>
+                      {t("venueBook.duration")}: {duration} {t("venueBook.hours")}
+                    </span>
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">{t("venueBook.guests")}</label>
+                  <div className="flex items-center border rounded-md bg-background overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-colors  hover:border-primary hover:shadow-sm">
+                    <Users className="ml-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="number"
+                      min={venue.capacity.min}
+                      max={venue.capacity.max}
+                      value={guests}
+                      onChange={(e) => setGuests(Number.parseInt(e.target.value))}
+                      className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {t("venueBook.guestCapacity", { min: venue.capacity.min, max: venue.capacity.max })}
+                  </p>
                 </div>
               </div>
 
-              <div className="space-y-6">
-                <div className="sticky top-6">
-                  <div className="rounded-lg border p-6 space-y-4 bg-card shadow-sm">
-                    <h2 className="text-xl font-semibold">Booking Summary</h2>
+              {/* Services Section */}
+              <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                <div>
+                  <h2 className="text-xl font-semibold">{t("venueBook.services")}</h2>
+                  <p className="text-muted-foreground text-sm mt-1">{t("venueBook.servicesSubtitle")}</p>
+                </div>
 
-                    <div className="flex items-center gap-4">
-                      <div className="relative w-20 h-20 rounded-md overflow-hidden">
-                        <img src={venue.image || "/placeholder.svg"} alt={venue.name} className="w-full h-full object-cover" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium">{venue.name}</h3>
-                        <p className="text-sm text-muted-foreground">{venue.location}</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2 bg-muted/30 p-3 rounded-md">
-                      <div className="flex items-center text-sm">
-                        <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
-                        <span>
-                        {startDate && endDate
-                            ? format(startDate, "PPP") === format(endDate, "PPP")
-                                ? format(startDate, "PPP")
-                                : `${format(startDate, "PPP")} - ${format(endDate, "PPP")}`
-                            : "Date not selected"}
-                      </span>
-                      </div>
-                      <div className="flex items-center text-sm">
-                        <Clock className="mr-2 h-4 w-4 text-primary" />
-                        <span>
-                        {startDate && endDate
-                            ? `${format(startDate, "h:mm a")} - ${format(endDate, "h:mm a")} (${duration} hours)`
-                            : "Time not selected"}
-                      </span>
-                      </div>
-                      <div className="flex items-center text-sm">
-                        <Users className="mr-2 h-4 w-4 text-primary" />
-                        <span>{guests} guests</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2 pt-2">
-                      <div className="flex items-center justify-between">
-                        <span>Venue rental ({duration} hours)</span>
-                        <span>${basePrice}</span>
-                      </div>
-
-                      {selectedServices.catering !== "none" && (
-                          <div className="flex items-center justify-between">
-                        <span>
-                          Catering (
-                          {selectedServices.catering === "basic"
-                              ? "Basic"
-                              : selectedServices.catering === "premium"
-                                  ? "Premium"
-                                  : "Custom"}
-                          )
-                        </span>
-                            <span>
-                          {selectedServices.catering === "custom"
-                              ? "TBD"
-                              : selectedServices.catering === "basic"
-                                  ? `$${25 * guests}`
-                                  : `$${45 * guests}`}
-                        </span>
-                          </div>
-                      )}
-
-                      {selectedServices.music !== "none" && (
-                          <div className="flex items-center justify-between">
-                        <span>
-                          {selectedServices.music === "dj"
-                              ? "DJ Services"
-                              : selectedServices.music === "band"
-                                  ? "Live Band"
-                                  : "Custom Playlist"}
-                        </span>
-                            <span>
-                          {selectedServices.music === "dj"
-                              ? `$${150 * duration}`
-                              : selectedServices.music === "band"
-                                  ? `$${350 * duration}`
-                                  : "$50"}
-                        </span>
-                          </div>
-                      )}
-
-                      {selectedServices.decor !== "none" && (
-                          <div className="flex items-center justify-between">
-                        <span>
-                          {selectedServices.decor === "basic"
-                              ? "Basic Decoration"
-                              : selectedServices.decor === "premium"
-                                  ? "Premium Decoration"
-                                  : "Custom Decoration"}
-                        </span>
-                            <span>
-                          {selectedServices.decor === "custom"
-                              ? "TBD"
-                              : selectedServices.decor === "basic"
-                                  ? "$300"
-                                  : "$800"}
-                        </span>
-                          </div>
-                      )}
-
+                {/* Scrollable Services Container */}
+                <div className="services-container h-[400px] overflow-y-auto pr-2 space-y-6">
+                  {/* Render each service dynamically */}
+                  {Object.entries(services).map(([serviceKey, serviceData]) => (
+                    <div key={serviceKey} className="space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
-                          <span>Service fee</span>
-                          <div className="relative ml-1 group">
-                            <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-popover text-popover-foreground text-xs rounded shadow-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity">
-                              Service fee includes platform maintenance and customer support
-                            </div>
+                          {React.createElement(serviceData.icon, { className: "h-5 w-5 text-primary mr-2" })}
+                          <div>
+                            <h3 className="font-medium">{t(`venueBook.${serviceKey}`)}</h3>
+                            <p className="text-xs text-muted-foreground">{t(`venueBook.${serviceKey}Description`)}</p>
                           </div>
                         </div>
-                        <span>${serviceFee}</span>
+                        <div className="text-sm font-medium">
+                          {selectedServices[serviceKey]?.length > 0 && (
+                            <span className="text-primary">
+                              +$
+                              {selectedServices[serviceKey].reduce(
+                                (total, option) => total + (serviceData.prices[option]?.price || 0),
+                                0,
+                              )}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="flex items-center justify-between font-bold pt-2 border-t">
-                        <span>Total</span>
-                        <span>${total}</span>
+                      <div className={`grid grid-cols-${serviceData.options.length <= 2 ? "2" : "3"} gap-2`}>
+                        {serviceData.options.map((option) => {
+                          const isSelected = selectedServices[serviceKey]?.includes(option.optionJsonKey)
+                          return (
+                            <button
+                              key={option.optionJsonKey}
+                              type="button"
+                              className={cn(
+                                "service-option flex flex-col items-center justify-center p-3 h-24 relative rounded-lg border-2 border-transparent hover:border-sky-200 dark:hover:border-sky-800 transition-all duration-200",
+                                isSelected
+                                  ? "bg-sky-50 dark:bg-sky-900/30 border-sky-200 dark:border-sky-800"
+                                  : "bg-gray-50 dark:bg-slate-800/50 hover:bg-gray-100 dark:hover:bg-slate-700/70",
+                              )}
+                              onClick={() => toggleService(serviceKey, option.optionJsonKey)}
+                            >
+                              {isSelected && <Check className="h-4 w-4 text-primary absolute top-2 right-2" />}
+                              <span className="font-medium text-sm">{option.optionName}</span>
+                              <span className="text-xs text-muted-foreground mt-1">
+                                ${serviceData.prices[option.optionJsonKey].price}
+                                <br />
+                                {t(`business.pricing.${serviceData.prices[option.optionJsonKey].pricingType}`)}
+                              </span>
+                            </button>
+                          )
+                        })}
                       </div>
                     </div>
+                  ))}
+                </div>
+              </div>
 
-                    <Button className="w-full btn-primary" size="lg" asChild>
-                      <Link to={`/venues/${venueId}/checkout`}>
-                        Proceed to Checkout <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
+              <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                <h2 className="text-xl font-semibold">{t("venueBook.contactDetails")}</h2>
 
-                    <p className="text-xs text-muted-foreground text-center">
-                      You won't be charged until you complete checkout
-                    </p>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2 ">
+                    <label className="text-sm font-medium" htmlFor="first-name">
+                      {t("venueBook.firstName")}
+                    </label>
+                    <Input
+                      id="first-name"
+                      className="hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor="last-name">
+                      {t("venueBook.lastName")}
+                    </label>
+                    <Input
+                      id="last-name"
+                      className="hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                      required
+                    />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="email">
+                    {t("venueBook.email")}
+                  </label>
+                  <Input
+                    id="email"
+                    type="email"
+                    className="hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="phone">
+                    {t("venueBook.phone")}
+                  </label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    className="focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                <h2 className="text-xl font-semibold">{t("venueBook.additionalInfo")}</h2>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="special-requests">
+                    {t("venueBook.specialRequests")}
+                  </label>
+                  <Textarea
+                    id="special-requests"
+                    placeholder={t("venueBook.specialRequestsPlaceholder")}
+                    className="min-h-[100px] focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                  />
+                </div>
+              </div>
+            </form>
+
+            <div className="space-y-6">
+              <div className="sticky top-6 venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                <h2 className="text-xl font-semibold">{t("venueBook.summary")}</h2>
+
+                <div className="space-y-3">
+                  <h3 className="font-medium">{venue.name[language]}</h3>
+                  <p className="text-sm text-muted-foreground">{venue.location[language]}</p>
+
+                  <div className="flex items-center text-sm pt-2">
+                    <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <span>{startDate ? format(startDate, "PPP") : t("venueBook.date")}</span>
+                  </div>
+
+                  <div className="flex items-center text-sm">
+                    <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <span>
+                      {startDate ? format(startDate, "p") : ""} - {endDate ? format(endDate, "p") : ""}
+                      {duration > 0 && ` (${duration} ${t("venueBook.hours")})`}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center text-sm">
+                    <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <span>
+                      {guests} {t("venueBook.guests")}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4 mt-4 space-y-2">
+                  <div className="flex justify-between">
+                    <span>
+                      {t("venueBook.venueRental")} ({duration} {t("venueBook.hours")})
+                    </span>
+                    <span>${basePrice}</span>
+                  </div>
+
+                  {/* Services summary */}
+                  {Object.entries(selectedServices).map(([service, options]) =>
+                    options.map((option) => {
+                      const serviceData = services[service as keyof typeof services]
+                      const optionData = serviceData.options.find((opt) => opt.optionJsonKey === option)
+                      return (
+                        <div key={`${service}-${option}`} className="flex justify-between text-sm">
+                          <span>
+                            {t(`venueBook.${service}`)} ({optionData?.optionName})
+                          </span>
+                          <span>${serviceData.prices[option].price}</span>
+                        </div>
+                      )
+                    }),
+                  )}
+
+                  <div className="flex justify-between">
+                    <div className="flex items-center">
+                      <span>{t("venueBook.serviceFee")}</span>
+                      <div className="relative ml-1 group">
+                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-popover text-popover-foreground text-xs rounded shadow-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity">
+                          {t("venueBook.serviceFeeInfo")}
+                        </div>
+                      </div>
+                    </div>
+                    <span>${serviceFee}</span>
+                  </div>
+
+                  <div className="flex justify-between font-bold pt-2 border-t">
+                    <span>{t("venueBook.total")}</span>
+                    <span>${total}</span>
+                  </div>
+                </div>
+
+                <Button
+                  className="w-full cta-button mt-4 bg-sky-500 hover:bg-sky-600 hover:translate-y-[-2px] transition-all duration-200 shadow-md hover:shadow-lg"
+                  onClick={handleSubmit}
+                >
+                  {t("venueBook.continueToPayment")} <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+
+                <p className="text-xs text-muted-foreground text-center mt-4">{t("venueBook.cancellationPolicy")}</p>
               </div>
             </div>
           </div>
-        </main>
+        </div>
       </div>
+    </>
   )
 }

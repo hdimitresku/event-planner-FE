@@ -74,7 +74,7 @@ export function VenueNewModal({ isOpen, onClose }: VenueNewModalProps) {
                     <select
                       id="type"
                       className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      required
+                      required data-theme="dark"
                     >
                       <option value="">{t("business.common.selectType")}</option>
                       <option value="ballroom">{t("business.venueTypes.ballroom")}</option>
@@ -96,7 +96,7 @@ export function VenueNewModal({ isOpen, onClose }: VenueNewModalProps) {
                     id="description"
                     rows={5}
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    placeholder={t("business.venueNew.descriptionPlaceholder")}
+                    placeholder={t("business.venueNew.descriptionPlaceholder")} data-theme="dark"
                     required
                   ></textarea>
                 </div>
@@ -169,7 +169,7 @@ export function VenueNewModal({ isOpen, onClose }: VenueNewModalProps) {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">{t("business.venueNew.mainPhoto")}</label>
-                  <div className="flex h-64 cursor-pointer items-center justify-center rounded-md border border-dashed border-gray-300 hover:border-gray-400">
+                  <div className="flex h-64 cursor-pointer items-center justify-center rounded-md border border-dashed border-gray-300 hover:border-gray-400 dark:border-gray-700 dark:hover:border-gray-600">
                     <div className="flex flex-col items-center space-y-2 p-4 text-center">
                       <Upload className="h-8 w-8 text-gray-400" />
                       <div className="text-sm font-medium">
@@ -212,7 +212,7 @@ export function VenueNewModal({ isOpen, onClose }: VenueNewModalProps) {
                     <select
                       id="pricingType"
                       className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      required
+                      required data-theme="dark"
                     >
                       <option value="hourly">{t("business.pricing.hourly")}</option>
                       <option value="perPerson">{t("business.pricing.perPerson")}</option>
@@ -233,7 +233,7 @@ export function VenueNewModal({ isOpen, onClose }: VenueNewModalProps) {
                       <input
                         type="checkbox"
                         id={`amenity-${amenity}`}
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-700 dark:bg-gray-800"
                       />
                       <label htmlFor={`amenity-${amenity}`} className="text-sm">
                         {t(`venues.amenities.${amenity.toLowerCase().replace(/\s+/g, "")}`) || amenity}
