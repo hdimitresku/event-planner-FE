@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { Badge } from "../components/ui/badge"
@@ -37,11 +37,15 @@ import {
   Car,
   Camera,
   Sparkles,
+  ArrowRight,
 } from "lucide-react"
 import { Input } from "../components/ui/input"
 import { format } from "date-fns"
 import { addHours } from "date-fns"
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover"
+import { useFavorites } from "../context/favorites-context"
+import { ServiceType } from "../models/service"
+import * as serviceService from "../services/serviceService"
 
 // Define price type interface
 type PriceType = "hourly" | "perPerson" | "fixed" | "custom"
@@ -109,12 +113,15 @@ interface Venue {
 }
 
 export default function VenueDetailPage() {
-  const { id } = useParams<{ id: string }>()
   const { t, language } = useLanguage()
+  const { isFavorite, toggleFavorite } = useFavorites()
+  const { id } = useParams<{ id: string }>()
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [endDate, setEndDate] = useState<Date | undefined>(addHours(new Date(), 3))
   const [activeTab, setActiveTab] = useState("overview")
   const [guests, setGuests] = useState<number | undefined>(undefined)
+  const [availableServiceTypes, setAvailableServiceTypes] = useState<ServiceType[]>([])
+  const [loading, setLoading] = useState(false)
 
   // This would normally be fetched from an API with language parameter
   const venue: Venue = {
@@ -364,6 +371,50 @@ export default function VenueDetailPage() {
     return Math.max(1, Math.ceil((endDate.getTime() - selectedDate.getTime()) / (1000 * 60 * 60)))
   }
 
+  // Add this effect to fetch available service types 
+  useEffect(() => {
+    const fetchServiceTypes = async () => {
+      setLoading(true)
+      try {
+        // For now we're hardcoding the venue type as a placeholder, in a real app you'd get it from the venue
+        const result = await serviceService.getServicesByVenueType(venue.type as any)
+        setAvailableServiceTypes(result.serviceTypes)
+      } catch (error) {
+        console.error('Error fetching service types:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchServiceTypes()
+  }, [venue.type])
+
+  // Get service icon based on service type
+  const getServiceTypeIcon = (type: ServiceType) => {
+    switch (type) {
+      case ServiceType.CATERING:
+        return <Utensils className="h-5 w-5 text-sky-500 mr-2" />
+      case ServiceType.MUSIC:
+        return <Music className="h-5 w-5 text-sky-500 mr-2" />
+      case ServiceType.DECORATION:
+        return <Sparkles className="h-5 w-5 text-sky-500 mr-2" />
+      case ServiceType.PHOTOGRAPHY:
+        return <Camera className="h-5 w-5 text-sky-500 mr-2" />
+      case ServiceType.ENTERTAINMENT:
+        return <PartyPopper className="h-5 w-5 text-sky-500 mr-2" />
+      case ServiceType.VIDEOGRAPHY:
+        return <Tv className="h-5 w-5 text-sky-500 mr-2" />
+      case ServiceType.TRANSPORTATION:
+        return <Car className="h-5 w-5 text-sky-500 mr-2" />
+      case ServiceType.SECURITY:
+        return <ShieldCheck className="h-5 w-5 text-sky-500 mr-2" />
+      case ServiceType.STAFFING:
+        return <User className="h-5 w-5 text-sky-500 mr-2" />
+      default:
+        return <Info className="h-5 w-5 text-sky-500 mr-2" />
+    }
+  }
+
   return (
     <>
       <style>{scrollbarStyles}</style>
@@ -413,8 +464,13 @@ export default function VenueDetailPage() {
                     <h1 className="text-3xl font-bold mt-2">{venue.name[language]}</h1>
                   </div>
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="icon" className="rounded-full">
-                      <Heart className="h-5 w-5 text-muted-foreground" />
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      className={`rounded-full ${isFavorite(id || '') ? 'text-red-500 hover:text-red-600' : 'text-muted-foreground hover:text-red-500'}`}
+                      onClick={() => toggleFavorite(id || '', venue?.name[language] || '')}
+                    >
+                      <Heart className={`h-5 w-5 ${isFavorite(id || '') ? 'fill-current' : ''}`} />
                       <span className="sr-only">{t("venues.addToFavorites")}</span>
                     </Button>
                     <Button variant="outline" size="icon" className="rounded-full">
@@ -452,7 +508,7 @@ export default function VenueDetailPage() {
               <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid grid-cols-4 mb-6">
                   <TabsTrigger value="overview">{t("venueDetail.overview")}</TabsTrigger>
-                  <TabsTrigger value="amenities">{t("venueDetail.amenities")}</TabsTrigger>
+                  <TabsTrigger value="amenities">{t("venues.amenities")}</TabsTrigger>
                   <TabsTrigger value="availability">{t("venueDetail.availability")}</TabsTrigger>
                   <TabsTrigger value="reviews">{t("venueDetail.reviews")}</TabsTrigger>
                 </TabsList>
@@ -463,30 +519,30 @@ export default function VenueDetailPage() {
                     <h2 className="text-xl font-semibold">{t("venueDetail.about")}</h2>
                   </div>
 
-
                   <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
                     <h2 className="text-xl font-semibold">{t("venueDetail.services")}</h2>
-                    <div className="services-container max-h-[400px] overflow-y-auto pr-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {Object.entries(venue.services).map(([serviceKey, serviceData]) => (
-                        <div key={serviceKey} className="space-y-2 bg-gray-50 dark:bg-slate-800/50 p-4 rounded-lg">
-                          <div className="flex items-center">
-                            {React.createElement(serviceData.icon, { className: "h-5 w-5 text-sky-500 mr-2" })}
-                            <h3 className="font-medium">{t(`venueBook.${serviceKey}`)}</h3>
+                    
+                    {loading ? (
+                      <div className="flex justify-center p-4">
+                        <p className="text-muted-foreground">{t("common.loading")}</p>
+                      </div>
+                    ) : availableServiceTypes.length === 0 ? (
+                      <div className="text-center p-4">
+                        <p className="text-muted-foreground">{t("venueDetail.noServices")}</p>
+                      </div>
+                    ) : (
+                      <div className="services-container max-h-[400px] overflow-y-auto pr-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {availableServiceTypes.map((serviceType) => (
+                          <div key={serviceType} className="space-y-2 bg-gray-50 dark:bg-slate-800/50 p-4 rounded-lg">
+                            <div className="flex items-center">
+                              {getServiceTypeIcon(serviceType)}
+                              <h3 className="font-medium">{t(`venueBook.${serviceType.toLowerCase()}`)}</h3>
+                            </div>
+                           
                           </div>
-                          <p className="text-xs text-muted-foreground">{t(`venueBook.${serviceKey}Description`)}</p>
-                          <div className="mt-2 space-y-1">
-                            {serviceData.options.map((option) => (
-                              <div key={option} className="flex justify-between text-sm">
-                                <span>{t(`venueBook.${option}`)}</span>
-                                <span className="font-medium">
-                                  ${serviceData.prices[option as keyof typeof serviceData.prices]}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
@@ -534,8 +590,6 @@ export default function VenueDetailPage() {
                       ))}
                     </div>
                   </div>
-
-                  
                 </TabsContent>
 
                 {/* Availability Tab */}

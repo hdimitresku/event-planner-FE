@@ -1,12 +1,11 @@
 "use client"
 
-import React from "react"
+import React, { useEffect, useState } from "react"
 
 import { buttonVariants } from "@/components/ui/button"
 
 import type { FormEvent } from "react"
 
-import { useState } from "react"
 import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
@@ -31,9 +30,21 @@ import {
   HelpCircle,
   User,
   Video,
+  X,
 } from "lucide-react"
 import { useLanguage } from "../context/language-context"
 import { cn } from "../lib/utils"
+import { Service, ServiceOption, ServiceType } from "../models/service"
+import * as serviceService from "../services/serviceService"
+import { VenueType } from "../models/venue"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../components/ui/accordion"
+import { Badge } from "../components/ui/badge"
+import { ScrollArea } from "../components/ui/scroll-area"
 
 export default function VenueBookPage() {
   const { id } = useParams<{ id: string }>()
@@ -50,7 +61,14 @@ export default function VenueBookPage() {
   )
   const [guests, setGuests] = useState(initialGuests || 50)
 
-  const [selectedServices, setSelectedServices] = useState<Record<string, string[]>>({})
+  const [availableServiceTypes, setAvailableServiceTypes] = useState<ServiceType[]>([])
+  const [serviceProviders, setServiceProviders] = useState<Record<ServiceType, Service[]>>({} as Record<ServiceType, Service[]>)
+  const [selectedProviders, setSelectedProviders] = useState<Record<ServiceType, string>>({} as Record<ServiceType, string>)
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string[]>>({})
+  const [loadingServices, setLoadingServices] = useState(false)
+
+  // Add new state to track which service accordions are expanded
+  const [expandedServices, setExpandedServices] = useState<Record<string, boolean>>({})
 
   interface PriceInfo {
     price: number
@@ -226,57 +244,67 @@ export default function VenueBookPage() {
 
   const calculateTotal = () => {
     const duration = calculateDuration()
-    const basePrice = venue.price * duration
-    const serviceFee = Math.round(basePrice * 0.15)
-
-    // Calculate additional services cost
-    let servicesCost = 0
-    Object.entries(selectedServices).forEach(([service, options]) => {
-      if (options && services[service as keyof typeof services]) {
-        const serviceData = services[service as keyof typeof services]
-        options.forEach((option) => {
-          const priceInfo = serviceData.prices[option]
-          if (priceInfo) {
-            servicesCost += priceInfo.price
+    const venueTotal = venue.price * duration
+    
+    let servicesTotal = 0
+    
+    // Calculate services total
+    Object.entries(selectedOptions).forEach(([key, optionIds]) => {
+      const [providerId, optionId] = key.split(":")
+      
+      // Find the provider
+      for (const serviceType of Object.keys(serviceProviders) as ServiceType[]) {
+        const provider = serviceProviders[serviceType].find(p => p.id === providerId)
+        if (provider) {
+          // Find the selected option
+          const option = provider.options.find(o => o.id === optionId)
+          if (option) {
+            servicesTotal += option.price.amount
           }
-        })
+        }
       }
     })
-
+    
+    const serviceFee = Math.round(venueTotal * 0.15)
     return {
-      basePrice,
+      basePrice: venueTotal,
       serviceFee,
-      servicesCost,
-      total: basePrice + serviceFee + servicesCost,
+      servicesCost: servicesTotal,
+      total: venueTotal + serviceFee + servicesTotal,
     }
   }
 
-  const toggleService = (service: string, option: string) => {
-    setSelectedServices((prev) => {
-      const newServices = { ...prev }
+  const handleProviderChange = (serviceType: ServiceType, providerId: string) => {
+    setSelectedProviders(prev => ({
+      ...prev,
+      [serviceType]: providerId
+    }))
 
-      // Initialize array if it doesn't exist
-      if (!newServices[service]) {
-        newServices[service] = []
-      }
-
-      // Check if option is already selected
-      const optionIndex = newServices[service].indexOf(option)
-
-      if (optionIndex === -1) {
-        // Add option if not selected
-        newServices[service] = [...newServices[service], option]
-      } else {
-        // Remove option if already selected
-        newServices[service] = newServices[service].filter((opt) => opt !== option)
-
-        // Remove service entry if no options left
-        if (newServices[service].length === 0) {
-          delete newServices[service]
+    // Clear previously selected options for this service type
+    setSelectedOptions(prev => {
+      const newOptions = { ...prev }
+      // Remove any selected options for this provider
+      Object.keys(newOptions).forEach(key => {
+        if (key.startsWith(`${providerId}:`)) {
+          delete newOptions[key]
         }
-      }
+      })
+      return newOptions
+    })
+  }
 
-      return { ...newServices }
+  const toggleOption = (providerId: string, optionId: string) => {
+    setSelectedOptions(prev => {
+      const key = `${providerId}:${optionId}`
+      const newOptions = { ...prev }
+      
+      if (newOptions[key]) {
+        delete newOptions[key]
+      } else {
+        newOptions[key] = [optionId]
+      }
+      
+      return newOptions
     })
   }
 
@@ -351,6 +379,78 @@ export default function VenueBookPage() {
     background-color: rgba(100, 116, 139, 0.7);
   }
 `
+
+  // Add effect to fetch available service types and providers
+  useEffect(() => {
+    const fetchServicesData = async () => {
+      setLoadingServices(true)
+      try {
+        // For a real app, you'd get the venue type from the venue data
+        const venueTypeResult = await serviceService.getServicesByVenueType(VenueType.PARTY_VENUE)
+        setAvailableServiceTypes(venueTypeResult.serviceTypes)
+
+        // Create an object to store services by type
+        const providersByType: Record<ServiceType, Service[]> = {} as Record<ServiceType, Service[]>
+        
+        // Fetch all services and group them by type
+        for (const serviceType of venueTypeResult.serviceTypes) {
+          // In a real app, you'd call a specialized endpoint to get services by type
+          const { services } = await serviceService.getServices({ serviceTypes: [serviceType] })
+          
+          // For each returned service summary, get the full service details
+          const providersForType: Service[] = []
+          for (const serviceSummary of services) {
+            const service = await serviceService.getServiceById(serviceSummary.id)
+            if (service) {
+              providersForType.push(service)
+            }
+          }
+
+          if (providersForType.length > 0) {
+            providersByType[serviceType] = providersForType
+          }
+        }
+
+        setServiceProviders(providersByType)
+      } catch (error) {
+        console.error("Error fetching services:", error)
+      } finally {
+        setLoadingServices(false)
+      }
+    }
+
+    fetchServicesData()
+  }, [])
+
+  // Add a function to toggle accordion state
+  const toggleServiceAccordion = (serviceType: string) => {
+    setExpandedServices(prev => ({
+      ...prev,
+      [serviceType]: !prev[serviceType]
+    }))
+  }
+
+  // Add a function to get selected options count for a service type
+  const getSelectedOptionsCountForType = (serviceType: ServiceType) => {
+    let count = 0
+    const providersForType = serviceProviders[serviceType] || []
+    
+    for (const provider of providersForType) {
+      for (const option of provider.options) {
+        if (selectedOptions[`${provider.id}:${option.id}`]) {
+          count++
+        }
+      }
+    }
+    
+    return count
+  }
+
+  // Add a function to get the service icon
+  const getServiceIcon = (serviceType: ServiceType) => {
+    const serviceData = services[serviceType.toLowerCase() as keyof typeof services]
+    return serviceData ? serviceData.icon : HelpCircle
+  }
 
   return (
     <>
@@ -454,66 +554,205 @@ export default function VenueBookPage() {
 
               {/* Services Section */}
               <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
-                <div>
-                  <h2 className="text-xl font-semibold">{t("venueBook.services")}</h2>
-                  <p className="text-muted-foreground text-sm mt-1">{t("venueBook.servicesSubtitle")}</p>
-                </div>
+                <h2 className="text-xl font-semibold flex items-center justify-between">
+                  {t("venueBook.services")}
+                  {Object.values(selectedOptions).length > 0 && (
+                    <Badge className="ml-2 bg-sky-500 hover:bg-sky-600">
+                      {Object.values(selectedOptions).length} {t("venueBook.servicesSelected")}
+                    </Badge>
+                  )}
+                </h2>
 
-                {/* Scrollable Services Container */}
-                <div className="services-container h-[400px] overflow-y-auto pr-2 space-y-6">
-                  {/* Render each service dynamically */}
-                  {Object.entries(services).map(([serviceKey, serviceData]) => (
-                    <div key={serviceKey} className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          {React.createElement(serviceData.icon, { className: "h-5 w-5 text-primary mr-2" })}
-                          <div>
-                            <h3 className="font-medium">{t(`venueBook.${serviceKey}`)}</h3>
-                            <p className="text-xs text-muted-foreground">{t(`venueBook.${serviceKey}Description`)}</p>
-                          </div>
-                        </div>
-                        <div className="text-sm font-medium">
-                          {selectedServices[serviceKey]?.length > 0 && (
-                            <span className="text-primary">
-                              +$
-                              {selectedServices[serviceKey].reduce(
-                                (total, option) => total + (serviceData.prices[option]?.price || 0),
-                                0,
-                              )}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className={`grid grid-cols-${serviceData.options.length <= 2 ? "2" : "3"} gap-2`}>
-                        {serviceData.options.map((option) => {
-                          const isSelected = selectedServices[serviceKey]?.includes(option.optionJsonKey)
-                          return (
-                            <button
-                              key={option.optionJsonKey}
-                              type="button"
-                              className={cn(
-                                "service-option flex flex-col items-center justify-center p-3 h-24 relative rounded-lg border-2 border-transparent hover:border-sky-200 dark:hover:border-sky-800 transition-all duration-200",
-                                isSelected
-                                  ? "bg-sky-50 dark:bg-sky-900/30 border-sky-200 dark:border-sky-800"
-                                  : "bg-gray-50 dark:bg-slate-800/50 hover:bg-gray-100 dark:hover:bg-slate-700/70",
-                              )}
-                              onClick={() => toggleService(serviceKey, option.optionJsonKey)}
-                            >
-                              {isSelected && <Check className="h-4 w-4 text-primary absolute top-2 right-2" />}
-                              <span className="font-medium text-sm">{option.optionName}</span>
-                              <span className="text-xs text-muted-foreground mt-1">
-                                ${serviceData.prices[option.optionJsonKey].price}
-                                <br />
-                                {t(`business.pricing.${serviceData.prices[option.optionJsonKey].pricingType}`)}
-                              </span>
-                            </button>
-                          )
-                        })}
-                      </div>
+                {/* Selected services summary */}
+                {Object.values(selectedOptions).length > 0 && (
+                  <div className="rounded-lg border border-dashed border-sky-200 dark:border-sky-900 p-4 mb-4 bg-sky-50 dark:bg-sky-900/20">
+                    <h3 className="text-sm font-medium mb-2">{t("venueBook.selectedServices")}</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(selectedOptions).map(([key]) => {
+                        const [providerId, optionId] = key.split(":")
+                        
+                        // Find the provider and service type
+                        for (const type of Object.keys(serviceProviders) as ServiceType[]) {
+                          const provider = serviceProviders[type]?.find(p => p.id === providerId)
+                          if (provider) {
+                            const option = provider.options.find(o => o.id === optionId)
+                            if (option) {
+                              return (
+                                <Badge 
+                                  key={key}
+                                  variant="outline" 
+                                  className="bg-white dark:bg-slate-800 text-xs py-1 px-2 gap-1 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer transition-colors"
+                                  onClick={() => toggleOption(providerId, optionId)}
+                                >
+                                  {t(`services.types.${type.toLowerCase()}`)}
+                                  <span className="font-bold mx-1">·</span>
+                                  {option.name[language]}
+                                  <X className="h-3 w-3 ml-1 text-muted-foreground hover:text-foreground" />
+                                </Badge>
+                              )
+                            }
+                          }
+                        }
+                        return null
+                      })}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
+                
+                {loadingServices ? (
+                  <div className="flex justify-center items-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-t-sky-500 border-sky-200"></div>
+                    <span className="ml-3 text-muted-foreground">{t("common.loading")}</span>
+                  </div>
+                ) : (
+                  <Accordion type="multiple" className="w-full space-y-4">
+                    {availableServiceTypes.map((serviceType) => {
+                      const providersForType = serviceProviders[serviceType] || []
+                      const selectedProviderId = selectedProviders[serviceType]
+                      const selectedProvider = providersForType.find(p => p.id === selectedProviderId)
+                      const serviceIcon = getServiceIcon(serviceType)
+                      const selectedCount = getSelectedOptionsCountForType(serviceType)
+                      
+                      return (
+                        <AccordionItem 
+                          key={serviceType} 
+                          value={serviceType}
+                          className={`border overflow-hidden rounded-lg transition-all duration-200 ${
+                            selectedCount > 0 
+                              ? 'border-sky-300 dark:border-sky-700 shadow-md' 
+                              : 'border-gray-200 dark:border-gray-700'
+                          }`}
+                        >
+                          <AccordionTrigger 
+                            className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800/70"
+                          >
+                            <div className="flex items-center">
+                              <div className={`p-2 rounded-full mr-3 ${
+                                selectedCount > 0 
+                                  ? 'bg-sky-100 text-sky-600 dark:bg-sky-900/40 dark:text-sky-400' 
+                                  : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                              }`}>
+                                {React.createElement(serviceIcon, { className: "h-5 w-5" })}
+                              </div>
+                              <div className="text-left">
+                                <h4 className="font-medium">{t(`venueBook.${serviceType.toLowerCase()}`)}</h4>
+                                <p className="text-xs text-muted-foreground">
+                                  {providersForType.length} {t("venueBook.providersAvailable")}
+                                </p>
+                              </div>
+                            </div>
+                            {selectedCount > 0 && (
+                              <Badge className="mr-4 bg-sky-500">{selectedCount}</Badge>
+                            )}
+                          </AccordionTrigger>
+                          
+                          <AccordionContent className="px-4 pb-4">
+                            {providersForType.length === 0 ? (
+                              <div className="text-sm text-muted-foreground py-3">
+                                <Info className="h-4 w-4 inline mr-2" />
+                                {t("venueBook.noProvidersAvailable")}
+                              </div>
+                            ) : (
+                              <div className="space-y-4 pt-2">
+                                <div className="space-y-2">
+                                  <label className="text-sm font-medium">{t("venueBook.selectProvider")}</label>
+                                  <div className="grid gap-2">
+                                    {providersForType.map((provider) => (
+                                      <div
+                                        key={provider.id}
+                                        className={`p-3 border rounded-lg cursor-pointer transition-all duration-200 ${
+                                          selectedProviderId === provider.id
+                                            ? "border-sky-500 bg-sky-50 dark:bg-sky-900/20 shadow-sm"
+                                            : "border-gray-200 hover:border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                                        }`}
+                                        onClick={() => handleProviderChange(serviceType, provider.id)}
+                                      >
+                                        <div className="flex justify-between items-center">
+                                          <div>
+                                            <h6 className="font-medium">{provider.name[language]}</h6>
+                                            <p className="text-xs text-muted-foreground">
+                                              {provider.options.length} {t("venueBook.options")}
+                                            </p>
+                                          </div>
+                                          <div>
+                                            {selectedProviderId === provider.id ? (
+                                              <div className="p-1 rounded-full bg-sky-500">
+                                                <Check className="h-4 w-4 text-white" />
+                                              </div>
+                                            ) : (
+                                              <div className="p-1 rounded-full border border-gray-200 dark:border-gray-700">
+                                                <div className="h-4 w-4"></div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                                
+                                {selectedProvider && (
+                                  <div 
+                                    className="space-y-3 mt-4 pl-4 border-l-2 border-sky-200 dark:border-sky-900 transition-all duration-300 opacity-100 transform-none"
+                                  >
+                                    <p className="text-sm text-muted-foreground">{selectedProvider.description[language]}</p>
+                                    
+                                    <div className="space-y-2">
+                                      <h5 className="text-sm font-medium">{t("venueBook.selectOptions")}</h5>
+                                      <ScrollArea className="max-h-[300px] pr-4">
+                                        <div className="grid gap-2">
+                                          {selectedProvider.options.map((option) => {
+                                            const isSelected = !!selectedOptions[`${selectedProvider.id}:${option.id}`]
+                                            
+                                            return (
+                                              <div 
+                                                key={option.id} 
+                                                className={`p-3 border rounded-lg cursor-pointer transition-all duration-200 ${
+                                                  isSelected 
+                                                    ? "border-sky-500 bg-sky-50 dark:bg-sky-900/20 shadow-sm" 
+                                                    : "border-gray-200 hover:border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                                                }`}
+                                                onClick={() => toggleOption(selectedProvider.id, option.id)}
+                                              >
+                                                <div className="flex justify-between items-center">
+                                                  <div>
+                                                    <h6 className="font-medium">{option.name[language]}</h6>
+                                                    <p className="text-sm text-muted-foreground">{option.description[language]}</p>
+                                                    {option.popular && (
+                                                      <Badge className="mt-1 bg-amber-400 text-amber-900 dark:bg-amber-600 dark:text-amber-50 text-xs">
+                                                        {t("venueBook.popular")}
+                                                      </Badge>
+                                                    )}
+                                                  </div>
+                                                  <div className="flex items-center gap-3">
+                                                    <span className="font-semibold text-sky-600 dark:text-sky-400">${option.price.amount}</span>
+                                                    {isSelected ? (
+                                                      <div className="p-1 rounded-full bg-sky-500">
+                                                        <Check className="h-4 w-4 text-white" />
+                                                      </div>
+                                                    ) : (
+                                                      <div className="p-1 rounded-full border border-gray-200 dark:border-gray-700">
+                                                        <div className="h-4 w-4"></div>
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            )
+                                          })}
+                                        </div>
+                                      </ScrollArea>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </AccordionContent>
+                        </AccordionItem>
+                      )
+                    })}
+                  </Accordion>
+                )}
               </div>
 
               <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
@@ -622,20 +861,38 @@ export default function VenueBookPage() {
                   </div>
 
                   {/* Services summary */}
-                  {Object.entries(selectedServices).map(([service, options]) =>
-                    options.map((option) => {
-                      const serviceData = services[service as keyof typeof services]
-                      const optionData = serviceData.options.find((opt) => opt.optionJsonKey === option)
-                      return (
-                        <div key={`${service}-${option}`} className="flex justify-between text-sm">
-                          <span>
-                            {t(`venueBook.${service}`)} ({optionData?.optionName})
-                          </span>
-                          <span>${serviceData.prices[option].price}</span>
-                        </div>
-                      )
-                    }),
-                  )}
+                  {Object.entries(selectedOptions).map(([key]) => {
+                    const [providerId, optionId] = key.split(":")
+                    
+                    // Find the provider and service type
+                    let providerName = ""
+                    let optionName = ""
+                    let optionPrice = 0
+                    let serviceTypeName = ""
+                    
+                    for (const type of Object.keys(serviceProviders) as ServiceType[]) {
+                      const provider = serviceProviders[type]?.find(p => p.id === providerId)
+                      if (provider) {
+                        const option = provider.options.find(o => o.id === optionId)
+                        if (option) {
+                          providerName = provider.name[language]
+                          optionName = option.name[language]
+                          optionPrice = option.price.amount
+                          serviceTypeName = t(`services.types.${type.toLowerCase()}`)
+                          break
+                        }
+                      }
+                    }
+                    
+                    return (
+                      <div key={key} className="flex justify-between text-sm">
+                        <span>
+                          {serviceTypeName} - {providerName} ({optionName})
+                        </span>
+                        <span>${optionPrice}</span>
+                      </div>
+                    )
+                  })}
 
                   <div className="flex justify-between">
                     <div className="flex items-center">

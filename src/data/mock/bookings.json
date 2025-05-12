@@ -1,0 +1,180 @@
+{
+  "bookings": [
+    {
+      "id": "booking1",
+      "venueId": "1",
+      "userId": "user1",
+      "startDateTime": "2023-11-15T14:00:00Z",
+      "endDateTime": "2023-11-15T20:00:00Z",
+      "duration": 6,
+      "eventType": "corporate_event",
+      "guestCount": 50,
+      "status": "confirmed",
+      "paymentStatus": "paid",
+      "specialRequests": "We would like to have the chairs set up in a theater-style arrangement and require a projector for a presentation.",
+      "serviceOptions": [
+        {
+          "serviceId": "1",
+          "optionId": "opt2",
+          "quantity": 50,
+          "unitPrice": 65,
+          "totalPrice": 3250,
+          "notes": "Please ensure there are vegetarian options available."
+        },
+        {
+          "serviceId": "2",
+          "optionId": "opt1",
+          "quantity": 1,
+          "unitPrice": 600,
+          "totalPrice": 600,
+          "notes": "We need the DJ to play background music during dinner and upbeat music after."
+        }
+      ],
+      "costs": {
+        "venueBasePrice": 150,
+        "venueTotalPrice": 900,
+        "servicesCost": 3850,
+        "subtotal": 4750,
+        "serviceFee": 237.5,
+        "taxAmount": 475,
+        "totalAmount": 5462.5,
+        "currency": "USD"
+      },
+      "confirmationCode": "CORP-11152023",
+      "createdAt": "2023-10-15T09:30:00Z",
+      "updatedAt": "2023-10-15T09:30:00Z"
+    },
+    {
+      "id": "booking2",
+      "venueId": "2",
+      "userId": "user2",
+      "startDateTime": "2023-12-10T16:00:00Z",
+      "endDateTime": "2023-12-10T23:00:00Z",
+      "duration": 7,
+      "eventType": "wedding",
+      "guestCount": 80,
+      "status": "confirmed",
+      "paymentStatus": "partially_paid",
+      "specialRequests": "We need a designated area for the dance floor and a table for gifts.",
+      "serviceOptions": [
+        {
+          "serviceId": "1",
+          "optionId": "opt3",
+          "quantity": 80,
+          "unitPrice": 85,
+          "totalPrice": 6800,
+          "notes": "Please include champagne service for the toast."
+        },
+        {
+          "serviceId": "2",
+          "optionId": "opt2",
+          "quantity": 1,
+          "unitPrice": 900,
+          "totalPrice": 900,
+          "notes": "The DJ should coordinate with our wedding planner for the schedule."
+        },
+        {
+          "serviceId": "3",
+          "optionId": "opt3",
+          "quantity": 1,
+          "unitPrice": 1500,
+          "totalPrice": 1500,
+          "notes": "We want special emphasis on capturing candid moments."
+        }
+      ],
+      "costs": {
+        "venueBasePrice": 200,
+        "venueTotalPrice": 16000,
+        "servicesCost": 9200,
+        "subtotal": 25200,
+        "serviceFee": 1260,
+        "taxAmount": 2520,
+        "discount": 2000,
+        "totalAmount": 26980,
+        "currency": "USD"
+      },
+      "confirmationCode": "WED-12102023",
+      "createdAt": "2023-09-10T13:45:00Z",
+      "updatedAt": "2023-09-15T10:20:00Z"
+    },
+    {
+      "id": "booking3",
+      "venueId": "3",
+      "userId": "user3",
+      "startDateTime": "2023-10-20T10:00:00Z",
+      "endDateTime": "2023-10-20T17:00:00Z",
+      "duration": 7,
+      "eventType": "photo_shoot",
+      "guestCount": 15,
+      "status": "completed",
+      "paymentStatus": "paid",
+      "specialRequests": "We need good natural lighting for the shoot and access to different areas of the gallery.",
+      "serviceOptions": [
+        {
+          "serviceId": "3",
+          "optionId": "opt2",
+          "quantity": 1,
+          "unitPrice": 800,
+          "totalPrice": 800,
+          "notes": "We need both product shots and lifestyle photography."
+        }
+      ],
+      "costs": {
+        "venueBasePrice": 300,
+        "venueTotalPrice": 2100,
+        "servicesCost": 800,
+        "subtotal": 2900,
+        "serviceFee": 145,
+        "taxAmount": 290,
+        "totalAmount": 3335,
+        "currency": "USD"
+      },
+      "confirmationCode": "PHOTO-10202023",
+      "createdAt": "2023-09-20T15:30:00Z",
+      "updatedAt": "2023-10-21T09:00:00Z"
+    },
+    {
+      "id": "booking4",
+      "venueId": "1",
+      "userId": "user4",
+      "startDateTime": "2024-01-05T18:00:00Z",
+      "endDateTime": "2024-01-05T23:00:00Z",
+      "duration": 5,
+      "eventType": "birthday_party",
+      "guestCount": 35,
+      "status": "pending",
+      "paymentStatus": "pending",
+      "specialRequests": "We would like to bring our own birthday cake and decorations.",
+      "serviceOptions": [
+        {
+          "serviceId": "1",
+          "optionId": "opt1",
+          "quantity": 35,
+          "unitPrice": 45,
+          "totalPrice": 1575,
+          "notes": "Please include a few child-friendly meal options."
+        },
+        {
+          "serviceId": "2",
+          "optionId": "opt1",
+          "quantity": 1,
+          "unitPrice": 600,
+          "totalPrice": 600,
+          "notes": "We have a playlist of songs we would like played."
+        }
+      ],
+      "costs": {
+        "venueBasePrice": 150,
+        "venueTotalPrice": 750,
+        "servicesCost": 2175,
+        "subtotal": 2925,
+        "serviceFee": 146.25,
+        "taxAmount": 292.5,
+        "totalAmount": 3363.75,
+        "currency": "USD"
+      },
+      "createdAt": "2023-12-01T11:20:00Z",
+      "updatedAt": "2023-12-01T11:20:00Z"
+    }
+  ]
+} 

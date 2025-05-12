@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useLanguage } from "../../context/language-context"
 import { BusinessLayout } from "../../components/business/layout"
+import { EditBookingModal } from "../../components/business/edit-booking-modal"
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
@@ -19,6 +20,8 @@ import {
   CalendarDays,
   Phone,
   Mail,
+  PencilLine,
+  AlertTriangle,
 } from "lucide-react"
 import {
   Dialog,
@@ -30,12 +33,16 @@ import {
 } from "../../components/ui/dialog"
 import { Badge } from "../../components/ui/badge"
 import { Separator } from "../../components/ui/separator"
+import { toast } from "../../components/ui/use-toast"
 
 export default function BusinessBookingsPage() {
   const { t } = useLanguage()
   const [activeTab, setActiveTab] = useState("upcoming")
   const [selectedBooking, setSelectedBooking] = useState<any>(null)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
+  const [bookingToCancel, setBookingToCancel] = useState<string | null>(null)
 
   // Mock data
   const bookings = [
@@ -139,6 +146,43 @@ export default function BusinessBookingsPage() {
   const handleViewBooking = (booking: any) => {
     setSelectedBooking(booking)
     setIsViewModalOpen(true)
+  }
+
+  const handleEditBooking = (booking: any) => {
+    setSelectedBooking(booking)
+    setIsEditModalOpen(true)
+  }
+
+  const handleSaveBooking = (updatedBooking: any) => {
+    // In a real app, this would update the booking in the database
+    console.log(`Updating booking ${updatedBooking.id}`, updatedBooking)
+    
+    toast({
+      title: t("business.bookings.bookingUpdated") || "Booking Updated",
+      description: t("business.bookings.bookingUpdatedDescription") || "The booking has been successfully updated.",
+      variant: "default",
+    })
+    
+    setIsEditModalOpen(false)
+  }
+
+  const openCancelDialog = (bookingId: string) => {
+    setBookingToCancel(bookingId)
+    setIsCancelModalOpen(true)
+  }
+
+  const handleCancelBooking = () => {
+    // In a real app, this would update the booking status in the database
+    console.log(`Cancelling booking ${bookingToCancel}`)
+    
+    toast({
+      title: t("business.bookings.bookingCancelled") || "Booking Cancelled",
+      description: t("business.bookings.bookingCancelledDescription") || "The booking has been cancelled.",
+      variant: "default",
+    })
+    
+    setIsCancelModalOpen(false)
+    setBookingToCancel(null)
   }
 
   const handleApproveBooking = (bookingId: string) => {
@@ -321,11 +365,65 @@ export default function BusinessBookingsPage() {
                     </Button>
                   </div>
                 ) : (
-                  <Button onClick={() => setIsViewModalOpen(false)}>{t("business.common.close")}</Button>
+                  <div className="flex gap-2">
+                    {selectedBooking.status !== "completed" && selectedBooking.status !== "cancelled" ? (
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setIsViewModalOpen(false)
+                          handleEditBooking(selectedBooking)
+                        }}
+                      >
+                        <PencilLine className="mr-2 h-4 w-4" />
+                        {t("business.common.edit") || "Edit"}
+                      </Button>
+                    ) : null}
+                    <Button onClick={() => setIsViewModalOpen(false)}>
+                      {t("business.common.close") || "Close"}
+                    </Button>
+                  </div>
                 )}
               </DialogFooter>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Booking Modal */}
+      {selectedBooking && (
+        <EditBookingModal
+          booking={selectedBooking}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleSaveBooking}
+        />
+      )}
+
+      {/* Cancel Booking Confirmation Dialog */}
+      <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              {t("business.bookings.cancelBooking") || "Cancel Booking"}
+            </DialogTitle>
+            <DialogDescription>
+              {t("business.bookings.cancelBookingConfirmation") || "Are you sure you want to cancel this booking? This action cannot be undone."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center py-4">
+            <AlertTriangle className="h-16 w-16 text-destructive" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCancelModalOpen(false)}>
+              {t("business.common.cancel") || "Cancel"}
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleCancelBooking}
+            >
+              {t("business.bookings.confirmCancel") || "Yes, Cancel Booking"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -355,7 +453,7 @@ export default function BusinessBookingsPage() {
                 </thead>
                 <tbody>
                   {filteredBookings.map((booking) => (
-                    <tr key={booking.id} className="border-b">
+                    <tr key={booking.id} className="border-b hover:bg-muted/50">
                       <td className="px-4 py-3">{booking.customer.name}</td>
                       <td className="px-4 py-3">{booking.venue}</td>
                       <td className="px-4 py-3">{booking.date}</td>
@@ -374,14 +472,39 @@ export default function BusinessBookingsPage() {
                       </td>
                       <td className="px-4 py-3">${booking.total.toFixed(2)}</td>
                       <td className="px-4 py-3">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="transition-all hover:bg-primary/10 hover:text-primary"
-                          onClick={() => handleViewBooking(booking)}
-                        >
-                          {t("business.bookings.view") || "View"}
-                        </Button>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2"
+                            onClick={() => handleViewBooking(booking)}
+                          >
+                            {t("business.common.view") || "View"}
+                          </Button>
+                          
+                          {(booking.status === "confirmed" || booking.status === "pending") && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2"
+                                onClick={() => handleEditBooking(booking)}
+                              >
+                                <PencilLine className="mr-1.5 h-3.5 w-3.5" />
+                                {t("business.common.edit") || "Edit"}
+                              </Button>
+                              
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                onClick={() => openCancelDialog(booking.id)}
+                              >
+                                {t("business.common.cancel") || "Cancel"}
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -524,14 +647,39 @@ export default function BusinessBookingsPage() {
                       </td>
                       <td className="px-4 py-3">${booking.total.toFixed(2)}</td>
                       <td className="px-4 py-3">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="transition-all hover:bg-primary/10 hover:text-primary"
-                          onClick={() => handleViewBooking(booking)}
-                        >
-                          {t("business.bookings.view") || "View"}
-                        </Button>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="transition-all hover:bg-primary/10 hover:text-primary"
+                            onClick={() => handleViewBooking(booking)}
+                          >
+                            {t("business.common.view") || "View"}
+                          </Button>
+                          
+                          {(booking.status === "confirmed" || booking.status === "pending") && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2"
+                                onClick={() => handleEditBooking(booking)}
+                              >
+                                <PencilLine className="mr-1.5 h-3.5 w-3.5" />
+                                {t("business.common.edit") || "Edit"}
+                              </Button>
+                              
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                onClick={() => openCancelDialog(booking.id)}
+                              >
+                                {t("business.common.cancel") || "Cancel"}
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

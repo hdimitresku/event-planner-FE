@@ -4,22 +4,26 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { useAuth } from "../context/auth-context"
-import { useLanguage } from "../context/language-context"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card"
-import { Input } from "../components/ui/input"
-import { Button } from "../components/ui/button"
-import { Label } from "../components/ui/label"
-import { Separator } from "../components/ui/separator"
-import { Switch } from "../components/ui/switch"
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar"
+import { useAuth } from "../../context/auth-context"
+import { useLanguage } from "../../context/language-context"
+import { DashboardLayout } from "../../components/dashboard/layout"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/ui/card"
+import { Input } from "../../components/ui/input"
+import { Button } from "../../components/ui/button"
+import { Label } from "../../components/ui/label"
+import { Separator } from "../../components/ui/separator"
+import { Switch } from "../../components/ui/switch"
+import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar"
 import { User, Mail, Phone, MapPin, Calendar, Shield, Bell, CreditCard, LogOut, Building, Home } from "lucide-react"
+import * as userService from "../../services/userService"
+import { User as UserModel } from "../../models/user"
 
 export default function ProfilePage() {
   const { user, isAuthenticated, logout } = useAuth()
   const { t } = useLanguage()
   const navigate = useNavigate()
+  const [currentUser, setCurrentUser] = useState<UserModel | null>(null)
   const [profileData, setProfileData] = useState({
     name: "",
     email: "",
@@ -36,6 +40,16 @@ export default function ProfilePage() {
     promotions: false,
     updates: true,
   })
+
+  useEffect(() => {
+    // Fetch current user for dashboard layout
+    const fetchUser = async () => {
+      const userModel = await userService.getUserById("user3")
+      setCurrentUser(userModel)
+    }
+    
+    fetchUser()
+  }, [])
 
   useEffect(() => {
     // Redirect if not authenticated
@@ -68,47 +82,20 @@ export default function ProfilePage() {
     navigate("/")
   }
 
-  const handleDashboardRedirect = () => {
-    if (user?.role === "business") {
-      navigate("/business")
-    } else {
-      navigate("/dashboard")
-    }
-  }
-
   return (
-    <div className="container py-10 px-4 md:px-6">
-      <div className="flex flex-col gap-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 border-2 border-primary">
-              <AvatarImage src={`/placeholder.svg?text=${user?.avatar || "U"}`} alt={user?.name || "User"} />
-              <AvatarFallback>{user?.avatar || user?.name?.substring(0, 2).toUpperCase() || "U"}</AvatarFallback>
-            </Avatar>
-            <div>
-              <h1 className="text-2xl font-bold">{t("profile.title") || "My Profile"}</h1>
-              <p className="text-muted-foreground">{user?.email}</p>
-            </div>
+    <DashboardLayout currentUser={currentUser}>
+      <div>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">{t("profile.title") || "My Profile"}</h1>
+            <p className="text-muted-foreground">
+              {t("profile.description") || "Manage your account settings and preferences"}
+            </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleDashboardRedirect}>
-              {user?.role === "business" ? (
-                <>
-                  <Building className="mr-2 h-4 w-4" />
-                  {t("profile.businessDashboard") || "Business Dashboard"}
-                </>
-              ) : (
-                <>
-                  <Home className="mr-2 h-4 w-4" />
-                  {t("profile.dashboard") || "Dashboard"}
-                </>
-              )}
-            </Button>
-            <Button variant="destructive" onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              {t("profile.logout") || "Logout"}
-            </Button>
-          </div>
+          <Button variant="destructive" onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            {t("profile.logout") || "Logout"}
+          </Button>
         </div>
 
         <Tabs defaultValue="personal" className="w-full">
@@ -445,6 +432,6 @@ export default function ProfilePage() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </DashboardLayout>
   )
 }

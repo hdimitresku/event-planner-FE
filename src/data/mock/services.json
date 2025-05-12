@@ -1,0 +1,248 @@
+{
+  "services": [
+    {
+      "id": "1",
+      "name": {
+        "en": "Premium Catering",
+        "sq": "Katering Premium"
+      },
+      "description": {
+        "en": "Exceptional catering service for all types of events. Our professional chefs prepare delicious food using only the finest ingredients.",
+        "sq": "Shërbim i veçantë katering për të gjitha llojet e eventeve. Kuzhinierët tanë profesionistë përgatisin ushqime të shijshme duke përdorur vetëm përbërësit më të mirë."
+      },
+      "type": "catering",
+      "media": [
+        {
+          "id": "img1",
+          "url": "/placeholder.svg?height=600&width=800&text=Catering Service",
+          "type": "image"
+        },
+        {
+          "id": "img2",
+          "url": "/placeholder.svg?height=600&width=800&text=Food Presentation",
+          "type": "image"
+        }
+      ],
+      "options": [
+        {
+          "id": "opt1",
+          "name": {
+            "en": "Basic Package",
+            "sq": "Paketa Bazë"
+          },
+          "description": {
+            "en": "Appetizers, main course, and dessert for your guests.",
+            "sq": "Antipasta, kurs kryesor dhe ëmbëlsirë për të ftuarit tuaj."
+          },
+          "price": {
+            "amount": 45,
+            "currency": "USD",
+            "type": "perPerson"
+          },
+          "popular": false
+        },
+        {
+          "id": "opt2",
+          "name": {
+            "en": "Premium Package",
+            "sq": "Paketa Premium"
+          },
+          "description": {
+            "en": "Expanded menu with premium ingredients and additional courses.",
+            "sq": "Menu e zgjeruar me përbërës premium dhe kurse shtesë."
+          },
+          "price": {
+            "amount": 65,
+            "currency": "USD",
+            "type": "perPerson"
+          },
+          "popular": true
+        },
+        {
+          "id": "opt3",
+          "name": {
+            "en": "Luxury Package",
+            "sq": "Paketa Luksoze"
+          },
+          "description": {
+            "en": "Gourmet menu with chef's specialties and exclusive dishes.",
+            "sq": "Menu gurmane me specialitete të kuzhinierit dhe pjata ekskluzive."
+          },
+          "price": {
+            "amount": 85,
+            "currency": "USD",
+            "type": "perPerson"
+          },
+          "popular": false
+        }
+      ],
+      "rating": {
+        "average": 4.8,
+        "count": 42
+      },
+      "reviews": [
+        {
+          "id": "rev1",
+          "userId": "user1",
+          "rating": 5,
+          "comment": "The food was absolutely amazing. Our guests couldn't stop talking about it!",
+          "createdAt": "2023-04-15T00:00:00Z",
+          "updatedAt": "2023-04-15T00:00:00Z"
+        }
+      ],
+      "featured": true,
+      "active": true,
+      "providerId": "provider1",
+      "availableForVenueTypes": ["ballroom", "garden", "hotel", "restaurant"],
+      "createdAt": "2022-01-15T00:00:00Z",
+      "updatedAt": "2023-01-15T00:00:00Z"
+    },
+    {
+      "id": "2",
+      "name": {
+        "en": "Professional DJ Services",
+        "sq": "Shërbime Profesionale DJ"
+      },
+      "description": {
+        "en": "Experienced DJs with top-quality equipment to make your event unforgettable. We cater to all music preferences and create custom playlists.",
+        "sq": "DJ me përvojë me pajisje të cilësisë së lartë për ta bërë eventin tuaj të paharrueshëm. Ne kujdesemi për të gjitha preferencat muzikore dhe krijojmë playlista të personalizuara."
+      },
+      "type": "music",
+      "media": [
+        {
+          "id": "img1",
+          "url": "/placeholder.svg?height=600&width=800&text=DJ Service",
+          "type": "image"
+        }
+      ],
+      "options": [
+        {
+          "id": "opt1",
+          "name": {
+            "en": "Standard Package (4 hours)",
+            "sq": "Paketa Standarde (4 orë)"
+          },
+          "description": {
+            "en": "Professional DJ with standard equipment for 4 hours.",
+            "sq": "DJ profesional me pajisje standarde për 4 orë."
+          },
+          "price": {
+            "amount": 600,
+            "currency": "USD",
+            "type": "fixed"
+          },
+          "popular": true
+        },
+        {
+          "id": "opt2",
+          "name": {
+            "en": "Premium Package (6 hours)",
+            "sq": "Paketa Premium (6 orë)"
+          },
+          "description": {
+            "en": "Professional DJ with premium equipment, lighting, and extended hours.",
+            "sq": "DJ profesional me pajisje premium, ndriçim dhe orë të zgjatura."
+          },
+          "price": {
+            "amount": 900,
+            "currency": "USD",
+            "type": "fixed"
+          },
+          "popular": false
+        }
+      ],
+      "rating": {
+        "average": 4.9,
+        "count": 38
+      },
+      "featured": false,
+      "active": true,
+      "providerId": "provider2",
+      "availableForVenueTypes": ["ballroom", "garden", "hotel", "restaurant", "party_venue"],
+      "createdAt": "2022-02-15T00:00:00Z",
+      "updatedAt": "2023-02-15T00:00:00Z"
+    },
+    {
+      "id": "3",
+      "name": {
+        "en": "Event Photography",
+        "sq": "Fotografi Eventesh"
+      },
+      "description": {
+        "en": "Capture your special moments with our professional photography services. We provide edited digital photos and optional printed albums.",
+        "sq": "Kapni momentet tuaja të veçanta me shërbimet tona profesionale të fotografisë. Ne ofrojmë foto digjitale të redaktuara dhe albume të shtypura opsionale."
+      },
+      "type": "photography",
+      "media": [
+        {
+          "id": "img1",
+          "url": "/placeholder.svg?height=600&width=800&text=Photography Service",
+          "type": "image"
+        }
+      ],
+      "options": [
+        {
+          "id": "opt1",
+          "name": {
+            "en": "Basic Coverage (3 hours)",
+            "sq": "Mbulim Bazë (3 orë)"
+          },
+          "description": {
+            "en": "One photographer for 3 hours with digital delivery of edited photos.",
+            "sq": "Një fotograf për 3 orë me dorëzim digjital të fotove të redaktuara."
+          },
+          "price": {
+            "amount": 500,
+            "currency": "USD",
+            "type": "fixed"
+          },
+          "popular": false
+        },
+        {
+          "id": "opt2",
+          "name": {
+            "en": "Standard Coverage (5 hours)",
+            "sq": "Mbulim Standard (5 orë)"
+          },
+          "description": {
+            "en": "One photographer for 5 hours with digital delivery of edited photos.",
+            "sq": "Një fotograf për 5 orë me dorëzim digjital të fotove të redaktuara."
+          },
+          "price": {
+            "amount": 800,
+            "currency": "USD",
+            "type": "fixed"
+          },
+          "popular": true
+        },
+        {
+          "id": "opt3",
+          "name": {
+            "en": "Premium Coverage (8 hours)",
+            "sq": "Mbulim Premium (8 orë)"
+          },
+          "description": {
+            "en": "Two photographers for 8 hours with digital delivery of edited photos and a printed album.",
+            "sq": "Dy fotografë për 8 orë me dorëzim digjital të fotove të redaktuara dhe një album të shtypur."
+          },
+          "price": {
+            "amount": 1500,
+            "currency": "USD",
+            "type": "fixed"
+          },
+          "popular": false
+        }
+      ],
+      "rating": {
+        "average": 4.7,
+        "count": 27
+      },
+      "featured": false,
+      "active": true,
+      "providerId": "provider3",
+      "availableForVenueTypes": ["wedding_venue", "ballroom", "garden", "party_venue"],
+      "createdAt": "2022-03-15T00:00:00Z",
+      "updatedAt": "2023-03-15T00:00:00Z"
+    }
+  ]
+} 

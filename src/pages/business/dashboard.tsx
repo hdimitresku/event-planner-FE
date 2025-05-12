@@ -3,24 +3,19 @@
 import { useState } from "react"
 import { useLanguage } from "../../context/language-context"
 import { BusinessLayout } from "../../components/business/layout"
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
+import { EditBookingModal } from "../../components/business/edit-booking-modal"
 import {
-  Building,
-  Calendar,
-  DollarSign,
-  Users,
-  User,
-  MapPin,
-  Clock,
-  CalendarDays,
-  Phone,
-  Mail,
-  Check,
-  X,
-} from "lucide-react"
-import { Badge } from "../../components/ui/badge"
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 import { Button } from "../../components/ui/button"
+import { Badge } from "../../components/ui/badge"
+import { Separator } from "../../components/ui/separator"
 import {
   Dialog,
   DialogContent,
@@ -29,12 +24,31 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../components/ui/dialog"
-import { Separator } from "../../components/ui/separator"
+import {
+  Activity,
+  Calendar,
+  Clock,
+  CreditCard,
+  DollarSign,
+  Users,
+  User,
+  MapPin,
+  Mail,
+  Phone,
+  Check,
+  X,
+  PencilLine,
+  AlertTriangle,
+} from "lucide-react"
+import { toast } from "../../components/ui/use-toast"
 
 export default function BusinessDashboardPage() {
   const { t } = useLanguage()
   const [selectedBooking, setSelectedBooking] = useState<any>(null)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
+  const [bookingToCancel, setBookingToCancel] = useState<string | null>(null)
 
   // Mock data for recent bookings
   const recentBookings = [
@@ -88,20 +102,115 @@ export default function BusinessDashboardPage() {
     },
   ]
 
+  // Add upcoming bookings data
+  const upcomingBookings = [
+    {
+      id: "4",
+      customer: {
+        name: "Emily Davis",
+        email: "emily.davis@example.com",
+        phone: "+1 (555) 234-5678",
+      },
+      venue: "Rooftop Lounge",
+      date: "2025-07-10",
+      time: "19:00 - 23:00",
+      guests: 50,
+      status: "confirmed",
+      total: 1200,
+      notes: "Anniversary celebration.",
+      services: ["Catering", "DJ"],
+    },
+    {
+      id: "5",
+      customer: {
+        name: "Robert Wilson",
+        email: "robert.wilson@example.com",
+        phone: "+1 (555) 345-6789",
+      },
+      venue: "Grand Ballroom",
+      date: "2025-07-15",
+      time: "10:00 - 16:00",
+      guests: 200,
+      status: "confirmed",
+      total: 3500,
+      notes: "Corporate conference. Requires multiple breakout rooms.",
+      services: ["Catering", "AV Equipment", "Staffing"],
+    },
+    {
+      id: "6",
+      customer: {
+        name: "Jennifer Thompson",
+        email: "jennifer.thompson@example.com",
+        phone: "+1 (555) 456-7890",
+      },
+      venue: "Garden Terrace",
+      date: "2025-07-20",
+      time: "17:00 - 21:00",
+      guests: 75,
+      status: "pending",
+      total: 1500,
+      notes: "Graduation party.",
+      services: ["Catering", "Photography"],
+    },
+  ]
+
   const handleViewBooking = (booking: any) => {
     setSelectedBooking(booking)
     setIsViewModalOpen(true)
   }
 
+  const handleEditBooking = (booking: any) => {
+    setSelectedBooking(booking)
+    setIsEditModalOpen(true)
+  }
+
+  const handleSaveBooking = (updatedBooking: any) => {
+    // In a real app, this would update the booking in the database
+    console.log(`Updating booking ${updatedBooking.id}`, updatedBooking)
+    toast({
+      title: t("business.bookings.bookingUpdated") || "Booking Updated",
+      description: t("business.bookings.bookingUpdatedDescription") || "The booking has been successfully updated.",
+      variant: "default",
+    })
+    setIsEditModalOpen(false)
+  }
+
+  const openCancelDialog = (bookingId: string) => {
+    setBookingToCancel(bookingId)
+    setIsCancelModalOpen(true)
+  }
+
+  const handleCancelBooking = () => {
+    // In a real app, this would update the booking status in the database
+    console.log(`Cancelling booking ${bookingToCancel}`)
+    toast({
+      title: t("business.bookings.bookingCancelled") || "Booking Cancelled",
+      description: t("business.bookings.bookingCancelledDescription") || "The booking has been cancelled.",
+      variant: "default",
+    })
+    setIsCancelModalOpen(false)
+    setBookingToCancel(null)
+  }
+
   const handleApproveBooking = (bookingId: string) => {
     // In a real app, this would update the booking status in the database
     console.log(`Approving booking ${bookingId}`)
+    toast({
+      title: t("business.bookings.bookingApproved") || "Booking Approved",
+      description: t("business.bookings.bookingApprovedDescription") || "The booking has been approved.",
+      variant: "default",
+    })
     setIsViewModalOpen(false)
   }
 
   const handleDeclineBooking = (bookingId: string) => {
     // In a real app, this would update the booking status in the database
     console.log(`Declining booking ${bookingId}`)
+    toast({
+      title: t("business.bookings.bookingDeclined") || "Booking Declined",
+      description: t("business.bookings.bookingDeclinedDescription") || "The booking has been declined.",
+      variant: "default",
+    })
     setIsViewModalOpen(false)
   }
 
@@ -158,25 +267,29 @@ export default function BusinessDashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("business.dashboard.venues") || "Venues"}</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">
+              {t("business.dashboard.averageBookingValue") || "Average Booking Value"}
+            </CardTitle>
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
+            <div className="text-2xl font-bold">$1,200</div>
             <p className="text-xs text-muted-foreground">
-              +2 {t("business.dashboard.fromLastMonth") || "from last month"}
+              +4.2% {t("business.dashboard.fromLastMonth") || "from last month"}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("business.dashboard.customers") || "Customers"}</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">
+              {t("business.dashboard.occupancyRate") || "Occupancy Rate"}
+            </CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+573</div>
+            <div className="text-2xl font-bold">+72.5%</div>
             <p className="text-xs text-muted-foreground">
-              +201 {t("business.dashboard.fromLastMonth") || "from last month"}
+              +10.1% {t("business.dashboard.fromLastMonth") || "from last month"}
             </p>
           </CardContent>
         </Card>
@@ -211,67 +324,49 @@ export default function BusinessDashboardPage() {
 
               <Separator />
 
-              <div className="grid gap-4">
-                <div className="flex items-start gap-3">
-                  <User className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <h4 className="font-medium">{t("business.bookings.customer") || "Customer"}</h4>
-                    <p>{selectedBooking.customer.name}</p>
-                    <div className="mt-1 flex flex-col text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Mail className="h-3.5 w-3.5" />
-                        {selectedBooking.customer.email}
+              <div className="grid gap-6 md:grid-cols-2">
+                <div>
+                  <h4 className="mb-2 font-medium">{t("business.bookings.customerInformation") || "Customer Information"}</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center">
+                      <User className="mr-2 h-4 w-4 text-muted-foreground" />
+                      <span>{selectedBooking.customer.name}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
+                      <span>{selectedBooking.customer.email}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
+                      <span>{selectedBooking.customer.phone}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="mb-2 font-medium">{t("business.bookings.eventDetails") || "Event Details"}</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center">
+                      <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                      <span>{selectedBooking.date}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                      <span>{selectedBooking.time}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
+                      <span>{selectedBooking.venue}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+                      <span>
+                        {selectedBooking.guests} {t("business.bookings.guests") || "guests"}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <Phone className="h-3.5 w-3.5" />
-                        {selectedBooking.customer.phone}
-                      </span>
                     </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <h4 className="font-medium">{t("business.bookings.venue") || "Venue"}</h4>
-                    <p>{selectedBooking.venue}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-start gap-3">
-                    <CalendarDays className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <h4 className="font-medium">{t("business.bookings.date") || "Date"}</h4>
-                      <p>{selectedBooking.date}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <h4 className="font-medium">{t("business.bookings.time") || "Time"}</h4>
-                      <p>{selectedBooking.time}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-start gap-3">
-                    <Users className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <h4 className="font-medium">{t("business.bookings.guests") || "Guests"}</h4>
-                      <p>
-                        {selectedBooking.guests} {t("business.bookings.people") || "people"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <h4 className="font-medium">{t("business.bookings.total") || "Total"}</h4>
-                      <p>${selectedBooking.total.toFixed(2)}</p>
+                    <div className="flex items-center">
+                      <DollarSign className="mr-2 h-4 w-4 text-muted-foreground" />
+                      <span>${selectedBooking.total.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -315,7 +410,21 @@ export default function BusinessDashboardPage() {
                     </Button>
                   </div>
                 ) : (
-                  <Button onClick={() => setIsViewModalOpen(false)}>{t("business.common.close") || "Close"}</Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setIsViewModalOpen(false)
+                        handleEditBooking(selectedBooking)
+                      }}
+                    >
+                      <PencilLine className="mr-2 h-4 w-4" />
+                      {t("business.common.edit") || "Edit"}
+                    </Button>
+                    <Button onClick={() => setIsViewModalOpen(false)}>
+                      {t("business.common.close") || "Close"}
+                    </Button>
+                  </div>
                 )}
               </DialogFooter>
             </div>
@@ -323,13 +432,51 @@ export default function BusinessDashboardPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Edit Booking Modal */}
+      {selectedBooking && (
+        <EditBookingModal
+          booking={selectedBooking}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleSaveBooking}
+        />
+      )}
+
+      {/* Cancel Booking Confirmation Dialog */}
+      <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              {t("business.bookings.cancelBooking") || "Cancel Booking"}
+            </DialogTitle>
+            <DialogDescription>
+              {t("business.bookings.cancelBookingConfirmation") || "Are you sure you want to cancel this booking? This action cannot be undone."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center py-4">
+            <AlertTriangle className="h-16 w-16 text-destructive" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCancelModalOpen(false)}>
+              {t("business.common.cancel") || "Cancel"}
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleCancelBooking}
+            >
+              {t("business.bookings.confirmCancel") || "Yes, Cancel Booking"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="mt-8">
         <Tabs defaultValue="overview">
           <TabsList>
             <TabsTrigger value="overview">{t("business.dashboard.overview") || "Overview"}</TabsTrigger>
+            <TabsTrigger value="upcoming">{t("business.dashboard.upcomingBookings") || "Upcoming Bookings"}</TabsTrigger>
             <TabsTrigger value="analytics">{t("business.dashboard.analytics") || "Analytics"}</TabsTrigger>
             <TabsTrigger value="reports">{t("business.dashboard.reports") || "Reports"}</TabsTrigger>
-            <TabsTrigger value="notifications">{t("business.dashboard.notifications") || "Notifications"}</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="mt-4 space-y-4">
             <Card>
@@ -356,26 +503,162 @@ export default function BusinessDashboardPage() {
                                   : t("business.bookings.cancelled") || "Cancelled"}
                           </Badge>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm text-muted-foreground">
-                            {booking.date} • {booking.time}
-                          </p>
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium">${booking.total.toFixed(2)}</p>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="transition-all hover:bg-primary/10 hover:text-primary"
-                              onClick={() => handleViewBooking(booking)}
-                            >
-                              {t("business.common.view") || "View"}
-                            </Button>
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <div className="flex">
+                            <Calendar className="mr-1 h-4 w-4" />
+                            <span className="mr-3">{booking.date}</span>
+                            <Clock className="mr-1 h-4 w-4" />
+                            <span className="mr-3">{booking.time}</span>
+                            <Users className="mr-1 h-4 w-4" />
+                            <span>
+                              {booking.guests} {t("business.bookings.guests") || "guests"}
+                            </span>
                           </div>
+                          <Button size="sm" variant="ghost" onClick={() => handleViewBooking(booking)}>
+                            {t("business.common.view") || "View"}
+                          </Button>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
+              </CardContent>
+              <CardFooter className="border-t p-4">
+                <Button variant="ghost" className="w-full" asChild>
+                  <a href="/business/bookings">
+                    {t("business.dashboard.viewAll") || "View all bookings"}
+                  </a>
+                </Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="upcoming" className="mt-4 space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("business.dashboard.upcomingBookings") || "Upcoming Bookings"}</CardTitle>
+                <CardDescription>
+                  {t("business.dashboard.upcomingBookingsDesc") || "View and manage your upcoming bookings"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {upcomingBookings.map((booking) => (
+                    <Card key={booking.id} className="overflow-hidden">
+                      <div className="border-l-4 border-primary p-0">
+                        <CardHeader className="grid grid-cols-[1fr_auto] items-start gap-4 p-4 pb-0">
+                          <div>
+                            <CardTitle className="flex items-center">
+                              {booking.venue}
+                              <Badge className={`ml-2 ${getStatusBadgeClass(booking.status)}`}>
+                                {booking.status === "confirmed"
+                                  ? t("business.bookings.confirmed") || "Confirmed"
+                                  : t("business.bookings.pending") || "Pending"}
+                              </Badge>
+                            </CardTitle>
+                            <CardDescription>
+                              {booking.customer.name} - {booking.customer.email}
+                            </CardDescription>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold">${booking.total}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {booking.guests} {t("business.bookings.guests") || "guests"}
+                            </p>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-4">
+                          <div className="flex flex-wrap items-center text-sm gap-x-4 gap-y-2">
+                            <div className="flex items-center">
+                              <Calendar className="mr-1 h-4 w-4 text-muted-foreground" />
+                              <span>{booking.date}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <Clock className="mr-1 h-4 w-4 text-muted-foreground" />
+                              <span>{booking.time}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <MapPin className="mr-1 h-4 w-4 text-muted-foreground" />
+                              <span>{booking.venue}</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                        <CardFooter className="flex justify-between p-4 bg-muted/50">
+                          <div className="flex gap-2 flex-wrap">
+                            {booking.services.map((service) => (
+                              <Badge key={service} variant="outline">
+                                {service}
+                              </Badge>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleEditBooking(booking)}
+                            >
+                              <PencilLine className="mr-1.5 h-3.5 w-3.5" />
+                              {t("business.common.edit") || "Edit"}
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => handleViewBooking(booking)}
+                            >
+                              {t("business.common.view") || "View"}
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              onClick={() => openCancelDialog(booking.id)}
+                            >
+                              {t("business.common.cancel") || "Cancel"}
+                            </Button>
+                          </div>
+                        </CardFooter>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+              <CardFooter className="border-t p-4">
+                <Button variant="ghost" className="w-full" asChild>
+                  <a href="/business/bookings">
+                    {t("business.dashboard.viewAll") || "View all bookings"}
+                  </a>
+                </Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("business.dashboard.analytics") || "Analytics"}</CardTitle>
+                <CardDescription>
+                  {t("business.dashboard.analyticsDescription") || "View your business performance metrics"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-[300px] flex items-center justify-center border-2 border-dashed rounded-md">
+                <p className="text-muted-foreground">
+                  {t("business.dashboard.analyticsPlaceholder") || "Analytics charts will be displayed here"}
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="reports" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("business.dashboard.reports") || "Reports"}</CardTitle>
+                <CardDescription>
+                  {t("business.dashboard.reportsDescription") || "View and generate reports"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-[300px] flex items-center justify-center border-2 border-dashed rounded-md">
+                <p className="text-muted-foreground">
+                  {t("business.dashboard.reportsPlaceholder") || "Reports will be displayed here"}
+                </p>
               </CardContent>
             </Card>
           </TabsContent>
