@@ -5,13 +5,47 @@ import { Search, Eye, Palette, CreditCard, PartyPopper, ArrowRight, ChevronRight
 import { Link } from "react-router-dom"
 import { useLanguage } from "../context/language-context"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../components/ui/accordion"
+import { useState } from "react"
 
 export default function HowItWorksPage() {
   const { t } = useLanguage()
+  const [activeFaq, setActiveFaq] = useState<string>("item-1")
+
+  const faqImages = [
+    {
+      id: "item-1",
+      image: "/placeholder.svg?height=600&width=800&text=FAQ+1",
+      alt: "FAQ Question 1"
+    },
+    {
+      id: "item-2",
+      image: "/placeholder.svg?height=600&width=800&text=FAQ+2",
+      alt: "FAQ Question 2"
+    },
+    {
+      id: "item-3",
+      image: "/placeholder.svg?height=600&width=800&text=FAQ+3",
+      alt: "FAQ Question 3"
+    },
+    {
+      id: "item-4",
+      image: "/placeholder.svg?height=600&width=800&text=FAQ+4",
+      alt: "FAQ Question 4"
+    },
+    {
+      id: "item-5",
+      image: "/placeholder.svg?height=600&width=800&text=FAQ+5",
+      alt: "FAQ Question 5"
+    }
+  ]
+
+  const handleAccordionChange = (value: string) => {
+    setActiveFaq(value)
+  }
 
   return (
     <>
-      <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-sky-50 to-white dark:from-slate-900 dark:to-slate-800">
+      <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-sky-200 to-white dark:from-slate-900 dark:to-slate-800">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-2">
@@ -29,7 +63,7 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
-      <section className="w-full py-16 md:py-24 lg:py-32">
+      <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-sky-200 dark:from-slate-800 dark:to-slate-900">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col space-y-16">
             {/* Step 1 */}
@@ -191,26 +225,41 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
-      <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-sky-50 dark:from-slate-800 dark:to-slate-900">
+      <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-sky-200 to-white dark:from-slate-900 dark:to-slate-800">
         <div className="container px-4 md:px-6">
           <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
             <div className="relative aspect-video overflow-hidden rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
-              <img
-                src="/placeholder.svg?height=600&width=800&text=Booking+Process+Demo"
-                alt="How VenueSpace Works"
-                className="object-cover w-full h-full"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-              <div className="absolute bottom-4 left-4 bg-white dark:bg-slate-800 rounded-lg px-3 py-1 text-sm font-medium text-gray-800 dark:text-gray-50 shadow-sm">
-                {t("howItWorks.faq.videoTag") || "Watch Demo"}
-              </div>
+              {faqImages.map((item) => (
+                <div
+                  key={item.id}
+                  className={`absolute inset-0 transition-opacity duration-500 ${
+                    activeFaq === item.id ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  <img
+                    src={item.image}
+                    alt={item.alt}
+                    className="object-cover w-full h-full"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 bg-white dark:bg-slate-800 rounded-lg px-3 py-1 text-sm font-medium text-gray-800 dark:text-gray-50 shadow-sm">
+                    {t("howItWorks.faq.videoTag") || "Watch Demo"}
+                  </div>
+                </div>
+              ))}
             </div>
             <div className="space-y-6">
               <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-2">
                 <span>{t("howItWorks.faq.badge") || "Common Questions"}</span>
               </div>
               <h2 className="text-3xl font-bold tracking-tighter text-gray-800 dark:text-gray-50">{t("howItWorks.faq.title")}</h2>
-              <Accordion type="single" collapsible className="w-full">
+              <Accordion 
+                type="single" 
+                collapsible 
+                className="w-full"
+                value={activeFaq}
+                onValueChange={handleAccordionChange}
+              >
                 <AccordionItem value="item-1" className="border-b border-gray-200 dark:border-gray-700">
                   <AccordionTrigger className="text-gray-800 dark:text-gray-50 font-medium hover:text-sky-500 dark:hover:text-sky-400">
                     {t("howItWorks.faq.q1")}
@@ -257,14 +306,14 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
-      <section className="w-full py-16 md:py-24 lg:py-32 bg-sky-500 dark:bg-sky-600">
+      <section className="w-full py-16 md:py-24 lg:py-32 bg-sky-200 dark:bg-slate-700/30">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2 max-w-3xl">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-white">
+              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-gray-800 dark:text-gray-50">
                 {t("howItWorks.cta.title")}
               </h2>
-              <p className="max-w-[900px] text-sky-100 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+              <p className="max-w-[900px] text-gray-800 dark:text-gray-50 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                 {t("howItWorks.cta.description") || "Ready to find the perfect venue for your next event? Start browsing now."}
               </p>
             </div>

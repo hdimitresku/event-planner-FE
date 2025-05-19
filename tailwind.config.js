@@ -44,6 +44,12 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+          light: "#d1fae5",
+          dark: "#065f46",
+        },
         "soft-blue": "hsl(var(--primary))",
         "warm-coral": "hsl(var(--secondary))",
       },

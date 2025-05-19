@@ -1,0 +1,421 @@
+{
+  "users": [
+    {
+      "id": "user1",
+      "email": "john.doe@example.com",
+      "firstName": "John",
+      "lastName": "Doe",
+      "displayName": "John Doe",
+      "phoneNumber": "+1234567890",
+      "profileImage": "/placeholder.svg?height=200&width=200&text=JD",
+      "role": "customer",
+      "lastLogin": "2023-10-15T08:30:00Z",
+      "address": {
+        "street": "123 Main Street",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "10001",
+        "country": "USA"
+      },
+      "preferences": {
+        "language": "en",
+        "currency": "USD",
+        "notifications": {
+          "email": true,
+          "push": true,
+          "sms": false
+        },
+        "theme": "light"
+      },
+      "isActive": true,
+      "isVerified": true,
+      "createdAt": "2022-01-10T00:00:00Z",
+      "updatedAt": "2023-01-10T00:00:00Z"
+    },
+    {
+      "id": "user2",
+      "email": "jane.smith@example.com",
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "displayName": "Jane Smith",
+      "phoneNumber": "+1987654321",
+      "profileImage": "/placeholder.svg?height=200&width=200&text=JS",
+      "role": "customer",
+      "lastLogin": "2023-10-10T14:45:00Z",
+      "address": {
+        "street": "456 Park Avenue",
+        "city": "Brooklyn",
+        "state": "NY",
+        "zipCode": "11201",
+        "country": "USA"
+      },
+      "preferences": {
+        "language": "en",
+        "currency": "USD",
+        "notifications": {
+          "email": true,
+          "push": false,
+          "sms": true
+        },
+        "theme": "dark"
+      },
+      "isActive": true,
+      "isVerified": true,
+      "createdAt": "2022-02-15T00:00:00Z",
+      "updatedAt": "2023-02-15T00:00:00Z"
+    },
+    {
+      "id": "user3",
+      "email": "alex.johnson@example.com",
+      "firstName": "Alex",
+      "lastName": "Johnson",
+      "displayName": "Alex Johnson",
+      "phoneNumber": "+1122334455",
+      "profileImage": "/placeholder.svg?height=200&width=200&text=AJ",
+      "role": "customer",
+      "lastLogin": "2023-10-12T11:20:00Z",
+      "address": {
+        "street": "789 Broadway",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "10012",
+        "country": "USA"
+      },
+      "preferences": {
+        "language": "en",
+        "currency": "EUR",
+        "notifications": {
+          "email": true,
+          "push": true,
+          "sms": true
+        },
+        "theme": "system"
+      },
+      "isActive": true,
+      "isVerified": true,
+      "createdAt": "2022-03-20T00:00:00Z",
+      "updatedAt": "2023-03-20T00:00:00Z"
+    },
+    {
+      "id": "user4",
+      "email": "sarah.miller@example.com",
+      "firstName": "Sarah",
+      "lastName": "Miller",
+      "displayName": "Sarah Miller",
+      "phoneNumber": "+1567890123",
+      "role": "customer",
+      "lastLogin": "2023-10-14T16:30:00Z",
+      "preferences": {
+        "language": "en",
+        "currency": "USD",
+        "notifications": {
+          "email": true,
+          "push": false,
+          "sms": false
+        },
+        "theme": "light"
+      },
+      "isActive": true,
+      "isVerified": true,
+      "createdAt": "2022-04-05T00:00:00Z",
+      "updatedAt": "2023-04-05T00:00:00Z"
+    },
+    {
+      "id": "business1",
+      "email": "events@luxurycatering.com",
+      "firstName": "Michael",
+      "lastName": "Chen",
+      "displayName": "Michael Chen",
+      "phoneNumber": "+1456789012",
+      "profileImage": "/placeholder.svg?height=200&width=200&text=MC",
+      "role": "business",
+      "lastLogin": "2023-10-15T09:15:00Z",
+      "address": {
+        "street": "100 Culinary Lane",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "10013",
+        "country": "USA"
+      },
+      "isActive": true,
+      "isVerified": true,
+      "createdAt": "2022-01-15T00:00:00Z",
+      "updatedAt": "2023-01-15T00:00:00Z"
+    },
+    {
+      "id": "business2",
+      "email": "info@premierdj.com",
+      "firstName": "David",
+      "lastName": "Rodriguez",
+      "displayName": "David Rodriguez",
+      "phoneNumber": "+1678901234",
+      "profileImage": "/placeholder.svg?height=200&width=200&text=DR",
+      "role": "business",
+      "lastLogin": "2023-10-14T11:30:00Z",
+      "address": {
+        "street": "200 Music Street",
+        "city": "Brooklyn",
+        "state": "NY",
+        "zipCode": "11211",
+        "country": "USA"
+      },
+      "isActive": true,
+      "isVerified": true,
+      "createdAt": "2022-02-20T00:00:00Z",
+      "updatedAt": "2023-02-20T00:00:00Z"
+    },
+    {
+      "id": "business3",
+      "email": "contact@elitephotography.com",
+      "firstName": "Emma",
+      "lastName": "Wilson",
+      "displayName": "Emma Wilson",
+      "phoneNumber": "+1789012345",
+      "profileImage": "/placeholder.svg?height=200&width=200&text=EW",
+      "role": "business",
+      "lastLogin": "2023-10-13T14:00:00Z",
+      "address": {
+        "street": "300 Camera Avenue",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "10014",
+        "country": "USA"
+      },
+      "isActive": true,
+      "isVerified": true,
+      "createdAt": "2022-03-25T00:00:00Z",
+      "updatedAt": "2023-03-25T00:00:00Z"
+    },
+    {
+      "id": "admin1",
+      "email": "admin@eventspace.com",
+      "firstName": "Admin",
+      "lastName": "User",
+      "displayName": "System Admin",
+      "role": "admin",
+      "isActive": true,
+      "isVerified": true,
+      "createdAt": "2022-01-01T00:00:00Z",
+      "updatedAt": "2023-01-01T00:00:00Z"
+    }
+  ],
+  "businessProfiles": [
+    {
+      "id": "bp1",
+      "userId": "business1",
+      "businessName": "Luxury Catering Co.",
+      "businessDescription": "Premium catering services for all types of events. We specialize in gourmet cuisine and impeccable service.",
+      "contactEmail": "events@luxurycatering.com",
+      "contactPhone": "+1456789012",
+      "website": "https://luxurycatering.example.com",
+      "socialMedia": {
+        "facebook": "https://facebook.com/luxurycatering",
+        "instagram": "https://instagram.com/luxury_catering",
+        "twitter": "https://twitter.com/luxury_catering"
+      },
+      "businessAddress": {
+        "street": "100 Culinary Lane",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "10013",
+        "country": "USA"
+      },
+      "businessHours": [
+        {
+          "dayOfWeek": 0,
+          "open": false
+        },
+        {
+          "dayOfWeek": 1,
+          "open": true,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        },
+        {
+          "dayOfWeek": 2,
+          "open": true,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        },
+        {
+          "dayOfWeek": 3,
+          "open": true,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        },
+        {
+          "dayOfWeek": 4,
+          "open": true,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        },
+        {
+          "dayOfWeek": 5,
+          "open": true,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        },
+        {
+          "dayOfWeek": 6,
+          "open": false
+        }
+      ],
+      "logo": "/placeholder.svg?height=200&width=200&text=LC",
+      "bannerImage": "/placeholder.svg?height=600&width=1200&text=Luxury Catering",
+      "verificationStatus": "verified",
+      "averageRating": 4.8,
+      "reviewCount": 42,
+      "createdAt": "2022-01-15T00:00:00Z",
+      "updatedAt": "2023-01-15T00:00:00Z"
+    },
+    {
+      "id": "bp2",
+      "userId": "business2",
+      "businessName": "Premier DJ Services",
+      "businessDescription": "Professional DJ services for weddings, corporate events, and private parties. We bring the perfect soundtrack to your special occasion.",
+      "contactEmail": "info@premierdj.com",
+      "contactPhone": "+1678901234",
+      "website": "https://premierdj.example.com",
+      "socialMedia": {
+        "facebook": "https://facebook.com/premierdj",
+        "instagram": "https://instagram.com/premier_dj",
+        "twitter": "https://twitter.com/premier_dj"
+      },
+      "businessAddress": {
+        "street": "200 Music Street",
+        "city": "Brooklyn",
+        "state": "NY",
+        "zipCode": "11211",
+        "country": "USA"
+      },
+      "businessHours": [
+        {
+          "dayOfWeek": 0,
+          "open": false
+        },
+        {
+          "dayOfWeek": 1,
+          "open": true,
+          "startTime": "10:00",
+          "endTime": "18:00"
+        },
+        {
+          "dayOfWeek": 2,
+          "open": true,
+          "startTime": "10:00",
+          "endTime": "18:00"
+        },
+        {
+          "dayOfWeek": 3,
+          "open": true,
+          "startTime": "10:00",
+          "endTime": "18:00"
+        },
+        {
+          "dayOfWeek": 4,
+          "open": true,
+          "startTime": "10:00",
+          "endTime": "18:00"
+        },
+        {
+          "dayOfWeek": 5,
+          "open": true,
+          "startTime": "10:00",
+          "endTime": "18:00"
+        },
+        {
+          "dayOfWeek": 6,
+          "open": true,
+          "startTime": "12:00",
+          "endTime": "16:00"
+        }
+      ],
+      "logo": "/placeholder.svg?height=200&width=200&text=PD",
+      "bannerImage": "/placeholder.svg?height=600&width=1200&text=Premier DJ",
+      "verificationStatus": "verified",
+      "averageRating": 4.9,
+      "reviewCount": 38,
+      "createdAt": "2022-02-20T00:00:00Z",
+      "updatedAt": "2023-02-20T00:00:00Z"
+    },
+    {
+      "id": "bp3",
+      "userId": "business3",
+      "businessName": "Elite Photography",
+      "businessDescription": "Capturing your special moments with artistic flair. We specialize in event photography, portraits, and commercial work.",
+      "contactEmail": "contact@elitephotography.com",
+      "contactPhone": "+1789012345",
+      "website": "https://elitephotography.example.com",
+      "socialMedia": {
+        "facebook": "https://facebook.com/elitephotography",
+        "instagram": "https://instagram.com/elite_photography",
+        "twitter": "https://twitter.com/elite_photo"
+      },
+      "businessAddress": {
+        "street": "300 Camera Avenue",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "10014",
+        "country": "USA"
+      },
+      "businessHours": [
+        {
+          "dayOfWeek": 0,
+          "open": false
+        },
+        {
+          "dayOfWeek": 1,
+          "open": true,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        },
+        {
+          "dayOfWeek": 2,
+          "open": true,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        },
+        {
+          "dayOfWeek": 3,
+          "open": true,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        },
+        {
+          "dayOfWeek": 4,
+          "open": true,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        },
+        {
+          "dayOfWeek": 5,
+          "open": true,
+          "startTime": "09:00",
+          "endTime": "17:00"
+        },
+        {
+          "dayOfWeek": 6,
+          "open": true,
+          "startTime": "10:00",
+          "endTime": "15:00"
+        }
+      ],
+      "logo": "/placeholder.svg?height=200&width=200&text=EP",
+      "bannerImage": "/placeholder.svg?height=600&width=1200&text=Elite Photography",
+      "verificationStatus": "verified",
+      "averageRating": 4.7,
+      "reviewCount": 27,
+      "createdAt": "2022-03-25T00:00:00Z",
+      "updatedAt": "2023-03-25T00:00:00Z"
+    }
+  ],
+  "auth": {
+    "tokens": {
+      "user1": {
+        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c2VyMSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTYzNjUwMDAwMCwiZXhwIjoxNjM2NTAzNjAwfQ.signature",
+        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c2VyMSIsImlhdCI6MTYzNjUwMDAwMCwiZXhwIjoxNjM2NTg2NDAwfQ.signature",
+        "expiresAt": 1636503600000
+      }
+    }
+  }
+} 

@@ -1,8 +1,8 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Slider } from "../components/ui/slider"
@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Badge } from "../components/ui/badge"
 import {
   MapPin,
-  Calendar,
   Users,
   Search,
   Filter,
@@ -28,11 +27,19 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  CalendarIcon,
 } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useLanguage } from "../context/language-context"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
+import { Calendar } from "@/components/ui/calendar"
+import { cn } from "@/lib/utils"
+import { enUS } from "date-fns/locale"
+import { VenueSummary, VenueType, VenueAmenity } from "../models/venue"
+import { PricingType } from "../models/common"
+import * as venueService from "../services/venueService"
+import { useFavorites } from "../context/favorites-context"
 
 // Define price type interface
 type PriceType = "hourly" | "perPerson" | "fixed" | "custom"
@@ -58,211 +65,109 @@ interface Venue {
 
 export default function VenuesPage() {
   const { t, language } = useLanguage()
+  const { isFavorite, toggleFavorite } = useFavorites()
   const [priceRange, setPriceRange] = useState<number[]>([250])
   const [venueTypes, setVenueTypes] = useState<Record<string, boolean>>({
-    "Meeting Room": false,
-    "Party Venue": false,
-    "Photography Studio": false,
-    "Wedding Venue": false,
-    "Outdoor Space": false,
+    [VenueType.MEETING_ROOM]: false,
+    [VenueType.PARTY_VENUE]: false,
+    [VenueType.PHOTOGRAPHY_STUDIO]: false,
+    [VenueType.WEDDING_VENUE]: false,
+    [VenueType.OUTDOOR_SPACE]: false,
   })
-  const [priceTypes, setPriceTypes] = useState<Record<PriceType, boolean>>({
-    hourly: false,
-    perPerson: false,
-    fixed: false,
-    custom: false,
+  const [priceTypes, setPriceTypes] = useState<Record<PricingType, boolean>>({
+    [PricingType.HOURLY]: false,
+    [PricingType.PER_PERSON]: false,
+    [PricingType.FIXED]: false,
+    [PricingType.CUSTOM]: false,
+    [PricingType.PER_DAY]: false
   })
   const [amenities, setAmenities] = useState<Record<string, boolean>>({
-    WiFi: false,
-    Parking: false,
-    "Sound System": false,
-    Kitchen: false,
-    "AV Equipment": false,
+    [VenueAmenity.WIFI]: false,
+    [VenueAmenity.PARKING]: false,
+    [VenueAmenity.SOUND_SYSTEM]: false,
+    [VenueAmenity.KITCHEN]: false,
+    [VenueAmenity.AV_EQUIPMENT]: false,
   })
   const [searchParams, setSearchParams] = useState({
     location: "",
     date: "",
     guests: "",
   })
+  const [venues, setVenues] = useState<VenueSummary[]>([])
+  const [loading, setLoading] = useState(true)
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    limit: 10
+  })
 
-  // This would normally be fetched from an API with language parameter
-  const allVenues: Venue[] = [
-    {
-      id: 1,
-      name: {
-        en: "Stunning Loft Space",
-        sq: "Hapësirë Loft Mahnitëse",
-      },
-      location: {
-        en: "Manhattan, NY",
-        sq: "Manhattan, NY",
-      },
-      rating: 4.9,
-      reviews: 24,
-      price: 150,
-      priceType: "hourly",
-      type: "Party Venue",
-      amenities: ["WiFi", "Sound System"],
-    },
-    {
-      id: 2,
-      name: {
-        en: "Rooftop Garden",
-        sq: "Kopshti në Çati",
-      },
-      location: {
-        en: "Brooklyn, NY",
-        sq: "Brooklyn, NY",
-      },
-      rating: 4.7,
-      reviews: 18,
-      price: 200,
-      priceType: "perPerson",
-      type: "Outdoor Space",
-      amenities: ["WiFi", "Kitchen"],
-    },
-    {
-      id: 3,
-      name: {
-        en: "Modern Gallery",
-        sq: "Galeri Moderne",
-      },
-      location: {
-        en: "Chelsea, NY",
-        sq: "Chelsea, NY",
-      },
-      rating: 4.8,
-      reviews: 32,
-      price: 300,
-      priceType: "fixed",
-      type: "Photography Studio",
-      amenities: ["WiFi", "AV Equipment"],
-    },
-    {
-      id: 4,
-      name: {
-        en: "Penthouse Lounge",
-        sq: "Sallon Penthouse",
-      },
-      location: {
-        en: "Soho, NY",
-        sq: "Soho, NY",
-      },
-      rating: 4.6,
-      reviews: 14,
-      price: 250,
-      priceType: "hourly",
-      type: "Party Venue",
-      amenities: ["WiFi", "Sound System", "Kitchen"],
-    },
-    {
-      id: 5,
-      name: {
-        en: "Historic Ballroom",
-        sq: "Sallë Vallëzimi Historike",
-      },
-      location: {
-        en: "Upper East Side, NY",
-        sq: "Upper East Side, NY",
-      },
-      rating: 4.8,
-      reviews: 28,
-      price: 350,
-      priceType: "perPerson",
-      type: "Wedding Venue",
-      amenities: ["WiFi", "Sound System", "Kitchen", "AV Equipment"],
-    },
-    {
-      id: 6,
-      name: {
-        en: "Art Studio",
-        sq: "Studio Arti",
-      },
-      location: {
-        en: "Tribeca, NY",
-        sq: "Tribeca, NY",
-      },
-      rating: 4.5,
-      reviews: 16,
-      price: 180,
-      priceType: "custom",
-      type: "Photography Studio",
-      amenities: ["WiFi", "AV Equipment"],
-    },
-    {
-      id: 7,
-      name: {
-        en: "Waterfront Venue",
-        sq: "Ambient Buzë Ujit",
-      },
-      location: {
-        en: "Williamsburg, NY",
-        sq: "Williamsburg, NY",
-      },
-      rating: 4.7,
-      reviews: 22,
-      price: 280,
-      priceType: "fixed",
-      type: "Wedding Venue",
-      amenities: ["WiFi", "Parking", "Sound System"],
-    },
-    {
-      id: 8,
-      name: {
-        en: "Terrace Space",
-        sq: "Hapësirë Tarrace",
-      },
-      location: {
-        en: "Midtown, NY",
-        sq: "Midtown, NY",
-      },
-      rating: 4.4,
-      reviews: 12,
-      price: 120,
-      priceType: "hourly",
-      type: "Outdoor Space",
-      amenities: ["WiFi", "Parking"],
-    },
-    {
-      id: 9,
-      name: {
-        en: "Luxury Lounge",
-        sq: "Sallon Luksoz",
-      },
-      location: {
-        en: "Queens, NY",
-        sq: "Queens, NY",
-      },
-      rating: 4.9,
-      reviews: 30,
-      price: 220,
-      priceType: "perPerson",
-      type: "Meeting Room",
-      amenities: ["WiFi", "AV Equipment", "Kitchen"],
-    },
-  ]
+  useEffect(() => {
+    fetchVenues()
+  }, [])
+
+  const fetchVenues = async () => {
+    setLoading(true)
+    try {
+      const selectedVenueTypes = Object.entries(venueTypes)
+        .filter(([_, selected]) => selected)
+        .map(([type]) => type as VenueType)
+
+      const selectedPriceTypes = Object.entries(priceTypes)
+        .filter(([_, selected]) => selected)
+        .map(([type]) => type as PricingType)
+
+      const selectedAmenities = Object.entries(amenities)
+        .filter(([_, selected]) => selected)
+        .map(([amenity]) => amenity as VenueAmenity)
+
+      const filters = {
+        priceMax: priceRange[0],
+        venueTypes: selectedVenueTypes.length > 0 ? selectedVenueTypes : undefined,
+        priceTypes: selectedPriceTypes.length >.0 ? selectedPriceTypes : undefined,
+        amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
+        location: searchParams.location || undefined,
+        guests: searchParams.guests ? parseInt(searchParams.guests) : undefined,
+        page: pagination.page,
+        limit: pagination.limit
+      }
+
+      const result = await venueService.getVenues(filters)
+      setVenues(result.venues)
+      setPagination({
+        total: result.total,
+        page: result.page,
+        limit: result.limit
+      })
+    } catch (error) {
+      console.error("Error fetching venues:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const [date, setDate] = React.useState<Date>()
 
   // Filter venues based on selected filters
-  const filteredVenues = allVenues.filter((venue) => {
+  const filteredVenues = venues.filter((venue) => {
     // Price filter
-    if (venue.price > priceRange[0]) return false
+    if (venue.price.amount > priceRange[0]) return false
 
     // Venue type filter
     const selectedTypes = Object.entries(venueTypes)
       .filter(([_, selected]) => selected)
-      .map(([type]) => type)
+      .map(([type]) => type as VenueType)
     if (selectedTypes.length > 0 && !selectedTypes.includes(venue.type)) return false
 
     // Price type filter
     const selectedPriceTypes = Object.entries(priceTypes)
       .filter(([_, selected]) => selected)
-      .map(([type]) => type as PriceType)
-    if (selectedPriceTypes.length > 0 && !selectedPriceTypes.includes(venue.priceType)) return false
+      .map(([type]) => type as PricingType)
+    if (selectedPriceTypes.length > 0 && !selectedPriceTypes.includes(venue.price.type)) return false
 
     // Amenities filter
     const selectedAmenities = Object.entries(amenities)
       .filter(([_, selected]) => selected)
-      .map(([amenity]) => amenity)
+      .map(([amenity]) => amenity as VenueAmenity)
     if (selectedAmenities.length > 0 && !selectedAmenities.every((amenity) => venue.amenities.includes(amenity)))
       return false
 
@@ -277,7 +182,7 @@ export default function VenuesPage() {
     setVenueTypes((prev) => ({ ...prev, [type]: checked }))
   }
 
-  const handlePriceTypeChange = (type: PriceType, checked: boolean) => {
+  const handlePriceTypeChange = (type: PricingType, checked: boolean) => {
     setPriceTypes((prev) => ({ ...prev, [type]: checked }))
   }
 
@@ -293,7 +198,8 @@ export default function VenuesPage() {
   const selectedDate = searchParams.date ? new Date(searchParams.date) : "";
 
 
-  const handleDateChange = (date: Date) => {
+  const handleDateChange = (date: Date | undefined) => {
+    setDate(date);
     handleSearchChange({
       target: {
         name: "date",
@@ -304,31 +210,32 @@ export default function VenuesPage() {
 
 
   const handleSearch = () => {
-    // In a real app, this would trigger an API call with the search parameters
-    console.log("Searching with params:", searchParams)
+    pagination.page = 1
+    fetchVenues()
   }
 
   const clearAllFilters = () => {
     setPriceRange([250])
     setVenueTypes({
-      "Meeting Room": false,
-      "Party Venue": false,
-      "Photography Studio": false,
-      "Wedding Venue": false,
-      "Outdoor Space": false,
+      [VenueType.MEETING_ROOM]: false,
+      [VenueType.PARTY_VENUE]: false,
+      [VenueType.PHOTOGRAPHY_STUDIO]: false,
+      [VenueType.WEDDING_VENUE]: false,
+      [VenueType.OUTDOOR_SPACE]: false,
     })
     setPriceTypes({
-      hourly: false,
-      perPerson: false,
-      fixed: false,
-      custom: false,
+      [PricingType.HOURLY]: false,
+      [PricingType.PER_PERSON]: false,
+      [PricingType.FIXED]: false,
+      [PricingType.CUSTOM]: false,
+      [PricingType.PER_DAY]: false
     })
     setAmenities({
-      WiFi: false,
-      Parking: false,
-      "Sound System": false,
-      Kitchen: false,
-      "AV Equipment": false,
+      [VenueAmenity.WIFI]: false,
+      [VenueAmenity.PARKING]: false,
+      [VenueAmenity.SOUND_SYSTEM]: false,
+      [VenueAmenity.KITCHEN]: false,
+      [VenueAmenity.AV_EQUIPMENT]: false,
     })
     setSearchParams({
       location: "",
@@ -338,50 +245,34 @@ export default function VenuesPage() {
   }
 
   // Get price display based on price type and language
-  const getPriceDisplay = (venue: Venue) => {
-    const price = venue.price
-    switch (venue.priceType) {
-      case "hourly":
-        return `$${price}/${t("business.pricing.hourly")}`
-      case "perPerson":
-        return `$${price}/${t("business.pricing.perPerson")}`
-      case "fixed":
-        return `$${price}`
-      case "custom":
-        return t("business.pricing.custom")
+  const getPriceDisplay = (venue: VenueSummary) => {
+    const formatPrice = (price: number) => `$${price}`
+    
+    switch (venue.price.type) {
+      case PricingType.HOURLY:
+        return `${formatPrice(venue.price.amount)}/${t("business.serviceNew.hourly")}`
+      case PricingType.PER_PERSON:
+        return `${formatPrice(venue.price.amount)}/${t("business.serviceNew.perPerson")}`
+      case PricingType.FIXED:
+        return formatPrice(venue.price.amount)
+      case PricingType.CUSTOM:
+        return t("business.serviceNew.flatFee")
       default:
-        return `$${price}`
+        return formatPrice(venue.price.amount)
     }
   }
 
   // Get badge color and text for price type
-  const getPriceTypeBadge = (priceType: PriceType) => {
+  const getPriceTypeBadge = (priceType: PricingType) => {
     switch (priceType) {
-      case "hourly":
-        return {
-          text: t("business.pricing.hourly"),
-          bgColor: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-400",
-        }
-      case "perPerson":
-        return {
-          text: t("business.pricing.perPerson"),
-          bgColor: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-400",
-        }
-      case "fixed":
-        return {
-          text: t("business.pricing.fixed"),
-          bgColor: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-400",
-        }
-      case "custom":
-        return {
-          text: t("business.pricing.custom"),
-          bgColor: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-400",
-        }
+      case PricingType.HOURLY:
+        return <Badge variant="outline">{t("business.serviceNew.hourly")}</Badge>
+      case PricingType.PER_PERSON:
+        return <Badge variant="outline">{t("business.serviceNew.perPerson")}</Badge>
+      case PricingType.FIXED:
+        return <Badge variant="outline">{t("business.serviceNew.flatFee")}</Badge>
       default:
-        return {
-          text: "",
-          bgColor: "",
-        }
+        return null
     }
   }
 
@@ -427,16 +318,31 @@ export default function VenuesPage() {
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300" htmlFor="date">
                   {t("venues.searchBar.date") || "Date"}
                 </label>
-                <div className="rounded-lg border border-transparent transition-all hover:border-primary hover:shadow-sm flex items-center gap-2 border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 transition-all">
-                  <Calendar className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                  <Input
-                    id="date"
-                    name="date"
-                    value={searchParams.date}
-                    onChange={handleSearchChange}
-                    className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
-                    type="date"
-                  />
+                <div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal rounded-lg border border-transparent transition-all hover:border-primary hover:shadow-sm bg-gray-50 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 transition-all",
+                          !date && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" />
+                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={handleDateChange}
+                        initialFocus
+                        className="rounded-md border"
+                        weekStartsOn={0} // 0 for Sunday, 1 for Monday, etc.
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
               <div className="space-y-2">
@@ -498,8 +404,8 @@ export default function VenuesPage() {
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="price-type-hourly"
-                      checked={priceTypes.hourly}
-                      onCheckedChange={(checked) => handlePriceTypeChange("hourly", checked === true)}
+                      checked={priceTypes[PricingType.HOURLY]}
+                      onCheckedChange={(checked) => handlePriceTypeChange(PricingType.HOURLY, checked === true)}
                       className="data-[state=checked]:bg-sky-500 data-[state=checked]:border-sky-500 border-2 group-hover:border-sky-400 transition-all duration-200 scale-100 group-hover:scale-110"
                     />
                     <label
@@ -507,14 +413,14 @@ export default function VenuesPage() {
                       className="flex items-center text-sm font-medium leading-none text-gray-700 dark:text-gray-300 hover:text-sky-600 dark:hover:text-sky-400 transition-colors duration-200 cursor-pointer group"
                     >
                       <Clock className="mr-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
-                      {t("business.pricing.hourly")}
+                      {t("business.serviceNew.hourly")}
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="price-type-perPerson"
-                      checked={priceTypes.perPerson}
-                      onCheckedChange={(checked) => handlePriceTypeChange("perPerson", checked === true)}
+                      checked={priceTypes[PricingType.PER_PERSON]}
+                      onCheckedChange={(checked) => handlePriceTypeChange(PricingType.PER_PERSON, checked === true)}
                       className="data-[state=checked]:bg-sky-500 data-[state=checked]:border-sky-500 border-2 group-hover:border-sky-400 transition-all duration-200 scale-100 group-hover:scale-110"
                     />
                     <label
@@ -522,14 +428,14 @@ export default function VenuesPage() {
                       className="flex items-center text-sm font-medium leading-none text-gray-700 dark:text-gray-300 hover:text-sky-600 dark:hover:text-sky-400 transition-colors duration-200 cursor-pointer group"
                     >
                       <User className="mr-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
-                      {t("business.pricing.perPerson")}
+                      {t("business.serviceNew.perPerson")}
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="price-type-fixed"
-                      checked={priceTypes.fixed}
-                      onCheckedChange={(checked) => handlePriceTypeChange("fixed", checked === true)}
+                      checked={priceTypes[PricingType.FIXED]}
+                      onCheckedChange={(checked) => handlePriceTypeChange(PricingType.FIXED, checked === true)}
                       className="data-[state=checked]:bg-sky-500 data-[state=checked]:border-sky-500 border-2 group-hover:border-sky-400 transition-all duration-200 scale-100 group-hover:scale-110"
                     />
                     <label
@@ -537,24 +443,10 @@ export default function VenuesPage() {
                       className="flex items-center text-sm font-medium leading-none text-gray-700 dark:text-gray-300 hover:text-sky-600 dark:hover:text-sky-400 transition-colors duration-200 cursor-pointer group"
                     >
                       <DollarSign className="mr-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
-                      {t("business.pricing.fixed")}
+                      {t("business.serviceNew.flatFee")}
                     </label>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="price-type-custom"
-                      checked={priceTypes.custom}
-                      onCheckedChange={(checked) => handlePriceTypeChange("custom", checked === true)}
-                      className="data-[state=checked]:bg-sky-500 data-[state=checked]:border-sky-500 border-2 group-hover:border-sky-400 transition-all duration-200 scale-100 group-hover:scale-110"
-                    />
-                    <label
-                      htmlFor="price-type-custom"
-                      className="flex items-center text-sm font-medium leading-none text-gray-700 dark:text-gray-300 hover:text-sky-600 dark:hover:text-sky-400 transition-colors duration-200 cursor-pointer group"
-                    >
-                      <Settings className="mr-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
-                      {t("business.pricing.custom")}
-                    </label>
-                  </div>
+                 
                 </div>
               </div>
 
@@ -566,15 +458,15 @@ export default function VenuesPage() {
                   {Object.keys(venueTypes).map((type) => {
                     // Map venue types to keys for business.venueTypes translations
                     const typeKey =
-                      type === "Meeting Room"
-                        ? "other"
-                        : type === "Party Venue"
+                      type === VenueType.MEETING_ROOM
+                        ? "meetingRoom"
+                        : type === VenueType.PARTY_VENUE
                           ? "ballroom"
-                          : type === "Photography Studio"
+                          : type === VenueType.PHOTOGRAPHY_STUDIO
                             ? "loft"
-                            : type === "Wedding Venue"
+                            : type === VenueType.WEDDING_VENUE
                               ? "ballroom"
-                              : type === "Outdoor Space"
+                              : type === VenueType.OUTDOOR_SPACE
                                 ? "garden"
                                 : "other"
 
@@ -603,11 +495,11 @@ export default function VenuesPage() {
                 </h3>
                 <div className="space-y-3">
                   {[
-                    { label: t("venues.amenities.wifi") || "WiFi", icon: Wifi, key: "WiFi" },
-                    { label: t("venues.amenities.parking") || "Parking", icon: Parking, key: "Parking" },
-                    { label: t("venues.amenities.soundSystem") || "Sound System", icon: Music, key: "Sound System" },
-                    { label: t("venues.amenities.kitchen") || "Kitchen", icon: Utensils, key: "Kitchen" },
-                    { label: t("venues.amenities.avEquipment") || "AV Equipment", icon: Tv, key: "AV Equipment" },
+                    { label: t("venues.amenities.wifi") || "WiFi", icon: Wifi, key: VenueAmenity.WIFI },
+                    { label: t("venues.amenities.parking") || "Parking", icon: Parking, key: VenueAmenity.PARKING },
+                    { label: t("venues.amenities.soundSystem") || "Sound System", icon: Music, key: VenueAmenity.SOUND_SYSTEM },
+                    { label: t("venues.amenities.kitchen") || "Kitchen", icon: Utensils, key: VenueAmenity.KITCHEN },
+                    { label: t("venues.amenities.avEquipment") || "AV Equipment", icon: Tv, key: VenueAmenity.AV_EQUIPMENT },
                   ].map((amenity) => (
                     <div key={amenity.key} className="flex items-center space-x-2">
                       <Checkbox
@@ -639,7 +531,7 @@ export default function VenuesPage() {
               {t("venues.title") || "Venues in New York"}
             </h1>
             <div className="rounded-md bg-background border border-muted shadow-sm hover:border-primary hover:ring-1 hover:ring-primary"
->
+            >
               <Select defaultValue="recommended">
                 <SelectTrigger className="w-[180px] border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-700/50">
                   <SelectValue placeholder={t("venues.sortBy") || "Sort by"} />
@@ -653,48 +545,58 @@ export default function VenuesPage() {
               </Select>
             </div>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 ">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredVenues.map((venue) => (
-              <Link to={`/venues/${venue.id}`} key={venue.id} className="group">
-                <div className="space-y-3 bg-white dark:bg-slate-800 rounded-xl overflow-hidden space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-sof shadow-sm border border-gray-100 dark:border-slate-700 hover:shadow-md transition-shadow">
-                  <div className="relative overflow-hidden">
+              <Link to={`/venues/${venue.id}`} key={venue.id} className="group h-full">
+                <div className="flex flex-col h-full bg-white dark:bg-slate-800 rounded-xl overflow-hidden card-hover bg-background shadow-sm border border-gray-100 dark:border-slate-700 hover:shadow-md transition-shadow">
+                  <div className="relative overflow-hidden h-[200px]">
                     <img
-                      src={`/placeholder.svg?height=300&width=400&text=Venue ${venue.id}`}
+                      src={venue.mainImage || "/placeholder.svg"}
                       alt={venue.name[language]}
-                      className="h-[200px] w-full object-cover transition-transform group-hover:scale-105 duration-300"
+                      className="h-full w-full object-cover transition-transform group-hover:scale-105 duration-300"
                     />
-                    <Badge className={`absolute top-2 left-2 ${getPriceTypeBadge(venue.priceType).bgColor}`}>
-                      {getPriceTypeBadge(venue.priceType).text}
-                    </Badge>
+                    <span className="absolute top-2 left-2">
+                      {getPriceTypeBadge(venue.price.type)}
+                    </span>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute right-2 top-2 h-8 w-8 rounded-full bg-white/80 text-red-500 hover:bg-white hover:text-red-600 dark:bg-slate-800/80 dark:hover:bg-slate-800"
+                      className={`absolute right-2 top-2 h-8 w-8 rounded-full bg-white/80 ${
+                        isFavorite(venue.id) 
+                          ? "text-red-500 hover:text-red-600" 
+                          : "text-gray-400 hover:text-red-500"
+                      } hover:bg-white dark:bg-slate-800/80 dark:hover:bg-slate-800`}
+                      onClick={(e) => {
+                        e.preventDefault(); // Prevent navigation
+                        toggleFavorite(venue.id, venue.name[language]);
+                      }}
                     >
-                      <Heart className="h-4 w-4" />
+                      <Heart className={`h-4 w-4 ${isFavorite(venue.id) ? "fill-current" : ""}`} />
                       <span className="sr-only">{t("venues.addToFavorites") || "Add to favorites"}</span>
                     </Button>
                   </div>
-                  <div className="space-y-2 p-4">
-                    <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-50 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors">
+                  <div className="flex flex-col flex-grow p-4 space-y-3">
+                    <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-50 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors line-clamp-1">
                       {venue.name[language]}
                     </h3>
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                      <MapPin className="mr-1 h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
-                      <span>{venue.location[language]}</span>
+                      <MapPin className="flex-shrink-0 mr-1 h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+                      <span className="truncate">{venue.location[language]}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center">
                       <div className="flex items-center">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="ml-1 text-sm font-medium text-gray-700 dark:text-gray-300">
-                          {venue.rating}
+                        <Star className="flex-shrink-0 h-4 w-4 text-yellow-500 mr-1" />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                          {venue.rating?.average || 0}
                         </span>
                       </div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        ({venue.reviews} {t("venues.reviews") || "reviews"})
+                      <span className="text-sm text-gray-500 dark:text-gray-400 ml-1 truncate">
+                        ({venue.rating?.count || 0} {t("business.bookings.reviews")})
                       </span>
                     </div>
-                    <p className="font-medium text-sky-500 dark:text-sky-400">{getPriceDisplay(venue)}</p>
+                    <div className="mt-auto">
+                      <p className="font-medium text-sky-500 dark:text-sky-400">{getPriceDisplay(venue)}</p>
+                    </div>
                   </div>
                 </div>
               </Link>
