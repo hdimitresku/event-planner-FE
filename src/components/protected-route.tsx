@@ -2,32 +2,29 @@
 
 import type React from "react"
 
-import { Navigate, useLocation } from "react-router-dom"
+import { Navigate } from "react-router-dom"
 import { useAuth } from "../context/auth-context"
-import { Loader2 } from "lucide-react"
 
 interface ProtectedRouteProps {
   children: React.ReactNode
+  requiredRole?: string
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth()
-  const location = useLocation()
+export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
+  const { isAuthenticated, isLoading, userRole } = useAuth()
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-2">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
+    return <div>Loading...</div>
   }
 
   if (!isAuthenticated) {
-    // Redirect to login page with a redirect parameter
-    return <Navigate to={`/login?redirect=${location.pathname}`} replace />
+    return <Navigate to="/login" replace />
+  }
+
+  // If a specific role is required and the user doesn't have it
+  if (requiredRole && userRole !== requiredRole) {
+    // Redirect to the appropriate dashboard based on their role
+    return <Navigate to={userRole === "host" ? "/business/dashboard" : "/dashboard"} replace />
   }
 
   return <>{children}</>

@@ -1,10 +1,12 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import { LanguageProvider } from "./context/language-context"
 import { AuthProvider } from "./context/auth-context"
 import { ThemeProvider } from "./context/theme-context"
 import { FavoritesProvider } from "./context/favorites-context"
 import { SiteHeader } from "./components/site-header"
 import { SiteFooter } from "./components/site-footer"
+import { ProtectedRoute } from "./components/protected-route"
+import { Toaster } from "@/components/ui/sonner"
 
 // Pages
 import HomePage from "./pages/home"
@@ -30,7 +32,9 @@ import SettingsPage from "./pages/business/settings"
 import ServicesManagementPage from "./pages/business/service-management"
 import ProfilePage from "./pages/dashboard/profile"
 import FavoritesPage from "./pages/dashboard/favorites"
-import { useAuth } from "./context/auth-context"
+import DashboardMessagesPage from "./pages/dashboard/messages"
+import PaymentMethodsPage from "./pages/dashboard/payment-methods"
+
 function App() {
   return (
     <AuthProvider>
@@ -53,109 +57,136 @@ function App() {
                     <Route path="/venues/:id/checkout" element={<VenueCheckoutPage />} />
                     <Route path="/venues/:id/confirmation" element={<VenueConfirmationPage />} />
 
-                    {/* Auth routes with conditional rendering */}
-                    {/* <Route path="/login" element={isAuthenticated ? <Navigate to="/profile" /> : <LoginPage />} />
-                    <Route path="/signup" element={isAuthenticated ? <Navigate to="/profile" /> : <SignupPage />} /> */}
-
                     {/* Protected routes */}
                     <Route
                       path="/dashboard"
                       element={
-                        //  <ProtectedRoute>
-                        <DashboardPage />
-                        //  </ProtectedRoute>
+                        <ProtectedRoute>
+                          <DashboardPage />
+                        </ProtectedRoute>
                       }
                     />
 
-                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route
+                      path="/dashboard/profile"
+                      element={
+                        <ProtectedRoute>
+                          <ProfilePage />
+                        </ProtectedRoute>
+                      }
+                    />
 
                     {/* Business routes */}
                     <Route
                       path="/business/dashboard"
                       element={
-                        //   <ProtectedRoute>
-                        <BusinessDashboardPage />
-                        //   </ProtectedRoute>
+                        <ProtectedRoute requiredRole="host">
+                          <BusinessDashboardPage />
+                        </ProtectedRoute>
                       }
                     />
                     <Route
                       path="/business/venues"
                       element={
-                        // <ProtectedRoute>
-                        <BusinessVenuesPage />
-                        // </ProtectedRoute>
+                        <ProtectedRoute requiredRole="host">
+                          <BusinessVenuesPage />
+                        </ProtectedRoute>
                       }
                     />
                     <Route
                       path="/business/venues/new"
                       element={
-                        // <ProtectedRoute>
-                        <BusinessVenueNewPage />
-                        // </ProtectedRoute>
+                        <ProtectedRoute requiredRole="host">
+                          <BusinessVenueNewPage />
+                        </ProtectedRoute>
                       }
                     />
                     <Route
                       path="/business/services/new"
                       element={
-                        // <ProtectedRoute>
-                        <BusinessServicesNewPage />
-                        // </ProtectedRoute>
+                        <ProtectedRoute requiredRole="host">
+                          <BusinessServicesNewPage />
+                        </ProtectedRoute>
                       }
                     />
                     <Route
                       path="/business/analytics"
                       element={
-                        // <ProtectedRoute>
-                        <BusinessAnalyticsPage />
-                        // </ProtectedRoute>
+                        <ProtectedRoute requiredRole="host">
+                          <BusinessAnalyticsPage />
+                        </ProtectedRoute> 
                       }
                     />
                     <Route
                       path="/business/bookings"
                       element={
-                        // <ProtectedRoute>
-                        <BusinessBookingsPage />
-                        // </ProtectedRoute>
+                        <ProtectedRoute requiredRole="host">
+                          <BusinessBookingsPage />
+                        </ProtectedRoute>
                       }
                     />
                     <Route
                       path="/business/messages"
                       element={
-                        // <ProtectedRoute>
-                        <MessagesPage />
-                        // </ProtectedRoute>
+                        <ProtectedRoute requiredRole="host">
+                          <MessagesPage />
+                        </ProtectedRoute>
                       }
                     />
                     <Route
                       path="/business/help"
                       element={
-                        // <ProtectedRoute>
-                        <HelpPage />
-                        // </ProtectedRoute>
+                        <ProtectedRoute requiredRole="host">
+                          <HelpPage />
+                        </ProtectedRoute>
                       }
                     />
                     <Route
                       path="/business/settings"
                       element={
-                        // <ProtectedRoute>
-                        <SettingsPage />
-                        // </ProtectedRoute>
+                        <ProtectedRoute requiredRole="host">
+                          <SettingsPage />
+                        </ProtectedRoute>
                       }
                     />
                     <Route
                       path="/business/service-management"
                       element={
-                        // <ProtectedRoute>
-                        <ServicesManagementPage />
-                        // </ProtectedRoute>
+                        <ProtectedRoute requiredRole="host">
+                          <ServicesManagementPage />
+                        </ProtectedRoute>
                       }
                     />
-                    <Route path="/favorites" element={<FavoritesPage />} />
+                    <Route
+                      path="/dashboard/favorites"
+                      element={
+                        <ProtectedRoute>
+                          <FavoritesPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/dashboard/messages"
+                      element={
+                        <ProtectedRoute>
+                          <DashboardMessagesPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/dashboard/payment-methods"
+                      element={
+                        <ProtectedRoute>
+                          <PaymentMethodsPage />
+                        </ProtectedRoute>
+                      }
+                    />
                   </Routes>
                 </main>
                 <SiteFooter />
               </div>
             </Router>
+            <Toaster />
           </FavoritesProvider>
         </ThemeProvider>
       </LanguageProvider>

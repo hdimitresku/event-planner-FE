@@ -9,7 +9,7 @@ import { apiRequest, setAuthToken } from './apiService';
 import * as mockDataService from '../data/mockDataService';
 
 // Flag to determine if we should use mock data (during development)
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 /**
  * Login user
@@ -122,6 +122,19 @@ export const getCurrentUser = async (): Promise<User | null> => {
   }
 };
 
+
+export const getLoggedInUser = async (): Promise<User | null> => {
+  try {
+    if (USE_MOCK_DATA) {
+      return mockDataService.getUserById("3");
+    }
+
+    return await apiRequest<User>(`/users/me`);
+  } catch (error) {
+    console.error(`Error fetching current user:`, error);
+    return null;
+  }
+};
 /**
  * Get user by ID
  */
@@ -161,7 +174,7 @@ export const updateUserProfile = async (
   userData: Partial<User>
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    await apiRequest<User>('/users/me', 'PUT', userData);
+    await apiRequest<User>('/users/me', 'PATCH', userData);
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to update profile' };

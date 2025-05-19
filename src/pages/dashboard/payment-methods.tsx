@@ -16,7 +16,7 @@ export default function PaymentMethodsPage() {
   useEffect(() => {
     // Fetch current user
     const fetchUser = async () => {
-      const user = await userService.getUserById("user3")
+      const user = await userService.getLoggedInUser()
       setCurrentUser(user)
     }
     

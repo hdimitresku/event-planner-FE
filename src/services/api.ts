@@ -9,11 +9,13 @@ import {
   Venue, VenueSummary, Service, ServiceSummary,
   VenueType, VenueAmenity, PricingType, ServiceType,
   Booking, BookingCreateData, BookingStatus, EventType, PaymentStatus,
-  User, BusinessProfile, LoginCredentials, RegisterData, BusinessRegisterData
+  User, BusinessProfile, LoginCredentials, RegisterData, BusinessRegisterData,
+  UserRole
 } from '../models';
 
 // Base API config
 // const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://api.eventspace.com/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api"
 const API_TIMEOUT = 10000; // 10 seconds
 
 // Default headers
@@ -727,9 +729,10 @@ const mockUser: User = {
   firstName: "John",
   lastName: "Doe",
   displayName: "John Doe",
-  role: UserRole.CUSTOMER,
+  role: UserRole.HOST,
   isActive: true,
   isVerified: true,
+  phoneNumber: "+1234567890",
   createdAt: "2023-01-01T00:00:00Z",
   updatedAt: "2023-01-01T00:00:00Z"
 }; 

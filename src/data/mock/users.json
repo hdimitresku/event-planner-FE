@@ -10,6 +10,7 @@
       "profileImage": "/placeholder.svg?height=200&width=200&text=JD",
       "role": "customer",
       "lastLogin": "2023-10-15T08:30:00Z",
+      "birthday": "1990-01-15T00:00:00Z",
       "address": {
         "street": "123 Main Street",
         "city": "New York",

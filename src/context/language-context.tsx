@@ -755,6 +755,11 @@ const translations: Translations = {
     "dashboard.paymentMethods": "Payment Methods",
     "dashboard.signOut": "Sign Out",
     "dashboard.bookings": "My Bookings",
+    "dashboard.settings.personalInfo": "Personal Information",
+    "dashboard.settings.securitySettings": "Security Settings",
+    "dashboard.settings.paymentMethods": "Payment Methods",
+    "settings.language": "Language",
+    "settings.theme": "Theme",
 
     // Business dashboard translations
     "business.bookings.editBooking": "Edit Booking",
@@ -1398,6 +1403,11 @@ const translations: Translations = {
     "dashboard.paymentMethods": "Metodat e Pagesës",
     "dashboard.signOut": "Dil",
     "dashboard.bookings": "Rezervime të Mia",
+    "dashboard.settings.personalInfo": "Informacion Personal",
+    "dashboard.settings.securitySettings": "Cilësimet e Sigurisë",
+    "dashboard.settings.paymentMethods": "Metodat e Pagesës",
+    "settings.language": "Gjuha",
+    "settings.theme": "Modaliteti i Dizajnit",
 
     "dashboard.viewDetails": "Shiko Detajet",
     "dashboard.modifyBooking": "Ndrysho Rezervimin",

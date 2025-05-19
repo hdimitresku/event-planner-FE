@@ -120,11 +120,13 @@ const convertBooking = (booking: any): Booking => {
 // Convert string type values from JSON to enum values for strict typing
 const convertUser = (user: any): User => {
   // Convert string role to enum
-  const role = isUserRole(user.role) ? user.role : UserRole.CUSTOMER;
+  const role = isUserRole(user.role) ? user.role : UserRole.USER;
 
   return {
     ...user,
-    role
+    role,
+    birthday: user.birthday ? new Date(user.birthday) : undefined,
+    phoneNumber: user.phoneNumber || null
   };
 };
 
@@ -624,7 +626,7 @@ export const registerUser = (userData: RegisterData): { success: boolean; user?:
       firstName: userData.firstName,
       lastName: userData.lastName,
       displayName: `${userData.firstName} ${userData.lastName}`,
-      phoneNumber: userData.phoneNumber,
+      phoneNumber: userData.phoneNumber || null,
       role: userData.role,
       isActive: true,
       isVerified: false,
@@ -662,7 +664,7 @@ export const registerBusiness = (businessData: BusinessRegisterData): {
       firstName: businessData.firstName,
       lastName: businessData.lastName,
       displayName: `${businessData.firstName} ${businessData.lastName}`,
-      phoneNumber: businessData.phoneNumber,
+      phoneNumber: businessData.phoneNumber || null,
       role: businessData.role,
       address: businessData.businessAddress,
       isActive: true,

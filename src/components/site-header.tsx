@@ -5,15 +5,50 @@ import { Button } from "./ui/button"
 import { useLanguage } from "../context/language-context"
 import { LanguageSwitcher } from "./language-switcher"
 import { ThemeToggle } from "./theme-toggle"
-import { Menu } from "lucide-react"
+import { Menu, User, LogOut, Settings, LayoutDashboard, Heart } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet"
 import { useState } from "react"
 import { useLocation } from "react-router-dom"
+import { useAuth } from "../context/auth-context"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu"
+import { Avatar, AvatarFallback } from "./ui/avatar"
 
 export function SiteHeader() {
   const { t } = useLanguage()
   const [open, setOpen] = useState(false)
   const location = useLocation()
+  const { isAuthenticated, userRole, user, logout } = useAuth()
+
+  const handleLogout = () => {
+    logout()
+    localStorage.clear();
+    setOpen(false)
+  }
+
+  // Get dashboard link based on user role
+  const getDashboardLink = () => {
+    return userRole === "host" ? "/business/dashboard" : "/dashboard"
+  }
+
+  // Get profile link based on user role
+  const getProfileLink = () => {
+    return userRole === "host" ? "/business/settings" : "/dashboard/profile"
+  }
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+    }
+    return user?.email?.[0]?.toUpperCase() || "U"
+  }
 
   return (
     <header className="border-b bg-background/80 sticky top-0 z-50 backdrop-blur-md">
@@ -39,21 +74,69 @@ export function SiteHeader() {
           <LanguageSwitcher />
           <ThemeToggle />
           <div className="hidden md:flex items-center gap-4">
-            <Link to="/dashboard">
-              <Button variant="ghost" size="sm" className="nav-link">
-                {t("nav.dashboard")}
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button variant="outline" size="sm" className="border-primary text-primary hover:bg-primary/10">
-                {t("nav.login")}
-              </Button>
-            </Link>
-            <Link to="/signup">
-              <Button size="sm" variant="accent" className="hover:bg-accent/90 text-accent-foreground shadow-sm">
-                {t("nav.signup")}
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link to={getDashboardLink()}>
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                    <LayoutDashboard className="h-4 w-4" />
+                    {t("nav.dashboard")}
+                  </Button>
+                </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>
+                      {user?.firstName ? `${user.firstName} ${user.lastName}` : user?.email}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to={getProfileLink()}>
+                        <User className="mr-2 h-4 w-4" />
+                        {t("nav.profile")}
+                      </Link>
+                    </DropdownMenuItem>
+                    {userRole !== "host" && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/dashboard/favorites">
+                          <Heart className="mr-2 h-4 w-4" />
+                          {t("nav.favorites")}
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem asChild>
+                      <Link to={userRole === "host" ? "/business/settings" : "/dashboard/settings"}>
+                        <Settings className="mr-2 h-4 w-4" />
+                        {t("nav.settings")}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={logout} className="text-red-500">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      {t("nav.logout")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="outline" size="sm" className="border-primary text-primary hover:bg-primary/10">
+                    {t("nav.login")}
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button size="sm" variant="accent" className="hover:bg-accent/90 text-accent-foreground shadow-sm">
+                    {t("nav.signup")}
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           <Sheet open={open} onOpenChange={setOpen}>
@@ -92,26 +175,58 @@ export function SiteHeader() {
                 >
                   {t("nav.howItWorks")}
                 </Link>
-                <Link
-                  to="/dashboard"
-                  className={`flex items-center gap-2 text-lg font-medium transition-colors ${
-                    location.pathname === "/dashboard" ? "text-primary" : "text-foreground/70 hover:text-foreground"
-                  }`}
-                  onClick={() => setOpen(false)}
-                >
-                  {t("nav.dashboard")}
-                </Link>
+
+                {isAuthenticated && (
+                  <Link
+                    to={getDashboardLink()}
+                    className={`flex items-center gap-2 text-lg font-medium transition-colors ${
+                      location.pathname.includes("dashboard") || location.pathname.includes("business")
+                        ? "text-primary"
+                        : "text-foreground/70 hover:text-foreground"
+                    }`}
+                    onClick={() => setOpen(false)}
+                  >
+                    <LayoutDashboard className="h-5 w-5" />
+                    {t("nav.dashboard")}
+                  </Link>
+                )}
+
                 <div className="flex flex-col gap-2 mt-4">
-                  <Link to="/login" onClick={() => setOpen(false)}>
-                    <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10">
-                      {t("nav.login")}
-                    </Button>
-                  </Link>
-                  <Link to="/signup" onClick={() => setOpen(false)}>
-                    <Button variant="accent" className="w-full hover:bg-accent/90 text-accent-foreground shadow-sm">
-                      {t("nav.signup")}
-                    </Button>
-                  </Link>
+                  {isAuthenticated ? (
+                    <>
+                      <Link to={getProfileLink()} onClick={() => setOpen(false)}>
+                        <Button variant="outline" className="w-full justify-start">
+                          <User className="mr-2 h-4 w-4" />
+                          {t("nav.profile")}
+                        </Button>
+                      </Link>
+                      {userRole !== "host" && (
+                        <Link to="/dashboard/favorites" onClick={() => setOpen(false)}>
+                          <Button variant="outline" className="w-full justify-start">
+                            <Heart className="mr-2 h-4 w-4" />
+                            {t("nav.favorites")}
+                          </Button>
+                        </Link>
+                      )}
+                      <Button variant="destructive" className="w-full" onClick={handleLogout}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        {t("nav.logout")}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/login" onClick={() => setOpen(false)}>
+                        <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10">
+                          {t("nav.login")}
+                        </Button>
+                      </Link>
+                      <Link to="/signup" onClick={() => setOpen(false)}>
+                        <Button variant="accent" className="w-full hover:bg-accent/90 text-accent-foreground shadow-sm">
+                          {t("nav.signup")}
+                        </Button>
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </SheetContent>

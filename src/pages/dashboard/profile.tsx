@@ -14,22 +14,32 @@ import { Button } from "../../components/ui/button"
 import { Label } from "../../components/ui/label"
 import { Separator } from "../../components/ui/separator"
 import { Switch } from "../../components/ui/switch"
-import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar"
-import { User, Mail, Phone, MapPin, Calendar, Shield, Bell, CreditCard, LogOut, Building, Home } from "lucide-react"
+import { User, Mail, Phone, Calendar, Shield, Bell, CreditCard, LogOut, Moon, Sun, Check } from "lucide-react"
 import * as userService from "../../services/userService"
-import { User as UserModel } from "../../models/user"
+import type { User as UserModel } from "../../models/user"
+import type { Address } from "../../models/common"
+import { AddressAutocomplete } from "../../components/address-autocomplete"
 
 export default function ProfilePage() {
   const { user, isAuthenticated, logout } = useAuth()
-  const { t } = useLanguage()
+  const { t, language, setLanguage } = useLanguage()
   const navigate = useNavigate()
   const [currentUser, setCurrentUser] = useState<UserModel | null>(null)
-  const [profileData, setProfileData] = useState({
-    name: "",
+  const [theme, setTheme] = useState("system")
+  const [profileData, setProfileData] = useState<Partial<UserModel>>({
+    firstName: "",
+    lastName: "",
     email: "",
-    phone: "",
-    address: "",
-    birthday: "",
+    phoneNumber: "",
+    birthday: undefined,
+    address: {
+      street: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      country: "",
+      location: null
+    }
   })
   const [isEditing, setIsEditing] = useState(false)
   const [notifications, setNotifications] = useState({
@@ -44,10 +54,11 @@ export default function ProfilePage() {
   useEffect(() => {
     // Fetch current user for dashboard layout
     const fetchUser = async () => {
-      const userModel = await userService.getUserById("user3")
+      const userModel = await userService.getLoggedInUser()
+      console.log("Fetched user model:", userModel)
       setCurrentUser(userModel)
     }
-    
+
     fetchUser()
   }, [])
 
@@ -60,27 +71,98 @@ export default function ProfilePage() {
 
     // Populate profile data from user object
     if (user) {
-      setProfileData({
-        name: user.name || "",
+      console.log("Setting profile data from user:", user)
+      const newProfileData = {
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
         email: user.email || "",
-        phone: "",
-        address: "",
-        birthday: "",
-      })
+        phoneNumber: user.phoneNumber || "",
+        birthday: user.birthday ? new Date(user.birthday) : undefined,
+        address: {
+          street: user.address?.street || "",
+          city: user.address?.city || "",
+          state: user.address?.state || "",
+          zipCode: user.address?.zipCode || "",
+          country: user.address?.country || "",
+          location: user.address?.location || null
+        }
+      }
+      console.log("New profile data:", newProfileData)
+      setProfileData(newProfileData)
     }
   }, [isAuthenticated, user, navigate])
 
-  const handleProfileUpdate = (e: React.FormEvent) => {
+  // Add a debug effect to monitor profileData changes
+  useEffect(() => {
+    console.log("Current profileData:", profileData)
+  }, [profileData])
+
+  const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
+    const updatedUser = {
+      ...user,
+      firstName: profileData?.firstName || "",
+      lastName: profileData?.lastName || "",
+      email: profileData?.email || "",
+      phoneNumber: profileData?.phoneNumber || "",
+      birthday: profileData?.birthday || null,
+      address: profileData?.address || {
+        street: "",
+        city: "",
+        state: "",
+        zipCode: "",
+        country: "",
+        location: null,
+      },
+    }
+
+    await userService.updateUserProfile(updatedUser)
+
+
     // In a real app, this would call an API to update the user profile
     setIsEditing(false)
     // Show success message
+    console.log("Profile data to save:", profileData)
+  }
+
+  const handleAddressSelect = (address: Address) => {
+    setProfileData((prev) => ({
+      ...prev,
+      address,
+    }))
   }
 
   const handleLogout = () => {
     logout()
     navigate("/")
   }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setProfileData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setProfileData(prev => ({
+      ...prev,
+      address: {
+        ...prev.address,
+        [name]: value
+      } as Address
+    }));
+  };
+
+  const handleBirthdayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setProfileData(prev => ({
+      ...prev,
+      birthday: value ? new Date(value) : undefined
+    }));
+  };
 
   return (
     <DashboardLayout currentUser={currentUser}>
@@ -99,11 +181,13 @@ export default function ProfilePage() {
         </div>
 
         <Tabs defaultValue="personal" className="w-full">
-          <TabsList className="grid grid-cols-4 md:w-full">
+          <TabsList className="grid grid-cols-6 md:w-full">
             <TabsTrigger value="personal">{t("profile.tabs.personal") || "Personal"}</TabsTrigger>
             <TabsTrigger value="security">{t("profile.tabs.security") || "Security"}</TabsTrigger>
             <TabsTrigger value="notifications">{t("profile.tabs.notifications") || "Notifications"}</TabsTrigger>
             <TabsTrigger value="payment">{t("profile.tabs.payment") || "Payment"}</TabsTrigger>
+            <TabsTrigger value="language">{t("settings.language") || "Language"}</TabsTrigger>
+            <TabsTrigger value="theme">{t("settings.theme") || "Theme"}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="personal" className="mt-6">
@@ -124,8 +208,8 @@ export default function ProfilePage() {
                       </Label>
                       <Input
                         id="name"
-                        value={profileData.name}
-                        onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                        value={profileData?.firstName + " " + profileData?.lastName}
+                        onChange={handleInputChange}
                         disabled={!isEditing}
                       />
                     </div>
@@ -137,8 +221,8 @@ export default function ProfilePage() {
                       <Input
                         id="email"
                         type="email"
-                        value={profileData.email}
-                        onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                        value={profileData?.email}
+                        onChange={handleInputChange}
                         disabled={!isEditing}
                       />
                     </div>
@@ -149,22 +233,66 @@ export default function ProfilePage() {
                       </Label>
                       <Input
                         id="phone"
-                        value={profileData.phone}
-                        onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                        value={profileData?.phoneNumber || ""}
+                        onChange={handleInputChange}
                         disabled={!isEditing}
                       />
                     </div>
                     <div className="grid gap-3">
-                      <Label htmlFor="address" className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        {t("profile.address") || "Address"}
-                      </Label>
-                      <Input
-                        id="address"
-                        value={profileData.address}
-                        onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}
+                      <AddressAutocomplete
+                        onAddressSelect={handleAddressSelect}
+                        defaultAddress={profileData?.address || undefined}
                         disabled={!isEditing}
                       />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="street" className="flex items-center gap-2">
+                          {t("profile.street") || "Street"}
+                        </Label>
+                        <Input
+                          id="street"
+                          value={profileData?.address?.street || ""}
+                          onChange={handleAddressChange}
+                          disabled={!isEditing}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="city">{t("profile.city") || "City"}</Label>
+                        <Input
+                          id="city"
+                          value={profileData?.address?.city || ""}
+                          onChange={handleAddressChange}
+                          disabled={!isEditing}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="state">{t("profile.state") || "State/Province"}</Label>
+                        <Input
+                          id="state"
+                          value={profileData?.address?.state || ""}
+                          onChange={handleAddressChange}
+                          disabled={!isEditing}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="zipCode">{t("profile.zipCode") || "ZIP/Postal Code"}</Label>
+                        <Input
+                          id="zipCode"
+                          value={profileData?.address?.zipCode || ""}
+                          onChange={handleAddressChange}
+                          disabled={!isEditing}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="country">{t("profile.country") || "Country"}</Label>
+                        <Input
+                          id="country"
+                          value={profileData?.address?.country || ""}
+                          onChange={handleAddressChange}
+                          disabled={!isEditing}
+                        />
+                      </div>
                     </div>
                     <div className="grid gap-3">
                       <Label htmlFor="birthday" className="flex items-center gap-2">
@@ -174,8 +302,8 @@ export default function ProfilePage() {
                       <Input
                         id="birthday"
                         type="date"
-                        value={profileData.birthday}
-                        onChange={(e) => setProfileData({ ...profileData, birthday: e.target.value })}
+                        value={profileData?.birthday instanceof Date ? profileData.birthday.toISOString().split('T')[0] : ""}
+                        onChange={handleBirthdayChange}
                         disabled={!isEditing}
                       />
                     </div>
@@ -399,27 +527,35 @@ export default function ProfilePage() {
                   <div>
                     <h3 className="text-lg font-medium mb-4">{t("profile.billingAddress") || "Billing Address"}</h3>
                     <div className="space-y-4">
-                      <div className="grid gap-3">
-                        <Label htmlFor="billing-name">{t("profile.name") || "Name"}</Label>
-                        <Input id="billing-name" defaultValue={user?.name || ""} />
-                      </div>
-                      <div className="grid gap-3">
-                        <Label htmlFor="billing-address">{t("profile.address") || "Address"}</Label>
-                        <Input id="billing-address" />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <AddressAutocomplete
+                        onAddressSelect={(address) => console.log("Billing address selected:", address)}
+                        label={t("profile.billingAddress") || "Billing Address"}
+                      />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid gap-3">
+                          <Label htmlFor="billing-name">{t("profile.name") || "Name"}</Label>
+                          <Input id="billing-name" defaultValue={user?.firstName || ""} />
+                        </div>
+                        <div className="grid gap-3">
+                          <Label htmlFor="billing-street">{t("profile.street") || "Street"}</Label>
+                          <Input id="billing-street" />
+                        </div>
                         <div className="grid gap-3">
                           <Label htmlFor="billing-city">{t("profile.city") || "City"}</Label>
                           <Input id="billing-city" />
                         </div>
                         <div className="grid gap-3">
+                          <Label htmlFor="billing-state">{t("profile.state") || "State/Province"}</Label>
+                          <Input id="billing-state" />
+                        </div>
+                        <div className="grid gap-3">
                           <Label htmlFor="billing-zip">{t("profile.zipCode") || "ZIP Code"}</Label>
                           <Input id="billing-zip" />
                         </div>
-                      </div>
-                      <div className="grid gap-3">
-                        <Label htmlFor="billing-country">{t("profile.country") || "Country"}</Label>
-                        <Input id="billing-country" />
+                        <div className="grid gap-3">
+                          <Label htmlFor="billing-country">{t("profile.country") || "Country"}</Label>
+                          <Input id="billing-country" />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -428,6 +564,124 @@ export default function ProfilePage() {
               <CardFooter>
                 <Button className="ml-auto">{t("profile.saveBillingInfo") || "Save Billing Information"}</Button>
               </CardFooter>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="language" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("settings.language")}</CardTitle>
+                <CardDescription>{t("settings.subtitle")}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div
+                      className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                        language === "en" ? "border-primary bg-primary/10" : ""
+                      }`}
+                      onClick={() => setLanguage("en")}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full overflow-hidden">
+                            <img
+                              src="/placeholder.svg?height=40&width=40&text=EN"
+                              alt="English"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p className="font-medium">English</p>
+                            <p className="text-sm text-muted-foreground">United States</p>
+                          </div>
+                        </div>
+                        {language === "en" && <Check className="h-5 w-5 text-primary" />}
+                      </div>
+                    </div>
+                    <div
+                      className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                        language === "sq" ? "border-primary bg-primary/10" : ""
+                      }`}
+                      onClick={() => setLanguage("sq")}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full overflow-hidden">
+                            <img
+                              src="/placeholder.svg?height=40&width=40&text=SQ"
+                              alt="Albanian"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p className="font-medium">Albanian</p>
+                            <p className="text-sm text-muted-foreground">Shqip</p>
+                          </div>
+                        </div>
+                        {language === "sq" && <Check className="h-5 w-5 text-primary" />}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="theme" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("settings.theme")}</CardTitle>
+                <CardDescription>{t("settings.subtitle")}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div
+                      className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                        theme === "light" ? "border-primary bg-primary/10" : ""
+                      }`}
+                      onClick={() => setTheme("light")}
+                    >
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-background flex items-center justify-center">
+                          <Sun className="h-6 w-6" />
+                        </div>
+                        <p className="font-medium">{t("settings.lightMode")}</p>
+                      </div>
+                    </div>
+                    <div
+                      className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                        theme === "dark" ? "border-primary bg-primary/10" : ""
+                      }`}
+                      onClick={() => setTheme("dark")}
+                    >
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-background flex items-center justify-center">
+                          <Moon className="h-6 w-6" />
+                        </div>
+                        <p className="font-medium">{t("settings.darkMode")}</p>
+                      </div>
+                    </div>
+                    <div
+                      className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                        theme === "system" ? "border-primary bg-primary/10" : ""
+                      }`}
+                      onClick={() => setTheme("system")}
+                    >
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-background flex items-center justify-center">
+                          <div className="relative">
+                            <Sun className="h-6 w-6 absolute top-0 left-0 transform -translate-x-1/2 -translate-y-1/2" />
+                            <Moon className="h-6 w-6 absolute bottom-0 right-0 transform translate-x-1/2 translate-y-1/2" />
+                          </div>
+                        </div>
+                        <p className="font-medium">{t("settings.systemDefault")}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
             </Card>
           </TabsContent>
         </Tabs>

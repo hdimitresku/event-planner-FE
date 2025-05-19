@@ -41,12 +41,12 @@ export interface GeoLocation {
  * Address information
  */
 export interface Address {
-  street: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-  location?: GeoLocation;
+  street: string | null | undefined;
+  city: string | null | undefined;
+  state: string | null | undefined;
+  zipCode: string | null | undefined;
+  country: string | null | undefined;
+  location?: GeoLocation | null | undefined;
 }
 
 /**

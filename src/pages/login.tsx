@@ -9,23 +9,48 @@ import { useLanguage } from "../context/language-context"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Checkbox } from "../components/ui/checkbox"
+import { authService } from "@/services/authService"
 
 export default function LoginPage() {
   const { t } = useLanguage()
   const { login } = useAuth()
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  })
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
+    setError(null)
 
-    // Simulate login
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    login({ name: "John Doe", email: "john@example.com" })
+    try {
+      // Use the auth service to login
+      const data = await authService.login(formData)
 
-    setIsLoading(false)
-    navigate("/dashboard")
+      // Update auth context
+      login(data.user.email, formData.password)
+
+      // Redirect based on role
+      if (data.user.role === "host") {
+        navigate("/business/dashboard")
+      } else {
+        navigate("/dashboard")
+      }
+    } catch (error) {
+      console.error("Login error:", error)
+      setError(error instanceof Error ? error.message : "Login failed")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -43,7 +68,16 @@ export default function LoginPage() {
             >
               {t("login.email") || "Email"}
             </label>
-            <Input id="email" type="email" placeholder="m@example.com" required autoComplete="email" />
+            <Input
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              type="email"
+              placeholder="m@example.com"
+              required
+              autoComplete="email"
+            />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -57,7 +91,15 @@ export default function LoginPage() {
                 {t("login.forgotPassword") || "Forgot password?"}
               </Link>
             </div>
-            <Input id="password" type="password" required autoComplete="current-password" />
+            <Input
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              type="password"
+              required
+              autoComplete="current-password"
+            />
           </div>
           <div className="flex items-center space-x-2">
             <Checkbox id="remember" />
@@ -68,6 +110,9 @@ export default function LoginPage() {
               {t("login.rememberMe") || "Remember me"}
             </label>
           </div>
+
+          {error && <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">{error}</div>}
+
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
               <span className="flex items-center justify-center">

@@ -75,7 +75,7 @@ export default function Dashboard() {
   useEffect(() => {
     // Fetch current user - for demo we'll use a hardcoded ID
     const fetchUser = async () => {
-      const user = await userService.getUserById("user3")
+      const user = await userService.getLoggedInUser()
       setCurrentUser(user)
     }
     
@@ -87,7 +87,7 @@ export default function Dashboard() {
     setLoadingBookings(true)
     try {
       // Fetch bookings for the current user
-      const result = await bookingService.getBookings({ userId: "user1" })
+      const result = await bookingService.getBookings({ userId: currentUser?.id })
       setBookings(result.bookings)
       
       // Fetch venue details for each booking
