@@ -66,11 +66,19 @@ export default function VenuesPage() {
     "Wedding Venue": false,
     "Outdoor Space": false,
   })
+<<<<<<< Updated upstream
   const [priceTypes, setPriceTypes] = useState<Record<PriceType, boolean>>({
     hourly: false,
     perPerson: false,
     fixed: false,
     custom: false,
+=======
+  const [priceTypes, setPriceTypes] = useState<Record<PricingType, boolean>>({
+    [PricingType.HOURLY]: false,
+    [PricingType.PER_PERSON]: false,
+    [PricingType.FIXED]: false,
+    [PricingType.CUSTOM]: false,
+>>>>>>> Stashed changes
   })
   const [amenities, setAmenities] = useState<Record<string, boolean>>({
     WiFi: false,
@@ -85,6 +93,7 @@ export default function VenuesPage() {
     guests: "",
   })
 
+<<<<<<< Updated upstream
   // This would normally be fetched from an API with language parameter
   const allVenues: Venue[] = [
     {
@@ -273,6 +282,62 @@ export default function VenuesPage() {
     return true
   })
 
+=======
+  useEffect(() => {
+    fetchVenues()
+  }, [pagination.page, pagination.limit])
+
+  useEffect(() => {
+    // Reset to first page when filters change
+    setPagination(prev => ({ ...prev, page: 1 }))
+    fetchVenues()
+  }, [priceRange, venueTypes, priceTypes, amenities, searchParams])
+
+  const fetchVenues = async () => {
+    setLoading(true)
+    try {
+      const selectedVenueTypes = Object.entries(venueTypes)
+        .filter(([_, selected]) => selected)
+        .map(([type]) => type as VenueType)
+
+      const selectedPriceTypes = Object.entries(priceTypes)
+        .filter(([_, selected]) => selected)
+        .map(([type]) => type as PricingType)
+
+      const selectedAmenities = Object.entries(amenities)
+        .filter(([_, selected]) => selected)
+        .map(([amenity]) => amenity as VenueAmenity)
+
+      const filters = {
+        maxPrice: priceRange[0],
+        venueTypes: selectedVenueTypes.length > 0 ? selectedVenueTypes : undefined,
+        priceTypes: selectedPriceTypes.length > 0 ? selectedPriceTypes : undefined,
+        amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
+        location: searchParams.location || undefined,
+        guests: searchParams.guests ? parseInt(searchParams.guests) : undefined,
+        page: pagination.page,
+        limit: pagination.limit
+      }
+
+      const result = await venueService.getVenues(filters)
+      console.log("Result:", result)
+      setVenues(result)
+      console.log("Venues:", venues)
+      setPagination({
+        total: result.total,
+        page: result.page,
+        limit: result.limit
+      })
+    } catch (error) {
+      console.error("Error fetching venues:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const [date, setDate] = React.useState<Date>()
+
+>>>>>>> Stashed changes
   const handleVenueTypeChange = (type: string, checked: boolean) => {
     setVenueTypes((prev) => ({ ...prev, [type]: checked }))
   }
@@ -318,10 +383,17 @@ export default function VenuesPage() {
       "Outdoor Space": false,
     })
     setPriceTypes({
+<<<<<<< Updated upstream
       hourly: false,
       perPerson: false,
       fixed: false,
       custom: false,
+=======
+      [PricingType.HOURLY]: false,
+      [PricingType.PER_PERSON]: false,
+      [PricingType.FIXED]: false,
+      [PricingType.CUSTOM]: false
+>>>>>>> Stashed changes
     })
     setAmenities({
       WiFi: false,
@@ -335,9 +407,17 @@ export default function VenuesPage() {
       date: "",
       guests: "",
     })
+    setPagination(prev => ({ ...prev, page: 1 }))
+    fetchVenues()
+  }
+
+  const handlePageChange = (newPage: number) => {
+    setPagination(prev => ({ ...prev, page: newPage }))
+    fetchVenues()
   }
 
   // Get price display based on price type and language
+<<<<<<< Updated upstream
   const getPriceDisplay = (venue: Venue) => {
     const price = venue.price
     switch (venue.priceType) {
@@ -349,6 +429,20 @@ export default function VenuesPage() {
         return `$${price}`
       case "custom":
         return t("business.pricing.custom")
+=======
+  const getPriceDisplay = (venue: VenueSummary) => {
+    const formatPrice = (price: number) => `$${price}`
+
+    switch (venue.price.type) {
+      case PricingType.HOURLY:
+        return `${formatPrice(venue.price.amount)}/${t("business.serviceNew.hourly")}`
+      case PricingType.PER_PERSON:
+        return `${formatPrice(venue.price.amount)}/${t("business.serviceNew.perPerson")}`
+      case PricingType.FIXED:
+        return `${formatPrice(venue.price.amount)}/${t("business.serviceNew.flatFee")}`
+      case PricingType.CUSTOM:
+        return t("business.serviceNew.flatFee")
+>>>>>>> Stashed changes
       default:
         return `$${price}`
     }
@@ -384,7 +478,7 @@ export default function VenuesPage() {
         }
     }
   }
-
+  console.log("Venues:", venues)
   return (
     <div className="container px-4 md:px-8 py-8 md:py-12">
       <div className="mb-8 md:mb-12">
@@ -555,6 +649,10 @@ export default function VenuesPage() {
                       {t("business.pricing.custom")}
                     </label>
                   </div>
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
                 </div>
               </div>
 
@@ -653,11 +751,19 @@ export default function VenuesPage() {
               </Select>
             </div>
           </div>
+<<<<<<< Updated upstream
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 ">
             {filteredVenues.map((venue) => (
               <Link to={`/venues/${venue.id}`} key={venue.id} className="group">
                 <div className="space-y-3 bg-white dark:bg-slate-800 rounded-xl overflow-hidden space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-sof shadow-sm border border-gray-100 dark:border-slate-700 hover:shadow-md transition-shadow">
                   <div className="relative overflow-hidden">
+=======
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {venues.map((venue) => (
+              <Link to={`/venues/${venue.id}`} key={venue.id} className="group h-full">
+                <div className="flex flex-col h-full bg-white dark:bg-slate-800 rounded-xl overflow-hidden card-hover bg-background shadow-sm border border-gray-100 dark:border-slate-700 hover:shadow-md transition-shadow">
+                  <div className="relative overflow-hidden h-[200px]">
+>>>>>>> Stashed changes
                     <img
                       src={`/placeholder.svg?height=300&width=400&text=Venue ${venue.id}`}
                       alt={venue.name[language]}
@@ -680,8 +786,15 @@ export default function VenuesPage() {
                       {venue.name[language]}
                     </h3>
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+<<<<<<< Updated upstream
                       <MapPin className="mr-1 h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
                       <span>{venue.location[language]}</span>
+=======
+                      <MapPin className="flex-shrink-0 mr-1 h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+                      <span className="truncate">
+                        {venue.address?.city || t("venues.noLocation")}
+                      </span>
+>>>>>>> Stashed changes
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="flex items-center">
@@ -700,7 +813,7 @@ export default function VenuesPage() {
               </Link>
             ))}
           </div>
-          {filteredVenues.length === 0 && (
+          {venues.length === 0 && (
             <div className="text-center py-12 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
               <div className="h-16 w-16 mx-auto rounded-full bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center mb-4">
                 <Search className="h-8 w-8 text-sky-500 dark:text-sky-400" />
@@ -720,51 +833,67 @@ export default function VenuesPage() {
               </Button>
             </div>
           )}
-          {filteredVenues.length > 0 && (
+          {venues.length > 0 && (
             <div className="flex items-center justify-center space-x-2 mt-8">
               <Button
                 variant="outline"
                 size="icon"
-                disabled
+                disabled={pagination.page === 1}
+                onClick={() => handlePageChange(pagination.page - 1)}
                 className="border-sky-500 text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/20"
               >
                 <span className="sr-only">{t("venues.previousPage") || "Previous page"}</span>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm" className="h-8 w-8 border-sky-500 bg-sky-500 text-white" disabled>
-                1
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 w-8 border-sky-500 text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/20"
-              >
-                2
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 w-8 border-sky-500 text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/20"
-              >
-                3
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 w-8 border-sky-500 text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/20"
-              >
-                4
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 w-8 border-sky-500 text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/20"
-              >
-                5
-              </Button>
+
+              {Array.from({ length: Math.ceil(pagination.total / pagination.limit) }, (_, i) => i + 1)
+                .filter(page => {
+                  const currentPage = pagination.page;
+                  return page === 1 || page === Math.ceil(pagination.total / pagination.limit) ||
+                         (page >= currentPage - 1 && page <= currentPage + 1);
+                })
+                .map((page, index, array) => {
+                  if (index > 0 && array[index - 1] !== page - 1) {
+                    return (
+                      <React.Fragment key={`ellipsis-${page}`}>
+                        <span className="px-2">...</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={`h-8 w-8 border-sky-500 ${
+                            page === pagination.page
+                              ? "bg-sky-500 text-white"
+                              : "text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/20"
+                          }`}
+                          onClick={() => handlePageChange(page)}
+                        >
+                          {page}
+                        </Button>
+                      </React.Fragment>
+                    );
+                  }
+                  return (
+                    <Button
+                      key={page}
+                      variant="outline"
+                      size="sm"
+                      className={`h-8 w-8 border-sky-500 ${
+                        page === pagination.page
+                          ? "bg-sky-500 text-white"
+                          : "text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/20"
+                      }`}
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </Button>
+                  );
+                })}
+
               <Button
                 variant="outline"
                 size="icon"
+                disabled={pagination.page >= Math.ceil(pagination.total / pagination.limit)}
+                onClick={() => handlePageChange(pagination.page + 1)}
                 className="border-sky-500 text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/20"
               >
                 <span className="sr-only">{t("venues.nextPage") || "Next page"}</span>

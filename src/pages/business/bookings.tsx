@@ -105,6 +105,200 @@ export default function BusinessBookingsPage() {
         </div>
       </div>
 
+<<<<<<< Updated upstream
+=======
+      {/* View Booking Modal */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">{t("business.bookings.bookingDetails")}</DialogTitle>
+            <DialogDescription>{t("business.common.viewBookingDetails")}</DialogDescription>
+          </DialogHeader>
+
+          {selectedBooking && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium">{selectedBooking.venue}</h3>
+                <Badge className={getStatusBadgeClass(selectedBooking.status)}>
+                  {selectedBooking.status === "confirmed"
+                    ? t("business.bookings.confirmed") || "Confirmed"
+                    : selectedBooking.status === "pending"
+                      ? t("business.bookings.pending") || "Pending"
+                      : selectedBooking.status === "completed"
+                        ? t("business.bookings.completed") || "Completed"
+                        : t("business.bookings.cancelled") || "Cancelled"}
+                </Badge>
+              </div>
+
+              <Separator />
+
+              <div className="grid gap-4">
+                <div className="flex items-start gap-3">
+                  <User className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <h4 className="font-medium">{t("business.bookings.customer")}</h4>
+                    <p>{selectedBooking.customer.name}</p>
+                    <div className="mt-1 flex flex-col text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Mail className="h-3.5 w-3.5" />
+                        {selectedBooking.customer.email}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Phone className="h-3.5 w-3.5" />
+                        {selectedBooking.customer.phone}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <h4 className="font-medium">{t("business.bookings.venue")}</h4>
+                    <p>{selectedBooking.venue}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-start gap-3">
+                    <CalendarDays className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">{t("business.bookings.date")}</h4>
+                      <p>{selectedBooking.date}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">{t("business.bookings.time")}</h4>
+                      <p>{selectedBooking.time}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-start gap-3">
+                    <Users className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">{t("business.bookings.guests")}</h4>
+                      <p>
+                        {selectedBooking.guests} {t("business.bookings.people")}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">{t("business.bookings.total")}</h4>
+                      <p>${selectedBooking.total.toFixed(2)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-2">{t("business.bookings.services")}</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedBooking.services.map((service: string) => (
+                      <Badge key={service} variant="success">
+                        {service}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {selectedBooking.notes && (
+                  <div>
+                    <h4 className="font-medium">{t("business.bookings.notes")}</h4>
+                    <p className="text-muted-foreground">{selectedBooking.notes}</p>
+                  </div>
+                )}
+              </div>
+
+              <DialogFooter>
+                {selectedBooking.status === "pending" ? (
+                  <div className="flex w-full gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 border-destructive text-destructive hover:bg-destructive/10"
+                      onClick={() => handleDeclineBooking(selectedBooking.id)}
+                    >
+                      <X className="mr-2 h-4 w-4" />
+                      {t("business.bookings.decline") || "Decline"}
+                    </Button>
+                    <Button
+                      className="flex-1 bg-emerald-500/90 dark:bg-emerald-600/90 hover:bg-emerald-500/70 dark:hover:bg-emerald-600/70"
+                      onClick={() => handleApproveBooking(selectedBooking.id)}
+                    >
+                      <Check className="mr-2 h-4 w-4" />
+                      {t("business.bookings.approve") || "Approve"}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    {selectedBooking.status !== "completed" && selectedBooking.status !== "cancelled" ? (
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setIsViewModalOpen(false)
+                          handleEditBooking(selectedBooking)
+                        }}
+                      >
+                        <PencilLine className="mr-2 h-4 w-4" />
+                        {t("business.common.edit") || "Edit"}
+                      </Button>
+                    ) : null}
+                    <Button onClick={() => setIsViewModalOpen(false)}>
+                      {t("business.common.close") || "Close"}
+                    </Button>
+                  </div>
+                )}
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Booking Modal */}
+      {selectedBooking && (
+        <EditBookingModal
+          booking={selectedBooking}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleSaveBooking}
+        />
+      )}
+
+      {/* Cancel Booking Confirmation Dialog */}
+      <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              {t("business.bookings.cancelBooking") || "Cancel Booking"}
+            </DialogTitle>
+            <DialogDescription>
+              {t("business.bookings.cancelBookingConfirmation") || "Are you sure you want to cancel this booking? This action cannot be undone."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center py-4">
+            <AlertTriangle className="h-16 w-16 text-destructive" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCancelModalOpen(false)}>
+              {t("business.common.cancel") || "Cancel"}
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleCancelBooking}
+            >
+              {t("business.bookings.confirmCancel") || "Yes, Cancel Booking"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+>>>>>>> Stashed changes
       <Tabs defaultValue="upcoming" className="w-full" onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="upcoming">{t("business.bookings.upcoming") || "Upcoming"}</TabsTrigger>
@@ -124,7 +318,7 @@ export default function BusinessBookingsPage() {
                     <th className="px-4 py-3 font-medium">{t("business.bookings.date") || "Date"}</th>
                     <th className="px-4 py-3 font-medium">{t("business.bookings.time") || "Time"}</th>
                     <th className="px-4 py-3 font-medium">{t("business.bookings.guests") || "Guests"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.status") || "Status"}</th>
+                    <th className="px-4 py-3 font-medium">{t("business.common.status") || "Status"}</th>
                     <th className="px-4 py-3 font-medium">{t("business.bookings.total") || "Total"}</th>
                     <th className="px-4 py-3 font-medium">{t("business.bookings.actions") || "Actions"}</th>
                   </tr>
@@ -197,7 +391,7 @@ export default function BusinessBookingsPage() {
                     <th className="px-4 py-3 font-medium">{t("business.bookings.date") || "Date"}</th>
                     <th className="px-4 py-3 font-medium">{t("business.bookings.time") || "Time"}</th>
                     <th className="px-4 py-3 font-medium">{t("business.bookings.guests") || "Guests"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.status") || "Status"}</th>
+                    <th className="px-4 py-3 font-medium">{t("business.common.status") || "Status"}</th>
                     <th className="px-4 py-3 font-medium">{t("business.bookings.total") || "Total"}</th>
                     <th className="px-4 py-3 font-medium">{t("business.bookings.actions") || "Actions"}</th>
                   </tr>
@@ -221,8 +415,18 @@ export default function BusinessBookingsPage() {
                       </td>
                       <td className="px-4 py-3">${booking.total.toFixed(2)}</td>
                       <td className="px-4 py-3">
+<<<<<<< Updated upstream
                         <Button size="sm" variant="outline">
                           {t("business.bookings.view") || "View"}
+=======
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="transition-all hover:bg-primary/10 hover:text-primary"
+                          onClick={() => handleViewBooking(booking)}
+                        >
+                          {t("business.common.view") || "View"}
+>>>>>>> Stashed changes
                         </Button>
                       </td>
                     </tr>
@@ -244,7 +448,7 @@ export default function BusinessBookingsPage() {
                     <th className="px-4 py-3 font-medium">{t("business.bookings.date") || "Date"}</th>
                     <th className="px-4 py-3 font-medium">{t("business.bookings.time") || "Time"}</th>
                     <th className="px-4 py-3 font-medium">{t("business.bookings.guests") || "Guests"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.status") || "Status"}</th>
+                    <th className="px-4 py-3 font-medium">{t("business.common.status") || "Status"}</th>
                     <th className="px-4 py-3 font-medium">{t("business.bookings.total") || "Total"}</th>
                     <th className="px-4 py-3 font-medium">{t("business.bookings.actions") || "Actions"}</th>
                   </tr>
@@ -264,8 +468,18 @@ export default function BusinessBookingsPage() {
                       </td>
                       <td className="px-4 py-3">${booking.total.toFixed(2)}</td>
                       <td className="px-4 py-3">
+<<<<<<< Updated upstream
                         <Button size="sm" variant="outline">
                           {t("business.bookings.view") || "View"}
+=======
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="transition-all hover:bg-primary/10 hover:text-primary"
+                          onClick={() => handleViewBooking(booking)}
+                        >
+                          {t("business.common.view") || "View"}
+>>>>>>> Stashed changes
                         </Button>
                       </td>
                     </tr>
@@ -287,7 +501,7 @@ export default function BusinessBookingsPage() {
                     <th className="px-4 py-3 font-medium">{t("business.bookings.date") || "Date"}</th>
                     <th className="px-4 py-3 font-medium">{t("business.bookings.time") || "Time"}</th>
                     <th className="px-4 py-3 font-medium">{t("business.bookings.guests") || "Guests"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.status") || "Status"}</th>
+                    <th className="px-4 py-3 font-medium">{t("business.common.status") || "Status"}</th>
                     <th className="px-4 py-3 font-medium">{t("business.bookings.total") || "Total"}</th>
                     <th className="px-4 py-3 font-medium">{t("business.bookings.actions") || "Actions"}</th>
                   </tr>

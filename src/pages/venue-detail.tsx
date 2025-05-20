@@ -35,12 +35,84 @@ import {
   Briefcase,
   HelpCircle,
 } from "lucide-react"
+<<<<<<< Updated upstream
 import { useLanguage } from "../context/language-context"
 import { cn } from "../components/ui/utils"
 
 interface PriceInfo {
   price: number;
   pricingType: string;
+=======
+import { Input } from "../components/ui/input"
+import { format } from "date-fns"
+import { addHours } from "date-fns"
+import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover"
+import { useFavorites } from "../context/favorites-context"
+import { ServiceType } from "../models/service"
+import * as serviceService from "../services/serviceService"
+import {Address} from "@/models";
+
+// Define price type interface
+type PriceType = "hourly" | "perPerson" | "fixed" | "custom"
+
+// Define venue interface with price type
+interface Venue {
+  id: string
+  name: {
+    en: string
+    sq: string
+  }
+  description: {
+    en: string
+    sq: string
+  }
+  address: Address
+  rating: number
+  reviews: number
+  price: number
+  priceType: PriceType
+  type: string
+  amenities: string[]
+  capacity: {
+    min: number
+    max: number
+  }
+  images: string[]
+  host: {
+    name: string
+    image: string
+    responseRate: number
+    responseTime: string
+    joined: string
+  }
+  availability: {
+    monday: string
+    tuesday: string
+    wednesday: string
+    thursday: string
+    friday: string
+    saturday: string
+    sunday: string
+  }
+  features: string[]
+  reviewsList: {
+    id: number
+    user: {
+      name: string
+      image: string
+    }
+    rating: number
+    date: string
+    comment: string
+  }[]
+  services: {
+    [key: string]: {
+      options: string[]
+      prices: Record<string, number>
+      icon: React.ElementType
+    }
+  }
+>>>>>>> Stashed changes
 }
 
 interface OptionsInfo {
@@ -75,9 +147,22 @@ export default function VenueBookPage() {
       en: "Stunning Loft Space with City Views",
       sq: "Hapësirë Loft Mahnitëse me Pamje nga Qyteti",
     },
+<<<<<<< Updated upstream
     location: {
       en: "SoHo, New York",
       sq: "SoHo, New York",
+=======
+    description: {
+      en: "This stunning loft space offers breathtaking views of the city skyline. With floor-to-ceiling windows, exposed brick walls, and modern amenities, it's perfect for photoshoots, corporate events, and intimate gatherings. The open floor plan allows for flexible arrangements, and the natural light makes it ideal for daytime events.",
+      sq: "Kjo hapësirë mahnitëse loft ofron pamje mahnitëse të horizontit të qytetit. Me dritare nga dyshemeja në tavan, mure me tulla të ekspozuara dhe pajisje moderne, është perfekte për fotografi, evente korporative dhe mbledhje intime. Plani i hapur i dyshemesë lejon aranzhime fleksibël dhe drita natyrale e bën atë ideale për ngjarje gjatë ditës.",
+    },
+    address: {
+      street: "789 Gallery Way",
+      city: "New York",
+      state: "NY",
+      zipCode: "10011",
+      country: "USA"
+>>>>>>> Stashed changes
     },
     price: 150,
     capacity: {
@@ -364,6 +449,7 @@ export default function VenueBookPage() {
                   </div>
                 </div>
 
+<<<<<<< Updated upstream
                 <div className="space-y-4">
                   <label className="text-sm font-semibold text-foreground">{t("venueBook.dateRange")}</label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -383,6 +469,181 @@ export default function VenueBookPage() {
                           "
                           >
                             <div className="flex items-center justify-between w-full">
+=======
+                <div className="flex flex-wrap items-center gap-4 text-sm">
+                  <div className="flex items-center">
+                    <MapPin className="h-4 w-4 mr-1 text-muted-foreground" />
+                    <span>{venue.address?.city}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Star className="h-4 w-4 mr-1 fill-yellow-400 text-yellow-400" />
+                    <span>
+                      <strong>{venue.rating}</strong> ({venue.reviews} {t("venues.reviews")})
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <Users className="h-4 w-4 mr-1 text-muted-foreground" />
+                    <span>
+                      {venue.capacity.min}-{venue.capacity.max} {t("venues.guests")}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    {getPriceTypeIcon(venue.priceType)}
+                    <span className="font-medium text-sky-500 dark:text-sky-400">{getPriceDisplay(venue)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tabs */}
+              <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid grid-cols-4 mb-6">
+                  <TabsTrigger value="overview">{t("venueDetail.overview")}</TabsTrigger>
+                  <TabsTrigger value="amenities">{t("venues.amenities")}</TabsTrigger>
+                  <TabsTrigger value="availability">{t("venueDetail.availability")}</TabsTrigger>
+                  <TabsTrigger value="reviews">{t("venueDetail.reviews")}</TabsTrigger>
+                </TabsList>
+
+                {/* Overview Tab */}
+                <TabsContent value="overview" className="space-y-6">
+                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                    <h2 className="text-xl font-semibold">{t("venueDetail.about")}</h2>
+                  </div>
+
+                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                    <h2 className="text-xl font-semibold">{t("venueDetail.services")}</h2>
+                    
+                    {loading ? (
+                      <div className="flex justify-center p-4">
+                        <p className="text-muted-foreground">{t("common.loading")}</p>
+                      </div>
+                    ) : availableServiceTypes.length === 0 ? (
+                      <div className="text-center p-4">
+                        <p className="text-muted-foreground">{t("venueDetail.noServices")}</p>
+                      </div>
+                    ) : (
+                      <div className="services-container max-h-[400px] overflow-y-auto pr-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {availableServiceTypes.map((serviceType) => (
+                          <div key={serviceType} className="space-y-2 bg-gray-50 dark:bg-slate-800/50 p-4 rounded-lg">
+                            <div className="flex items-center">
+                              {getServiceTypeIcon(serviceType)}
+                              <h3 className="font-medium">{t(`venueBook.${serviceType.toLowerCase()}`)}</h3>
+                            </div>
+                           
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                    <h2 className="text-xl font-semibold">{t("venueDetail.host")}</h2>
+                    <div className="flex items-start space-x-4">
+                      <Avatar className="h-16 w-16">
+                        <AvatarImage src={venue.host.image || "/placeholder.svg"} alt={venue.host.name} />
+                        <AvatarFallback>
+                          {venue.host.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="space-y-2">
+                        <h3 className="font-medium">{venue.host.name}</h3>
+                        <div className="text-sm text-muted-foreground">
+                          <p>{t("venueDetail.hostSince", { date: venue.host.joined })}</p>
+                          <p>
+                            {t("venueDetail.responseRate")}: {venue.host.responseRate}%
+                          </p>
+                          <p>
+                            {t("venueDetail.responseTime")}: {venue.host.responseTime}
+                          </p>
+                        </div>
+                        <Button variant="outline" size="sm" className="mt-2">
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          {t("venueDetail.contactHost")}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Amenities Tab */}
+                <TabsContent value="amenities" className="space-y-6">
+                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                    <h2 className="text-xl font-semibold">{t("venueDetail.amenities")}</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {venue.amenities.map((amenity, index) => (
+                        <div key={index} className="flex items-center p-4 bg-gray-50 dark:bg-slate-800/50 rounded-lg">
+                          {getAmenityIcon(amenity)}
+                          <span>{t(`venues.amenities.${amenity.toLowerCase().replace(" ", "")}`) || amenity}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Availability Tab */}
+                <TabsContent value="availability" className="space-y-6">
+                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                    <h2 className="text-xl font-semibold">{t("venueDetail.availability")}</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-4">
+                        <h3 className="font-medium">{t("venueDetail.operatingHours")}</h3>
+                        <div className="space-y-2">
+                          {Object.entries(venue.availability).map(([day, hours]) => (
+                            <div key={day} className="flex justify-between text-sm py-2 border-b last:border-0">
+                              <span className="capitalize">{t(`venueDetail.days.${day}`)}</span>
+                              <span>{hours}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <h3 className="font-medium">{t("venueDetail.availabilityCalendar")}</h3>
+                        <div className="space-y-4">
+                          <div className="bg-gray-50 dark:bg-slate-800/50 p-4 rounded-lg">
+                            <p className="text-sm text-muted-foreground mb-3">{t("venueDetail.availabilityInfo")}</p>
+                            <Calendar
+                              mode="single"
+                              selected={new Date()}
+                              className="rounded-md border"
+                              modifiers={{
+                                available: (date) => {
+                                  const today = new Date()
+                                  today.setHours(0, 0, 0, 0)
+                                  const unavailableDates = [
+                                    new Date(2025, 4, 13),
+                                    new Date(2025, 4, 14),
+                                    new Date(2025, 4, 17),
+                                    new Date(2025, 4, 18),
+                                    new Date(2025, 4, 19),
+                                    new Date(2025, 4, 23),
+                                    new Date(2025, 4, 24),
+                                  ]
+                                  return date >= today && !unavailableDates.some(d => 
+                                    d.getDate() === date.getDate() && 
+                                    d.getMonth() === date.getMonth() && 
+                                    d.getFullYear() === date.getFullYear()
+                                  )
+                                },
+                                unavailable: [
+                                  new Date(2025, 4, 13),
+                                  new Date(2025, 4, 14),
+                                  new Date(2025, 4, 17),
+                                  new Date(2025, 4, 18),
+                                  new Date(2025, 4, 19),
+                                  new Date(2025, 4, 23),
+                                  new Date(2025, 4, 24),
+                                ],
+                              }}
+                              modifiersClassNames={{
+                                available: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+                                unavailable:
+                                  "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through",
+                              }}
+                            />
+                            <div className="flex items-center justify-center mt-4 space-x-4 text-sm">
+>>>>>>> Stashed changes
                               <div className="flex items-center">
                                 <CalendarIcon className="mr-2 h-5 w-5 text-muted-foreground" />
                                 {startDate ? (

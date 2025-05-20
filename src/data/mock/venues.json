@@ -1,0 +1,296 @@
+{
+  "venues": [
+    {
+      "id": "1",
+      "name": {
+        "en": "Stunning Loft Space with City Views",
+        "sq": "Hapësirë Loft Mahnitëse me Pamje nga Qyteti"
+      },
+      "description": {
+        "en": "This stunning loft space offers breathtaking views of the city skyline. With floor-to-ceiling windows, exposed brick walls, and modern amenities, it's perfect for photoshoots, corporate events, and intimate gatherings.",
+        "sq": "Kjo hapësirë mahnitëse loft ofron pamje mahnitëse të horizontit të qytetit. Me dritare nga dyshemeja në tavan, mure me tulla të ekspozuara dhe pajisje moderne, është perfekte për fotografi, evente korporative dhe mbledhje intime."
+      },
+      "type": "loft",
+      "address": {
+        "street": "123 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "10001",
+        "country": "USA"
+      },
+      "media": [
+        {
+          "id": "img1",
+          "url": "/placeholder.svg?height=600&width=800&text=Venue Interior",
+          "type": "image"
+        },
+        {
+          "id": "img2",
+          "url": "/placeholder.svg?height=600&width=800&text=Venue Exterior",
+          "type": "image"
+        },
+        {
+          "id": "img3",
+          "url": "/placeholder.svg?height=600&width=800&text=Venue Setup",
+          "type": "image"
+        }
+      ],
+      "amenities": [
+        "wifi",
+        "soundsystem",
+        "kitchen",
+        "avequipment",
+        "parking"
+      ],
+      "capacity": {
+        "min": 10,
+        "max": 100,
+        "recommended": 50
+      },
+      "size": 3000,
+      "rating": {
+        "average": 4.9,
+        "count": 24
+      },
+      "reviews": [
+        {
+          "id": "rev1",
+          "userId": "user1",
+          "rating": 5,
+          "comment": "Amazing venue! The natural light was perfect for our photoshoot.",
+          "createdAt": "2023-03-15T00:00:00Z",
+          "updatedAt": "2023-03-15T00:00:00Z"
+        },
+        {
+          "id": "rev2",
+          "userId": "user2",
+          "rating": 5,
+          "comment": "We hosted our company's holiday party here and it was a hit!",
+          "createdAt": "2023-02-10T00:00:00Z",
+          "updatedAt": "2023-02-10T00:00:00Z"
+        }
+      ],
+      "price": {
+        "amount": 150,
+        "currency": "USD",
+        "type": "hourly"
+      },
+      "availability": {
+        "daysOfWeek": [0, 1, 2, 3, 4, 5, 6],
+        "startTime": "09:00",
+        "endTime": "22:00",
+        "exceptions": []
+      },
+      "dayAvailability": {
+        "monday": "9:00 AM - 10:00 PM",
+        "tuesday": "9:00 AM - 10:00 PM",
+        "wednesday": "9:00 AM - 10:00 PM",
+        "thursday": "9:00 AM - 10:00 PM",
+        "friday": "9:00 AM - 12:00 AM",
+        "saturday": "10:00 AM - 12:00 AM",
+        "sunday": "10:00 AM - 10:00 PM"
+      },
+      "ownerId": "owner1",
+      "active": true,
+      "host": {
+        "name": "Sarah Johnson",
+        "image": "/placeholder.svg?height=100&width=100&text=SJ",
+        "responseRate": 98,
+        "responseTime": "within an hour",
+        "joined": "January 2020"
+      },
+      "createdAt": "2022-01-01T00:00:00Z",
+      "updatedAt": "2023-01-01T00:00:00Z"
+    },
+    {
+      "name": {
+        "en": "Venue Name",
+        "sq": "Emri i vendit"
+      },
+      "description": {
+        "en": "Venue Description",
+        "sq": "Pershkrimi i vendit"
+      },
+      "type": "ballroom",
+      "address": {
+        "street": "789 Gallery Way",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "10011",
+        "country": "USA"
+      },
+      "capacity": {
+        "min": 15,
+        "max": 120,
+        "recommended": 60
+      },
+      "price": {
+        "amount": 300,
+        "currency": "USD",
+        "type": "fixed"
+      },
+      "amenities": [
+        "wifi",
+        "parking",
+        "soundsystem",
+        "avequipment"
+      ],
+      "media": [
+        {
+          "id": "img1",
+          "url": "/placeholder.svg?height=600&width=800&text=Gallery Space",
+          "type": "image"
+        }
+      ],
+      "dayAvailability": {
+        "monday": "9:00 AM - 10:00 PM",
+        "tuesday": "9:00 AM - 10:00 PM",
+        "wednesday": "9:00 AM - 10:00 PM",
+        "thursday": "9:00 AM - 10:00 PM",
+        "friday": "9:00 AM - 12:00 AM",
+        "saturday": "10:00 AM - 12:00 AM",
+        "sunday": "10:00 AM - 10:00 PM"
+      },
+      "metadata": null,
+      "rating": {
+        "average": 4.9,
+        "count": 24
+      },
+      "reviews": [
+        {
+          "id": "rev1",
+          "userId": "user1",
+          "rating": 5,
+          "comment": "Amazing venue! The natural light was perfect for our photoshoot.",
+          "createdAt": "2023-03-15T00:00:00Z",
+          "updatedAt": "2023-03-15T00:00:00Z"
+        },
+        {
+          "id": "rev2",
+          "userId": "user2",
+          "rating": 5,
+          "comment": "We hosted our company's holiday party here and it was a hit!",
+          "createdAt": "2023-02-10T00:00:00Z",
+          "updatedAt": "2023-02-10T00:00:00Z"
+        }
+      ],
+      "host": {
+        "name": "Sarah Johnson",
+        "image": "/placeholder.svg?height=100&width=100&text=SJ",
+        "responseRate": 98,
+        "responseTime": "within an hour",
+        "joined": "January 2020"
+      },
+      "id": "087466a4-351d-4e0c-a3b2-b951824cf984",
+      "active": true,
+      "ownerId": "owner1",
+      "createdAt": "2025-05-13T20:42:55.660Z",
+      "updatedAt": "2025-05-13T20:42:55.660Z"
+    },
+    {
+      "id": "2",
+      "name": {
+        "en": "Rooftop Garden",
+        "sq": "Kopshti në Çati"
+      },
+      "description": {
+        "en": "A beautiful rooftop garden with panoramic views of the Brooklyn skyline. Perfect for outdoor parties, small weddings, and social gatherings.",
+        "sq": "Një kopsht i bukur në çati me pamje panoramike të horizontit të Brooklyn. Perfekt për festa në natyrë, dasma të vogla dhe takime sociale."
+      },
+      "type": "outdoorSpace",
+      "address": {
+        "street": "456 Park Ave",
+        "city": "Brooklyn",
+        "state": "NY",
+        "zipCode": "11201",
+        "country": "USA"
+      },
+      "location": {
+        "en": "Brooklyn, NY",
+        "sq": "Brooklyn, NY"
+      },
+      "media": [
+        {
+          "id": "img1",
+          "url": "/placeholder.svg?height=600&width=800&text=Rooftop Garden",
+          "type": "image"
+        }
+      ],
+      "amenities": [
+        "wifi",
+        "kitchen"
+      ],
+      "capacity": {
+        "min": 20,
+        "max": 150,
+        "recommended": 80
+      },
+      "size": 4000,
+      "rating": {
+        "average": 4.7,
+        "count": 18
+      },
+      "price": {
+        "amount": 200,
+        "currency": "EUR",
+        "type": "perPerson"
+      },
+      "ownerId": "owner2",
+      "active": true,
+      "createdAt": "2022-02-01T00:00:00Z",
+      "updatedAt": "2023-02-01T00:00:00Z"
+    },
+    {
+      "id": "3",
+      "name": {
+        "en": "Modern Gallery",
+        "sq": "Galeri Moderne"
+      },
+      "description": {
+        "en": "A sleek, minimalist gallery space ideal for art exhibitions, product launches, and high-end events.",
+        "sq": "Një hapësirë galerie elegante dhe minimaliste, ideale për ekspozita arti, lançime produktesh dhe evente të nivelit të lartë."
+      },
+      "type": "photography_studio",
+      "address": {
+        "street": "789 Gallery Way",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "10011",
+        "country": "USA"
+      },
+      "location": {
+        "en": "Chelsea, NY",
+        "sq": "Chelsea, NY"
+      },
+      "media": [
+        {
+          "id": "img1",
+          "url": "/placeholder.svg?height=600&width=800&text=Gallery Space",
+          "type": "image"
+        }
+      ],
+      "amenities": [
+        "wifi",
+        "av_equipment"
+      ],
+      "capacity": {
+        "min": 15,
+        "max": 120,
+        "recommended": 60
+      },
+      "rating": {
+        "average": 4.8,
+        "count": 32
+      },
+      "price": {
+        "amount": 300,
+        "currency": "USD",
+        "type": "fixed"
+      },
+      "ownerId": "owner3",
+      "active": true,
+      "createdAt": "2022-03-01T00:00:00Z",
+      "updatedAt": "2023-03-01T00:00:00Z"
+    }
+  ]
+} 
