@@ -9,23 +9,58 @@ import { useLanguage } from "../context/language-context"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Checkbox } from "../components/ui/checkbox"
+import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group"
+import { Label } from "../components/ui/label"
+import { authService } from "@/services/authService"
 
 export default function SignupPage() {
   const { t } = useLanguage()
   const { login } = useAuth()
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    phoneNumber: "",
+    email: "",
+    password: "",
+    role: "user" as "user" | "host",
+  })
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleRoleChange = (value: "user" | "host") => {
+    setFormData((prev) => ({ ...prev, role: value }))
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
+    setError(null)
 
-    // Simulate signup
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    login({ name: "John Doe", email: "john@example.com" })
+    try {
+      // Use the auth service to register
+      const data = await authService.signup(formData)
 
-    setIsLoading(false)
-    navigate("/dashboard")
+      // Update auth context
+      login(data.user.email, formData.password)
+
+      // Redirect based on role
+      if (data.user.role === "host") {
+        navigate("/business/dashboard")
+      } else {
+        navigate("/dashboard/dashboard")
+      }
+    } catch (error) {
+      console.error("Registration error:", error)
+      setError(error instanceof Error ? error.message : "Registration failed")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -46,7 +81,15 @@ export default function SignupPage() {
               >
                 {t("signup.firstName") || "First name"}
               </label>
-              <Input id="firstName" type="text" required autoComplete="given-name" />
+              <Input
+                id="firstName"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                type="text"
+                required
+                autoComplete="given-name"
+              />
             </div>
             <div className="space-y-2">
               <label
@@ -55,8 +98,33 @@ export default function SignupPage() {
               >
                 {t("signup.lastName") || "Last name"}
               </label>
-              <Input id="lastName" type="text" required autoComplete="family-name" />
+              <Input
+                id="lastName"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                type="text"
+                required
+                autoComplete="family-name"
+              />
             </div>
+          </div>
+          <div className="space-y-2">
+            <label
+              htmlFor="phoneNumber"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              {t("signup.phoneNumber") || "Phone number"}
+            </label>
+            <Input
+              id="phoneNumber"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              type="tel"
+              placeholder="+1234567890"
+              autoComplete="tel"
+            />
           </div>
           <div className="space-y-2">
             <label
@@ -65,7 +133,16 @@ export default function SignupPage() {
             >
               {t("signup.email") || "Email"}
             </label>
-            <Input id="email" type="email" placeholder="m@example.com" required autoComplete="email" />
+            <Input
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              type="email"
+              placeholder="m@example.com"
+              required
+              autoComplete="email"
+            />
           </div>
           <div className="space-y-2">
             <label
@@ -74,8 +151,35 @@ export default function SignupPage() {
             >
               {t("signup.password") || "Password"}
             </label>
-            <Input id="password" type="password" required autoComplete="new-password" />
+            <Input
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              type="password"
+              required
+              autoComplete="new-password"
+            />
           </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium leading-none">{t("signup.accountType") || "Account type"}</label>
+            <RadioGroup
+              value={formData.role}
+              onValueChange={handleRoleChange as (value: string) => void}
+              className="flex flex-col space-y-2 mt-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="user" id="user" />
+                <Label htmlFor="user">{t("signup.userAccount") || "User Account"}</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="host" id="host" />
+                <Label htmlFor="host">{t("signup.hostAccount") || "Host Account"}</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
           <div className="flex items-center space-x-2">
             <Checkbox id="terms" required />
             <label
@@ -85,6 +189,9 @@ export default function SignupPage() {
               {t("signup.agreeTerms") || "I agree to the terms and conditions"}
             </label>
           </div>
+
+          {error && <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">{error}</div>}
+
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
               <span className="flex items-center justify-center">

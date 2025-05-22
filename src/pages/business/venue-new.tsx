@@ -16,26 +16,183 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import * as venueService from "../../services/venueService"
+import { Venue } from "../../models/venue"
+import { PricingType, VenueAmenity, VenueType } from "../../models/common"
+import { toast } from "../../components/ui/use-toast"
 
 interface VenueNewModalProps {
   isOpen: boolean
   onClose: () => void
+  onSuccess?: () => void
 }
 
-export function VenueNewModal({ isOpen, onClose }: VenueNewModalProps) {
-  const { t } = useLanguage()
+export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps) {
+  const { t, language } = useLanguage()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [activeTab, setActiveTab] = useState("details")
+  const [venueForm, setVenueForm] = useState({
+    name: {
+      en: "",
+      sq: ""
+    },
+    description: {
+      en: "",
+      sq: ""
+    },
+    type: VenueType.OTHER,
+    address: {
+      street: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      country: "USA"
+    },
+    location: {
+      en: "",
+      sq: ""
+    },
+    amenities: [] as VenueAmenity[],
+    capacity: {
+      min: 10,
+      max: 100,
+      recommended: 50
+    },
+    price: {
+      amount: 0,
+      currency: "USD",
+      type: PricingType.HOURLY
+    },
+    size: 0
+  })
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      // Create a venue data object
+      const venueData = {
+        ...venueForm,
+        active: true,
+        media: [
+          {
+            id: "img1",
+            url: "/placeholder.svg?height=600&width=800&text=New+Venue",
+            type: "image"
+          }
+        ],
+        rating: {
+          average: 0,
+          count: 0
+        },
+        availability: {
+          daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
+          startTime: "09:00",
+          endTime: "22:00",
+          exceptions: []
+        },
+        dayAvailability: {
+          monday: "9:00 AM - 10:00 PM",
+          tuesday: "9:00 AM - 10:00 PM",
+          wednesday: "9:00 AM - 10:00 PM",
+          thursday: "9:00 AM - 10:00 PM",
+          friday: "9:00 AM - 12:00 AM",
+          saturday: "10:00 AM - 12:00 AM",
+          sunday: "10:00 AM - 10:00 PM"
+        },
+        reviews: [],
+        ownerId: "owner1" // In a real app, this would be the current user's ID
+      }
 
-    setIsSubmitting(false)
-    onClose()
+      const result = await venueService.createVenue(venueData)
+      
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: "Venue created successfully",
+        })
+        
+        // Reset form
+        setVenueForm({
+          name: { en: "", sq: "" },
+          description: { en: "", sq: "" },
+          type: VenueType.OTHER,
+          address: {
+            street: "",
+            city: "",
+            state: "",
+            zipCode: "",
+            country: "USA"
+          },
+          location: { en: "", sq: "" },
+          amenities: [],
+          capacity: {
+            min: 10,
+            max: 100,
+            recommended: 50
+          },
+          price: {
+            amount: 0,
+            currency: "USD",
+            type: PricingType.HOURLY
+          },
+          size: 0
+        })
+        
+        if (onSuccess) {
+          onSuccess()
+        } else {
+          onClose()
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to create venue",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      console.error("Error creating venue:", error)
+      toast({
+        title: "Error",
+        description: "Failed to create venue. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
+
+  const handleToggleAmenity = (amenity: VenueAmenity) => {
+    setVenueForm(prev => {
+      const amenities = prev.amenities.includes(amenity)
+        ? prev.amenities.filter(a => a !== amenity)
+        : [...prev.amenities, amenity]
+      return { ...prev, amenities }
+    })
+  }
+
+  const goToNextTab = () => {
+    if (activeTab === "details") setActiveTab("photos")
+    else if (activeTab === "photos") setActiveTab("pricing")
+    else if (activeTab === "pricing") setActiveTab("amenities")
+  }
+
+  const goToPrevTab = () => {
+    if (activeTab === "amenities") setActiveTab("pricing")
+    else if (activeTab === "pricing") setActiveTab("photos")
+    else if (activeTab === "photos") setActiveTab("details")
+  }
+
+  const amenityOptions = Object.values(VenueAmenity).map(amenity => ({
+    value: amenity,
+    label: t(`venues.amenities.${amenity.toLowerCase()}`) || amenity.replace('_', ' ')
+  }))
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -45,7 +202,7 @@ export function VenueNewModal({ isOpen, onClose }: VenueNewModalProps) {
           <DialogDescription>{t("business.venueNew.subtitle")}</DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="details" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-6 w-full justify-start">
             <TabsTrigger value="details">{t("business.venueNew.details")}</TabsTrigger>
             <TabsTrigger value="photos">{t("business.venueNew.photos")}</TabsTrigger>
@@ -58,55 +215,89 @@ export function VenueNewModal({ isOpen, onClose }: VenueNewModalProps) {
               <div className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label htmlFor="name" className="text-sm font-medium">
-                      {t("business.common.name")}*
-                    </label>
+                    <Label htmlFor="name-en">
+                      {t("business.common.name")}* (English)
+                    </Label>
                     <Input
-                      id="name"
+                      id="name-en"
+                      value={venueForm.name.en}
+                      onChange={(e) => setVenueForm({ ...venueForm, name: { ...venueForm.name, en: e.target.value } })}
                       placeholder={t("business.venueNew.venueNamePlaceholder")}
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="type" className="text-sm font-medium">
-                      {t("business.common.type")}*
-                    </label>
-                    <select
-                      id="type"
-                      className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    <Label htmlFor="name-sq">
+                      {t("business.common.name")}* (Albanian)
+                    </Label>
+                    <Input
+                      id="name-sq"
+                      value={venueForm.name.sq}
+                      onChange={(e) => setVenueForm({ ...venueForm, name: { ...venueForm.name, sq: e.target.value } })}
+                      placeholder={t("business.venueNew.venueNamePlaceholder")}
                       required
-                    >
-                      <option value="">{t("business.common.selectType")}</option>
-                      <option value="ballroom">{t("business.venueTypes.ballroom")}</option>
-                      <option value="garden">{t("business.venueTypes.garden")}</option>
-                      <option value="rooftop">{t("business.venueTypes.rooftop")}</option>
-                      <option value="loft">{t("business.venueTypes.loft")}</option>
-                      <option value="hotel">{t("business.venueTypes.hotel")}</option>
-                      <option value="restaurant">{t("business.venueTypes.restaurant")}</option>
-                      <option value="other">{t("business.venueTypes.other")}</option>
-                    </select>
+                    />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="description" className="text-sm font-medium">
-                    {t("business.common.description")}*
-                  </label>
-                  <textarea
-                    id="description"
-                    rows={5}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    placeholder={t("business.venueNew.descriptionPlaceholder")}
-                    required
-                  ></textarea>
+                  <Label htmlFor="type">
+                    {t("business.common.type")}*
+                  </Label>
+                  <Select
+                    value={venueForm.type}
+                    onValueChange={(value) => setVenueForm({ ...venueForm, type: value as VenueType })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("business.common.selectType")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.values(VenueType).map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {t(`venues.types.${type.toLowerCase()}`) || type.replace('_', ' ')}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="description-en">
+                      {t("business.common.description")}* (English)
+                    </Label>
+                    <Textarea
+                      id="description-en"
+                      value={venueForm.description.en}
+                      onChange={(e) => setVenueForm({ ...venueForm, description: { ...venueForm.description, en: e.target.value } })}
+                      placeholder={t("business.venueNew.descriptionPlaceholder")}
+                      rows={5}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description-sq">
+                      {t("business.common.description")}* (Albanian)
+                    </Label>
+                    <Textarea
+                      id="description-sq"
+                      value={venueForm.description.sq}
+                      onChange={(e) => setVenueForm({ ...venueForm, description: { ...venueForm.description, sq: e.target.value } })}
+                      placeholder={t("business.venueNew.descriptionPlaceholder")}
+                      rows={5}
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="address" className="text-sm font-medium">
+                  <Label htmlFor="street">
                     {t("business.common.address")}*
-                  </label>
+                  </Label>
                   <Input
-                    id="address"
+                    id="street"
+                    value={venueForm.address.street}
+                    onChange={(e) => setVenueForm({ ...venueForm, address: { ...venueForm.address, street: e.target.value } })}
                     placeholder={t("business.venueNew.addressPlaceholder")}
                     required
                   />
@@ -114,62 +305,141 @@ export function VenueNewModal({ isOpen, onClose }: VenueNewModalProps) {
 
                 <div className="grid gap-4 sm:grid-cols-3">
                   <div className="space-y-2">
-                    <label htmlFor="city" className="text-sm font-medium">
+                    <Label htmlFor="city">
                       {t("business.common.city")}*
-                    </label>
-                    <Input id="city" placeholder={t("business.venueNew.cityPlaceholder")} required />
+                    </Label>
+                    <Input
+                      id="city"
+                      value={venueForm.address.city}
+                      onChange={(e) => setVenueForm({ ...venueForm, address: { ...venueForm.address, city: e.target.value } })}
+                      placeholder={t("business.venueNew.cityPlaceholder")}
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="state" className="text-sm font-medium">
+                    <Label htmlFor="state">
                       {t("business.common.state")}*
-                    </label>
+                    </Label>
                     <Input
                       id="state"
+                      value={venueForm.address.state}
+                      onChange={(e) => setVenueForm({ ...venueForm, address: { ...venueForm.address, state: e.target.value } })}
                       placeholder={t("business.venueNew.statePlaceholder")}
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="zip" className="text-sm font-medium">
+                    <Label htmlFor="zip">
                       {t("business.common.zip")}*
-                    </label>
-                    <Input id="zip" placeholder={t("business.venueNew.zipPlaceholder")} required />
+                    </Label>
+                    <Input
+                      id="zip"
+                      value={venueForm.address.zipCode}
+                      onChange={(e) => setVenueForm({ ...venueForm, address: { ...venueForm.address, zipCode: e.target.value } })}
+                      placeholder={t("business.venueNew.zipPlaceholder")}
+                      required
+                    />
                   </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label htmlFor="capacity" className="text-sm font-medium">
-                      {t("business.common.capacity")}*
-                    </label>
+                    <Label htmlFor="location-en">
+                      {t("business.venueNew.location")}* (English)
+                    </Label>
                     <Input
-                      id="capacity"
-                      type="number"
-                      min="1"
-                      placeholder={t("business.venueNew.capacityPlaceholder")}
+                      id="location-en"
+                      value={venueForm.location.en}
+                      onChange={(e) => setVenueForm({ ...venueForm, location: { ...venueForm.location, en: e.target.value } })}
+                      placeholder="e.g. Manhattan, NY"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="size" className="text-sm font-medium">
-                      {t("business.venueNew.size")}
-                    </label>
+                    <Label htmlFor="location-sq">
+                      {t("business.venueNew.location")}* (Albanian)
+                    </Label>
                     <Input
-                      id="size"
-                      type="number"
-                      min="1"
-                      placeholder={t("business.venueNew.sizePlaceholder")}
+                      id="location-sq"
+                      value={venueForm.location.sq}
+                      onChange={(e) => setVenueForm({ ...venueForm, location: { ...venueForm.location, sq: e.target.value } })}
+                      placeholder="e.g. Manhattan, NY"
+                      required
                     />
                   </div>
                 </div>
+
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="capacity-min">
+                      {t("business.venueNew.minCapacity")}*
+                    </Label>
+                    <Input
+                      id="capacity-min"
+                      type="number"
+                      min="1"
+                      value={venueForm.capacity.min}
+                      onChange={(e) => setVenueForm({ ...venueForm, capacity: { ...venueForm.capacity, min: parseInt(e.target.value) } })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="capacity-max">
+                      {t("business.venueNew.maxCapacity")}*
+                    </Label>
+                    <Input
+                      id="capacity-max"
+                      type="number"
+                      min="1"
+                      value={venueForm.capacity.max}
+                      onChange={(e) => setVenueForm({ ...venueForm, capacity: { ...venueForm.capacity, max: parseInt(e.target.value) } })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="capacity-recommended">
+                      {t("business.venueNew.recommendedCapacity")}*
+                    </Label>
+                    <Input
+                      id="capacity-recommended"
+                      type="number"
+                      min="1"
+                      value={venueForm.capacity.recommended}
+                      onChange={(e) => setVenueForm({ ...venueForm, capacity: { ...venueForm.capacity, recommended: parseInt(e.target.value) } })}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="size">
+                    {t("business.venueNew.size")} (sq ft)
+                  </Label>
+                  <Input
+                    id="size"
+                    type="number"
+                    min="1"
+                    value={venueForm.size}
+                    onChange={(e) => setVenueForm({ ...venueForm, size: parseInt(e.target.value) })}
+                    placeholder={t("business.venueNew.sizePlaceholder")}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button type="button" onClick={goToNextTab}>
+                  {t("business.common.next")}
+                </Button>
               </div>
             </TabsContent>
 
             <TabsContent value="photos" className="space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">{t("business.venueNew.mainPhoto")}</label>
-                  <div className="flex h-64 cursor-pointer items-center justify-center rounded-md border border-dashed border-gray-300 hover:border-gray-400">
+                  <Label>
+                    {t("business.venueNew.mainPhoto")}
+                  </Label>
+                  <div className="flex h-64 cursor-pointer items-center justify-center rounded-md border border-dashed border-gray-300 hover:border-gray-400 dark:border-gray-700 dark:hover:border-gray-600">
                     <div className="flex flex-col items-center space-y-2 p-4 text-center">
                       <Upload className="h-8 w-8 text-gray-400" />
                       <div className="text-sm font-medium">
@@ -181,7 +451,19 @@ export function VenueNewModal({ isOpen, onClose }: VenueNewModalProps) {
                       <input type="file" className="hidden" accept="image/*" multiple />
                     </div>
                   </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Note: In the demo mode, a placeholder image will be used instead of uploaded photos.
+                  </p>
                 </div>
+              </div>
+
+              <div className="flex justify-between">
+                <Button type="button" variant="outline" onClick={goToPrevTab}>
+                  {t("business.common.previous")}
+                </Button>
+                <Button type="button" onClick={goToNextTab}>
+                  {t("business.common.next")}
+                </Button>
               </div>
             </TabsContent>
 
@@ -189,9 +471,9 @@ export function VenueNewModal({ isOpen, onClose }: VenueNewModalProps) {
               <div className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label htmlFor="basePrice" className="text-sm font-medium">
+                    <Label htmlFor="basePrice">
                       {t("business.common.price")}*
-                    </label>
+                    </Label>
                     <div className="relative">
                       <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
                       <Input
@@ -201,99 +483,90 @@ export function VenueNewModal({ isOpen, onClose }: VenueNewModalProps) {
                         step="0.01"
                         className="pl-7"
                         placeholder="0.00"
+                        value={venueForm.price.amount}
+                        onChange={(e) => setVenueForm({ ...venueForm, price: { ...venueForm.price, amount: parseFloat(e.target.value) } })}
                         required
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="pricingType" className="text-sm font-medium">
+                    <Label htmlFor="pricingType">
                       {t("business.serviceNew.pricingType")}*
-                    </label>
-                    <select
-                      id="pricingType"
-                      className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      required
+                    </Label>
+                    <Select
+                      value={venueForm.price.type}
+                      onValueChange={(value) => setVenueForm({ ...venueForm, price: { ...venueForm.price, type: value as PricingType } })}
                     >
-                      <option value="hourly">{t("business.pricing.hourly")}</option>
-                      <option value="perPerson">{t("business.pricing.perPerson")}</option>
-                      <option value="fixed">{t("business.pricing.fixed")}</option>
-                      <option value="perDay">{t("business.pricing.perDay")}</option>
-                    </select>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("business.common.selectPriceType")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.values(PricingType).map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {t(`common.${type.toLowerCase()}`) || type.replace('_', ' ')}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
+              </div>
+
+              <div className="flex justify-between">
+                <Button type="button" variant="outline" onClick={goToPrevTab}>
+                  {t("business.common.previous")}
+                </Button>
+                <Button type="button" onClick={goToNextTab}>
+                  {t("business.common.next")}
+                </Button>
               </div>
             </TabsContent>
 
             <TabsContent value="amenities" className="space-y-6">
               <div className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-3">
-                  {/* Simplified amenities list for demo purposes */}
-                  {["WiFi", "Parking", "Kitchen", "Sound System", "Projector", "Chairs", "Tables", "Catering", "Bathroom"].map((amenity) => (
-                    <div key={amenity} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id={`amenity-${amenity}`}
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  {amenityOptions.map((amenity) => (
+                    <div key={amenity.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`amenity-${amenity.value}`}
+                        checked={venueForm.amenities.includes(amenity.value)}
+                        onCheckedChange={() => handleToggleAmenity(amenity.value)}
                       />
-                      <label htmlFor={`amenity-${amenity}`} className="text-sm">
-                        {t(`venues.amenities.${amenity.toLowerCase().replace(/\s+/g, "")}`) || amenity}
-                      </label>
+                      <Label
+                        htmlFor={`amenity-${amenity.value}`}
+                        className="text-sm"
+                      >
+                        {amenity.label}
+                      </Label>
                     </div>
                   ))}
                 </div>
               </div>
-            </TabsContent>
 
-            <DialogFooter className="mt-6">
-              <Button type="button" variant="outline" onClick={onClose}>
-                {t("business.common.cancel")}
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <span className="flex items-center gap-1">
-                    <svg
-                      className="animate-spin h-4 w-4 mr-1"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    {t("business.common.saving")}
-                  </span>
-                ) : (
-                  t("business.venueNew.saveVenue")
-                )}
-              </Button>
-            </DialogFooter>
+              <div className="flex justify-between">
+                <Button type="button" variant="outline" onClick={goToPrevTab}>
+                  {t("business.common.previous")}
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? t("business.common.creating") : t("business.common.createVenue")}
+                </Button>
+              </div>
+            </TabsContent>
           </form>
         </Tabs>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
-// Keep the page component for direct navigation (fallback)
 export default function BusinessVenueNewPage() {
-  const { t } = useLanguage()
   const navigate = useNavigate()
+  const [isOpen, setIsOpen] = useState(true)
 
-  return (
-    <VenueNewModal 
-      isOpen={true} 
-      onClose={() => navigate("/business/venues")} 
-    />
-  )
+  const handleClose = () => {
+    setIsOpen(false)
+    navigate('/business/venues')
+  }
+
+  return <VenueNewModal isOpen={isOpen} onClose={handleClose} />
 }

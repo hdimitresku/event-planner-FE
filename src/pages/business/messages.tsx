@@ -148,16 +148,16 @@ export default function MessagesPage() {
 
   // Filter conversations based on search query and active tab
   const filteredConversations = conversations.filter(conversation => {
-    const matchesSearch = conversation.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          conversation.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
-    
-    const matchesTab = activeTab === "all" || 
-                      (activeTab === "unread" && conversation.unread) ||
-                      (activeTab === "hosts" && conversation.type === "host") ||
-                      (activeTab === "guests" && conversation.type === "guest") ||
-                      (activeTab === "support" && conversation.type === "support") ||
-                      (activeTab === "archived" && conversation.status === "archived")
-    
+    const matchesSearch = conversation.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      conversation.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
+
+    const matchesTab = activeTab === "all" ||
+      (activeTab === "unread" && conversation.unread) ||
+      (activeTab === "hosts" && conversation.type === "host") ||
+      (activeTab === "guests" && conversation.type === "guest") ||
+      (activeTab === "support" && conversation.type === "support") ||
+      (activeTab === "archived" && conversation.status === "archived")
+
     return matchesSearch && matchesTab
   })
 
@@ -167,10 +167,10 @@ export default function MessagesPage() {
   // Handle sending a new message
   const handleSendMessage = () => {
     if (messageText.trim() === "") return
-    
+
     // In a real app, you would send the message to the server here
     console.log("Sending message:", messageText)
-    
+
     // Clear the input field
     setMessageText("")
   }
@@ -202,9 +202,9 @@ export default function MessagesPage() {
 
           <Tabs defaultValue="all" onValueChange={setActiveTab}>
             <TabsList className="grid grid-cols-3 h-9">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="unread">Unread</TabsTrigger>
-              <TabsTrigger value="archived">Archived</TabsTrigger>
+              <TabsTrigger className="text-muted-foreground hover:text-foreground transition-colors hover-underline" value="all">All</TabsTrigger>
+              <TabsTrigger className="text-muted-foreground hover:text-foreground transition-colors hover-underline" value="unread">Unread</TabsTrigger>
+              <TabsTrigger className="text-muted-foreground hover:text-foreground transition-colors hover-underline" value="archived">Archived</TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -213,11 +213,10 @@ export default function MessagesPage() {
               filteredConversations.map((conversation) => (
                 <div
                   key={conversation.id}
-                  className={`p-3 rounded-lg cursor-pointer transition-all ${
-                    selectedConversation === conversation.id
+                  className={`space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-soft p-3 rounded-lg cursor-pointer transition-all ${selectedConversation === conversation.id
                       ? "bg-primary/10 border-primary"
                       : "hover:bg-muted/50"
-                  } ${conversation.unread ? "border-l-4 border-l-primary" : "border"}`}
+                    } ${conversation.unread ? "border-l-4 border-l-primary" : "border"}`}
                   onClick={() => setSelectedConversation(conversation.id)}
                 >
                   <div className="flex items-center gap-3">
@@ -228,9 +227,8 @@ export default function MessagesPage() {
                         className="w-10 h-10 rounded-full object-cover"
                       />
                       <span
-                        className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${
-                          conversation.status === "active" ? "bg-success" : "bg-muted"
-                        }`}
+                        className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${conversation.status === "active" ? "bg-success" : "bg-muted"
+                          }`}
                       ></span>
                     </div>
                     <div className="flex-1 min-w-0">
@@ -288,9 +286,8 @@ export default function MessagesPage() {
                   {conversationMessages.map((message) => (
                     <div
                       key={message.id}
-                      className={`message ${
-                        message.sender === "me" ? "message-sent" : "message-received"
-                      }`}
+                      className={`message ${message.sender === "me" ? "message-sent" : "message-received"
+                        }`}
                     >
                       <div className="flex flex-col">
                         <p>{message.text}</p>

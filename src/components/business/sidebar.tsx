@@ -31,8 +31,8 @@ export function BusinessSidebar({ className }: SidebarProps) {
     {
       label: t("business.sidebar.dashboard") || "Dashboard",
       icon: LayoutDashboard,
-      href: "/business",
-      active: location.pathname === "/business",
+      href: "/business/dashboard",
+      active: location.pathname === "/business/dashboard",
     },
     {
       label: t("business.sidebar.venues") || "My Venues",
@@ -44,7 +44,8 @@ export function BusinessSidebar({ className }: SidebarProps) {
       label: t("business.sidebar.services") || "My Services",
       icon: Utensils,
       href: "/business/service-management",
-      active: location.pathname === "/business/service-management" || location.pathname.startsWith("/business/services/"),
+      active:
+        location.pathname === "/business/service-management" || location.pathname.startsWith("/business/services/"),
     },
     {
       label: t("business.sidebar.bookings") || "Bookings",
@@ -98,37 +99,40 @@ export function BusinessSidebar({ className }: SidebarProps) {
       />
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-[#1E2D3B] text-white transition-transform duration-200 md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-card shadow-lg text-card-foreground transition-transform duration-200 md:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } ${className}`}
       >
         <div className="flex h-full flex-col">
-          <div className="flex h-16 items-center border-b border-white/10 px-6">
+          <div className="flex h-16 items-center border-b border-border/50 px-6">
             <Link to="/business" className="flex items-center gap-2 font-bold text-xl">
-              <span className="text-[#D72638]">Venue</span>Space
+              <span className="text-primary">Venue</span>
+              <span className="text-secondary">Space</span>
             </Link>
           </div>
-          <div className="flex-1 overflow-auto py-4">
-            <nav className="grid gap-1 px-2">
+          <div className="flex-1 overflow-auto py-6">
+            <nav className="grid gap-2 px-3">
               {routes.map((route) => (
                 <Link
                   key={route.href}
                   to={route.href}
                   onClick={() => setIsOpen(false)}
-                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-white/10 ${
-                    route.active ? "bg-white/10 font-medium" : "text-white/70"
+                  className={`space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-soft relative after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-primary hover:after:w-full after:transition-all after:duration-300 flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors ${
+                    route.active
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-foreground/70 hover:text-foreground hover:bg-muted/50"
                   }`}
                 >
-                  <route.icon className="h-5 w-5" />
+                  <route.icon className={`h-5 w-5 ${route.active ? "text-primary" : "text-foreground/70"}`} />
                   {route.label}
                 </Link>
               ))}
             </nav>
           </div>
-          <div className="border-t border-white/10 p-4">
+          <div className="border-t border-border/50 p-4">
             <Button
               variant="ghost"
-              className="w-full justify-start text-white/70 hover:bg-white/10 hover:text-white"
+              className="w-full justify-start text-foreground/70 hover:text-foreground hover:bg-muted/50"
               asChild
             >
               <Link to="/">
