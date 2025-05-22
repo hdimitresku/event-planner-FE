@@ -7,6 +7,7 @@ import { SiteHeader } from "./components/site-header"
 import { SiteFooter } from "./components/site-footer"
 import { ProtectedRoute } from "./components/protected-route"
 import { Toaster } from "@/components/ui/sonner"
+import { DashboardLayout } from "@/components/dashboard/layout"
 
 // Pages
 import HomePage from "./pages/home"
@@ -62,19 +63,16 @@ function App() {
                       path="/dashboard"
                       element={
                         <ProtectedRoute>
-                          <DashboardPage />
+                          <DashboardLayout />
                         </ProtectedRoute>
                       }
-                    />
-
-                    <Route
-                      path="/dashboard/profile"
-                      element={
-                        <ProtectedRoute>
-                          <ProfilePage />
-                        </ProtectedRoute>
-                      }
-                    />
+                    >
+                      <Route index element={<DashboardPage />} />
+                      <Route path="profile" element={<ProfilePage />} />
+                      <Route path="favorites" element={<FavoritesPage />} />
+                      <Route path="messages" element={<DashboardMessagesPage />} />
+                      <Route path="payment-methods" element={<PaymentMethodsPage />} />
+                    </Route>
 
                     {/* Business routes */}
                     <Route
@@ -114,7 +112,7 @@ function App() {
                       element={
                         <ProtectedRoute requiredRole="host">
                           <BusinessAnalyticsPage />
-                        </ProtectedRoute> 
+                        </ProtectedRoute>
                       }
                     />
                     <Route
@@ -154,30 +152,6 @@ function App() {
                       element={
                         <ProtectedRoute requiredRole="host">
                           <ServicesManagementPage />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/dashboard/favorites"
-                      element={
-                        <ProtectedRoute>
-                          <FavoritesPage />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/dashboard/messages"
-                      element={
-                        <ProtectedRoute>
-                          <DashboardMessagesPage />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/dashboard/payment-methods"
-                      element={
-                        <ProtectedRoute>
-                          <PaymentMethodsPage />
                         </ProtectedRoute>
                       }
                     />

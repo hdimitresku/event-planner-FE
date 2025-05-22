@@ -1,3 +1,4 @@
+import { da } from "date-fns/locale"
 import type { User } from "../models/user"
 
 interface AuthResponse {
@@ -143,6 +144,5 @@ export const authService = {
   setAuthData(data: AuthResponse): void {
     localStorage.setItem("accessToken", data.accessToken)
     localStorage.setItem("refreshToken", data.refreshToken)
-    localStorage.setItem("user", JSON.stringify(data.user))
   },
 }

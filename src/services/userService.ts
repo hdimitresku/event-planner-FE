@@ -122,7 +122,9 @@ export const getCurrentUser = async (): Promise<User | null> => {
   }
 };
 
-
+/**
+ * Get logged in user information
+ */
 export const getLoggedInUser = async (): Promise<User | null> => {
   try {
     if (USE_MOCK_DATA) {
@@ -135,6 +137,7 @@ export const getLoggedInUser = async (): Promise<User | null> => {
     return null;
   }
 };
+
 /**
  * Get user by ID
  */

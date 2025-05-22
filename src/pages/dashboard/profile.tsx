@@ -6,7 +6,6 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../../context/auth-context"
 import { useLanguage } from "../../context/language-context"
-import { DashboardLayout } from "../../components/dashboard/layout"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/ui/card"
 import { Input } from "../../components/ui/input"
@@ -31,16 +30,10 @@ export default function ProfilePage() {
     lastName: "",
     email: "",
     phoneNumber: "",
-    birthday: undefined,
-    address: {
-      street: "",
-      city: "",
-      state: "",
-      zipCode: "",
-      country: "",
-      location: null
-    }
+    birthday: "",
+    address: undefined
   })
+  const [originalProfileData, setOriginalProfileData] = useState<Partial<UserModel>>({})
   const [isEditing, setIsEditing] = useState(false)
   const [notifications, setNotifications] = useState({
     email: true,
@@ -55,7 +48,6 @@ export default function ProfilePage() {
     // Fetch current user for dashboard layout
     const fetchUser = async () => {
       const userModel = await userService.getLoggedInUser()
-      console.log("Fetched user model:", userModel)
       setCurrentUser(userModel)
     }
 
@@ -71,30 +63,28 @@ export default function ProfilePage() {
 
     // Populate profile data from user object
     if (user) {
-      console.log("Setting profile data from user:", user)
       const newProfileData = {
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         email: user.email || "",
         phoneNumber: user.phoneNumber || "",
-        birthday: user.birthday ? new Date(user.birthday) : undefined,
-        address: {
-          street: user.address?.street || "",
-          city: user.address?.city || "",
-          state: user.address?.state || "",
-          zipCode: user.address?.zipCode || "",
-          country: user.address?.country || "",
-          location: user.address?.location || null
-        }
+        birthday: user.birthday  ,
+        address: user.address ? {
+          street: user.address.street || null,
+          city: user.address.city || null,
+          state: user.address.state || null,
+          zipCode: user.address.zipCode || null,
+          country: user.address.country || null,
+          location: user.address.location || null
+        } : undefined
       }
-      console.log("New profile data:", newProfileData)
       setProfileData(newProfileData)
+      setOriginalProfileData(newProfileData)
     }
   }, [isAuthenticated, user, navigate])
 
   // Add a debug effect to monitor profileData changes
   useEffect(() => {
-    console.log("Current profileData:", profileData)
   }, [profileData])
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -105,30 +95,31 @@ export default function ProfilePage() {
       lastName: profileData?.lastName || "",
       email: profileData?.email || "",
       phoneNumber: profileData?.phoneNumber || "",
-      birthday: profileData?.birthday || null,
-      address: profileData?.address || {
-        street: "",
-        city: "",
-        state: "",
-        zipCode: "",
-        country: "",
-        location: null,
-      },
+      birthday: profileData?.birthday || undefined,
+      address: profileData?.address || undefined
     }
 
     await userService.updateUserProfile(updatedUser)
-
-
-    // In a real app, this would call an API to update the user profile
+    setOriginalProfileData(profileData)
     setIsEditing(false)
-    // Show success message
-    console.log("Profile data to save:", profileData)
+  }
+
+  const handleCancel = () => {
+    setProfileData(originalProfileData)
+    setIsEditing(false)
   }
 
   const handleAddressSelect = (address: Address) => {
     setProfileData((prev) => ({
       ...prev,
-      address,
+      address: {
+        street: address.street || null,
+        city: address.city || null,
+        state: address.state || null,
+        zipCode: address.zipCode || null,
+        country: address.country || null,
+        location: address.location || null
+      }
     }))
   }
 
@@ -149,10 +140,17 @@ export default function ProfilePage() {
     const { name, value } = e.target;
     setProfileData(prev => ({
       ...prev,
-      address: {
+      address: prev.address ? {
         ...prev.address,
-        [name]: value
-      } as Address
+        [name]: value || null
+      } : {
+        street: name === 'street' ? value || null : null,
+        city: name === 'city' ? value || null : null,
+        state: name === 'state' ? value || null : null,
+        zipCode: name === 'zipCode' ? value || null : null,
+        country: name === 'country' ? value || null : null,
+        location: null
+      }
     }));
   };
 
@@ -160,12 +158,11 @@ export default function ProfilePage() {
     const { value } = e.target;
     setProfileData(prev => ({
       ...prev,
-      birthday: value ? new Date(value) : undefined
+      birthday: value || undefined
     }));
   };
 
   return (
-    <DashboardLayout currentUser={currentUser}>
       <div>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
@@ -202,13 +199,27 @@ export default function ProfilePage() {
                 <form onSubmit={handleProfileUpdate}>
                   <div className="grid gap-6">
                     <div className="grid gap-3">
-                      <Label htmlFor="name" className="flex items-center gap-2">
+                      <Label htmlFor="firstName" className="flex items-center gap-2">
                         <User className="h-4 w-4 text-muted-foreground" />
-                        {t("profile.fullName") || "Full Name"}
+                        {t("profile.firstName") || "First Name"}
                       </Label>
                       <Input
-                        id="name"
-                        value={profileData?.firstName + " " + profileData?.lastName}
+                        id="firstName"
+                        name="firstName"
+                        value={profileData?.firstName || ""}
+                        onChange={handleInputChange}
+                        disabled={!isEditing}
+                      />
+                    </div>
+                    <div className="grid gap-3">
+                      <Label htmlFor="lastName" className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        {t("profile.lastName") || "Last Name"}
+                      </Label>
+                      <Input
+                        id="lastName"
+                        name="lastName"
+                        value={profileData?.lastName || ""}
                         onChange={handleInputChange}
                         disabled={!isEditing}
                       />
@@ -220,8 +231,9 @@ export default function ProfilePage() {
                       </Label>
                       <Input
                         id="email"
+                        name="email"
                         type="email"
-                        value={profileData?.email}
+                        value={profileData?.email || ""}
                         onChange={handleInputChange}
                         disabled={!isEditing}
                       />
@@ -233,6 +245,7 @@ export default function ProfilePage() {
                       </Label>
                       <Input
                         id="phone"
+                        name="phoneNumber"
                         value={profileData?.phoneNumber || ""}
                         onChange={handleInputChange}
                         disabled={!isEditing}
@@ -252,6 +265,7 @@ export default function ProfilePage() {
                         </Label>
                         <Input
                           id="street"
+                          name="street"
                           value={profileData?.address?.street || ""}
                           onChange={handleAddressChange}
                           disabled={!isEditing}
@@ -261,6 +275,7 @@ export default function ProfilePage() {
                         <Label htmlFor="city">{t("profile.city") || "City"}</Label>
                         <Input
                           id="city"
+                          name="city"
                           value={profileData?.address?.city || ""}
                           onChange={handleAddressChange}
                           disabled={!isEditing}
@@ -270,6 +285,7 @@ export default function ProfilePage() {
                         <Label htmlFor="state">{t("profile.state") || "State/Province"}</Label>
                         <Input
                           id="state"
+                          name="state"
                           value={profileData?.address?.state || ""}
                           onChange={handleAddressChange}
                           disabled={!isEditing}
@@ -279,6 +295,7 @@ export default function ProfilePage() {
                         <Label htmlFor="zipCode">{t("profile.zipCode") || "ZIP/Postal Code"}</Label>
                         <Input
                           id="zipCode"
+                          name="zipCode"
                           value={profileData?.address?.zipCode || ""}
                           onChange={handleAddressChange}
                           disabled={!isEditing}
@@ -288,6 +305,7 @@ export default function ProfilePage() {
                         <Label htmlFor="country">{t("profile.country") || "Country"}</Label>
                         <Input
                           id="country"
+                          name="country"
                           value={profileData?.address?.country || ""}
                           onChange={handleAddressChange}
                           disabled={!isEditing}
@@ -301,8 +319,9 @@ export default function ProfilePage() {
                       </Label>
                       <Input
                         id="birthday"
+                        name="birthday"
                         type="date"
-                        value={profileData?.birthday instanceof Date ? profileData.birthday.toISOString().split('T')[0] : ""}
+                        value={profileData?.birthday ? profileData.birthday.toString().split('T')[0] : ""}
                         onChange={handleBirthdayChange}
                         disabled={!isEditing}
                       />
@@ -310,7 +329,7 @@ export default function ProfilePage() {
                   </div>
                   {isEditing ? (
                     <div className="flex justify-end gap-2 mt-6">
-                      <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+                      <Button type="button" variant="outline" onClick={handleCancel}>
                         {t("profile.cancel") || "Cancel"}
                       </Button>
                       <Button type="submit">{t("profile.save") || "Save Changes"}</Button>
@@ -686,6 +705,5 @@ export default function ProfilePage() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
   )
 }

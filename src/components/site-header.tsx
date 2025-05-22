@@ -1,6 +1,6 @@
 "use client"
 
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Button } from "./ui/button"
 import { useLanguage } from "../context/language-context"
 import { LanguageSwitcher } from "./language-switcher"
@@ -25,10 +25,13 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false)
   const location = useLocation()
   const { isAuthenticated, userRole, user, logout } = useAuth()
+  const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout()
+
+  const handleLogout = async () => {
+    logout();
     localStorage.clear();
+    navigate("/");
     setOpen(false)
   }
 
@@ -116,7 +119,7 @@ export function SiteHeader() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={logout} className="text-red-500">
+                    <DropdownMenuItem onClick={handleLogout} className="text-red-500">
                       <LogOut className="mr-2 h-4 w-4" />
                       {t("nav.logout")}
                     </DropdownMenuItem>

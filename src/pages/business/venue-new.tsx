@@ -21,8 +21,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import * as venueService from "../../services/venueService"
-import { Venue, VenueType, VenueAmenity } from "../../models/venue"
-import { PricingType } from "../../models/common"
+import { Venue } from "../../models/venue"
+import { PricingType, VenueAmenity, VenueType } from "../../models/common"
 import { toast } from "../../components/ui/use-toast"
 
 interface VenueNewModalProps {

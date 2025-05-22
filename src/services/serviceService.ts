@@ -10,7 +10,7 @@ import * as mockDataService from '../data/mockDataService';
 import { VenueType } from '../models/venue';
 
 // Flag to determine if we should use mock data (during development)
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 /**
  * Get all services with optional filtering
@@ -171,7 +171,6 @@ export const getServicesByVenueType = async (
   serviceTypes: ServiceType[];
 }> => {
   try {
-    if (USE_MOCK_DATA) {
       // Since we don't have venue type filtering in the mock data service,
       // we'll just get all services and assume they're compatible with this venue type
       const { services } = await mockDataService.getServices();
@@ -184,7 +183,6 @@ export const getServicesByVenueType = async (
       return { 
         serviceTypes: serviceTypes as ServiceType[]
       };
-    }
 
     // For real API
     const queryString = buildQueryString({ venueType });
@@ -196,3 +194,110 @@ export const getServicesByVenueType = async (
     return { serviceTypes: [] };
   }
 }; 
+
+export const getServicesByVenue = async (
+  venueId: string
+): Promise<{ services: Service[] }> => {
+  try {
+    if (USE_MOCK_DATA) {
+      const { services } = await mockDataService.getServices();
+      
+      // Filter services by venue type (mock venue type for simplicity)
+      const mockVenueType = VenueType.BALLROOM; // Adjust based on venueId
+      const iconMap: Record<ServiceType, string> = {
+        [ServiceType.CATERING]: 'Utensils',
+        [ServiceType.MUSIC]: 'Music',
+        [ServiceType.DECORATION]: 'Palette',
+        [ServiceType.PHOTOGRAPHY]: 'Camera',
+        [ServiceType.VIDEOGRAPHY]: 'Video',
+        [ServiceType.TRANSPORTATION]: 'Car',
+        [ServiceType.SECURITY]: 'Shield',
+        [ServiceType.STAFFING]: 'Users',
+        [ServiceType.ENTERTAINMENT]: 'Drama',
+        [ServiceType.OTHER]: 'CircleDot',
+      };
+
+      const mockServices: Service[] = services
+        .filter((service: { type: ServiceType; venueTypes: VenueType[] }) =>
+          service.venueTypes.includes(mockVenueType)
+        )
+        .map((service, index) => ({
+          id: `mock-service-${index}`,
+          name: { en: `${service.type} Service`, sq: `${service.type} Shërbim` },
+          venueTypes: service.venueTypes || [mockVenueType],
+          type: service.type,
+          icon: iconMap[service.type] || 'CircleDot',
+          provider: {
+            id: `mock-user-${index}`,
+            email: `provider${index}@example.com`,
+          },
+          media: [
+            {
+              id: `mock-media-${index}`,
+              url: 'http://localhost:3000/uploads/mock-photo.jpg',
+              type: 'image',
+              description: { en: 'Mock Photo', sq: 'Foto Mock' },
+              entityType: 'service',
+              entityId: `mock-service-${index}`,
+            },
+          ],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }));
+
+      return { services: mockServices };
+    }
+
+    // Real API
+    const response = await apiRequest<Service[]>(`/services/venue/${venueId}`);
+    return { services: response };
+  } catch (error) {
+    console.error('Error fetching services by venue:', error);
+    return { services: [] };
+  }
+};
+
+
+export const getServiceTypesByVenueType = async (
+  venueType: VenueType
+): Promise<{ 
+  serviceTypes: { type: ServiceType; icon: string }[];
+}> => {
+  try {
+    if (USE_MOCK_DATA) {
+      const { services } = await mockDataService.getServices();
+      
+      // Icon mapping (same as backend)
+      const iconMap: Record<ServiceType, string> = {
+        [ServiceType.CATERING]: 'Utensils',
+        [ServiceType.MUSIC]: 'Music',
+        [ServiceType.DECORATION]: 'Palette',
+        [ServiceType.PHOTOGRAPHY]: 'Camera',
+        [ServiceType.VIDEOGRAPHY]: 'Video',
+        [ServiceType.TRANSPORTATION]: 'Car',
+        [ServiceType.SECURITY]: 'Shield',
+        [ServiceType.STAFFING]: 'Users',
+        [ServiceType.ENTERTAINMENT]: 'Drama',
+        [ServiceType.OTHER]: 'CircleDot',
+      };
+
+      // Get unique service types with icons
+      const serviceTypes = Array.from(
+        new Set(services.map((service: { type: ServiceType }) => service.type))
+      ).map(type => ({
+        type,
+        icon: iconMap[type as ServiceType] || 'CircleDot',
+      }));
+
+      return { serviceTypes };
+    }
+
+    // Real API
+    return await apiRequest<{
+      serviceTypes: { type: ServiceType; icon: string }[];
+    }>(`/services/venue/type/${venueType}`);
+  } catch (error) {
+    console.error('Error fetching services by venue type:', error);
+    return { serviceTypes: [] };
+  }
+};

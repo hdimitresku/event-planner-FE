@@ -30,9 +30,8 @@ export const setAuthToken = (token: string | null) => {
 };
 
 export const getAuthToken = (): string | null => {
-  if (!authToken) {
-    authToken = localStorage.getItem('accessToken');
-  }
+  authToken = localStorage.getItem('accessToken');
+
   return authToken;
 };
 
@@ -47,7 +46,7 @@ export const apiRequest = async <T>(
   useFormData: boolean = false
 ): Promise<T> => {
   const url = `${API_BASE_URL}${endpoint}`;
-  
+
   const headers: Record<string, string> = {
     ...defaultHeaders,
     ...(getAuthToken() ? { Authorization: `Bearer ${getAuthToken()}` } : {}),
@@ -98,9 +97,9 @@ export const apiRequest = async <T>(
  */
 export const buildQueryString = (filters?: Record<string, any>): string => {
   if (!filters) return '';
-  
+
   const queryParams = new URLSearchParams();
-  
+
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
       if (Array.isArray(value)) {
@@ -112,7 +111,7 @@ export const buildQueryString = (filters?: Record<string, any>): string => {
       }
     }
   });
-  
+
   const queryString = queryParams.toString();
   return queryString ? `?${queryString}` : '';
 }; 

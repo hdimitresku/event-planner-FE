@@ -1,9 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { DashboardLayout } from "../../components/dashboard/layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
-import { User as UserModel } from "../../models/user"
+import { Card, CardContent } from "../../components/ui/card"
+import type { User as UserModel } from "../../models/user"
 import * as userService from "../../services/userService"
 import { useLanguage } from "../../context/language-context"
 import { CreditCard, PlusCircle } from "lucide-react"
@@ -19,12 +18,11 @@ export default function PaymentMethodsPage() {
       const user = await userService.getLoggedInUser()
       setCurrentUser(user)
     }
-    
+
     fetchUser()
   }, [])
 
   return (
-    <DashboardLayout currentUser={currentUser}>
       <div>
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight">{t("dashboard.paymentMethods") || "Payment Methods"}</h1>
@@ -40,7 +38,8 @@ export default function PaymentMethodsPage() {
               {t("paymentMethods.noPaymentMethods") || "No payment methods added yet"}
             </h3>
             <p className="text-muted-foreground mt-2 max-w-md">
-              {t("paymentMethods.noPaymentMethodsDescription") || "Add a payment method to make booking faster and easier"}
+              {t("paymentMethods.noPaymentMethodsDescription") ||
+                "Add a payment method to make booking faster and easier"}
             </p>
             <Button className="mt-6">
               <PlusCircle className="h-4 w-4 mr-2" />
@@ -49,6 +48,5 @@ export default function PaymentMethodsPage() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
   )
-} 
+}

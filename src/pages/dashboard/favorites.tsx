@@ -1,7 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import { DashboardLayout } from "../../components/dashboard/layout"
+import { useState, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 import { Badge } from "../../components/ui/badge"
 import { Button } from "../../components/ui/button"
@@ -9,14 +8,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useLanguage } from "../../context/language-context"
 import { useFavorites } from "../../context/favorites-context"
 import { Link } from "react-router-dom"
-import { Heart, MapPin, Star, Users, Trash, Music, Camera, Utensils, PartyPopper } from "lucide-react"
+import { Heart, MapPin, Star, Trash, Music, Camera, Utensils, PartyPopper } from "lucide-react"
 import * as venueService from "../../services/venueService"
 import * as serviceService from "../../services/serviceService"
 import * as userService from "../../services/userService"
-import { VenueSummary } from "../../models/venue"
-import { ServiceSummary } from "../../models/service"
+import type { VenueSummary } from "../../models/venue"
+import type { ServiceSummary } from "../../models/service"
 import { PricingType } from "../../models/common"
-import { User as UserModel } from "../../models/user"
+import type { User as UserModel } from "../../models/user"
+import { DashboardLayout } from "@/components/dashboard/layout"
 
 export default function FavoritesPage() {
   const { t, language } = useLanguage()
@@ -33,7 +33,7 @@ export default function FavoritesPage() {
       const user = await userService.getLoggedInUser()
       setCurrentUser(user)
     }
-    
+
     fetchUser()
   }, [])
 
@@ -65,7 +65,7 @@ export default function FavoritesPage() {
               favoriteVenues.push(venueSummary)
               continue
             }
-            
+
             const serviceData = await serviceService.getServiceById(id)
             if (serviceData) {
               // Convert Service to ServiceSummary format if needed
@@ -76,7 +76,7 @@ export default function FavoritesPage() {
                 mainImage: serviceData.media?.[0]?.url || "/placeholder.svg",
                 rating: serviceData.rating || { average: 0, count: 0 },
                 basePrice: serviceData.options?.[0]?.price || { amount: 0, type: PricingType.FIXED, currency: "USD" },
-                optionsCount: serviceData.options?.length || 0
+                optionsCount: serviceData.options?.length || 0,
               }
               favoriteServices.push(serviceSummary)
             }
@@ -100,7 +100,7 @@ export default function FavoritesPage() {
   // Get price display based on price type and language
   const getVenuePriceDisplay = (venue: VenueSummary) => {
     const formatPrice = (price: number) => `$${price}`
-    
+
     switch (venue.price.type) {
       case PricingType.HOURLY:
         return `${formatPrice(venue.price.amount)}/${t("business.serviceNew.hourly")}`
@@ -118,7 +118,7 @@ export default function FavoritesPage() {
   // Get price display for services
   const getServicePriceDisplay = (service: ServiceSummary) => {
     const formatPrice = (price: number) => `$${price}`
-    
+
     switch (service.basePrice.type) {
       case PricingType.HOURLY:
         return `${formatPrice(service.basePrice.amount)}/${t("business.serviceNew.hourly")}`
@@ -150,7 +150,6 @@ export default function FavoritesPage() {
   }
 
   return (
-    <DashboardLayout currentUser={currentUser}>
       <div>
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -160,7 +159,12 @@ export default function FavoritesPage() {
             </p>
           </div>
           {favorites.length > 0 && (
-            <Button variant="outline" size="sm" onClick={clearFavorites} className="text-destructive hover:bg-destructive/10">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearFavorites}
+              className="text-destructive hover:bg-destructive/10"
+            >
               <Trash className="mr-2 h-4 w-4" />
               {t("favorites.clearAll") || "Clear All"}
             </Button>
@@ -190,7 +194,8 @@ export default function FavoritesPage() {
                     {t("favorites.noVenues") || "You haven't saved any venues yet"}
                   </h3>
                   <p className="text-muted-foreground mt-2 max-w-md">
-                    {t("favorites.noVenuesDescription") || "Browse venues and click the heart icon to save them to your favorites"}
+                    {t("favorites.noVenuesDescription") ||
+                      "Browse venues and click the heart icon to save them to your favorites"}
                   </p>
                   <Button asChild className="mt-6">
                     <Link to="/venues">{t("favorites.browseVenues") || "Browse Venues"}</Link>
@@ -263,7 +268,8 @@ export default function FavoritesPage() {
                     {t("favorites.noServices") || "You haven't saved any services yet"}
                   </h3>
                   <p className="text-muted-foreground mt-2 max-w-md">
-                    {t("favorites.noServicesDescription") || "Browse services and click the heart icon to save them to your favorites"}
+                    {t("favorites.noServicesDescription") ||
+                      "Browse services and click the heart icon to save them to your favorites"}
                   </p>
                   <Button asChild className="mt-6">
                     <Link to="/services">{t("favorites.browseServices") || "Browse Services"}</Link>
@@ -296,7 +302,9 @@ export default function FavoritesPage() {
                     <CardHeader className="p-4 pb-0">
                       <div className="mb-2 flex items-center text-xs text-muted-foreground">
                         {getServiceIcon(service.type.toLowerCase())}
-                        <span className="ml-1">{t(`services.types.${service.type.toLowerCase()}`) || service.type}</span>
+                        <span className="ml-1">
+                          {t(`services.types.${service.type.toLowerCase()}`) || service.type}
+                        </span>
                       </div>
                       <CardTitle className="text-lg font-semibold">
                         <Link to={`/services/${service.id}`} className="hover:text-primary transition-colors">
@@ -309,7 +317,8 @@ export default function FavoritesPage() {
                         <div className="flex items-center">
                           <Star className="h-4 w-4 text-yellow-500 mr-1" />
                           <span className="text-sm">
-                            {service.rating?.average || 0} ({service.rating?.count || 0} {t("business.bookings.reviews")})
+                            {service.rating?.average || 0} ({service.rating?.count || 0}{" "}
+                            {t("business.bookings.reviews")})
                           </span>
                         </div>
                         <span className="font-medium text-primary">{getServicePriceDisplay(service)}</span>
@@ -327,6 +336,5 @@ export default function FavoritesPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
   )
-} 
+}

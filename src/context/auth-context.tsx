@@ -3,24 +3,13 @@
 import { Address } from "@/models/common"
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
-
-interface User {
-  id: string
-  email: string
-  firstName: string
-  lastName: string
-  phoneNumber: string | null
-  address: Address
-  birthday: Date
-  role: string
-  createdAt: string
-  updatedAt: string
-}
+import * as userService from "../services/userService"
+import type { User as UserModel } from "../models/user"
 
 interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
-  user: User | null
+  user: UserModel | null
   userRole: string | null
   login: (email: string, password: string) => Promise<void>
   logout: () => void
@@ -31,20 +20,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<UserModel | null>(null)
   const [userRole, setUserRole] = useState<string | null>(null)
 
   useEffect(() => {
-    // Check if user is logged in from localStorage
+    // Check if user is logged in
     const checkAuth = async () => {
       try {
-        const accessToken = localStorage.getItem("accessToken")
-        const userJson = localStorage.getItem("user")
-
-        if (accessToken && userJson) {
-          const userData = JSON.parse(userJson) as User
-          setUser(userData)
-          setUserRole(userData.role)
+        const currentUser = await userService.getCurrentUser()
+        if (currentUser) {
+          setUser(currentUser)
+          setUserRole(currentUser.role)
           setIsAuthenticated(true)
         }
       } catch (error) {
@@ -64,18 +50,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true)
-
-      // Note: The actual API call is now handled in the login/signup components
-      // This function is now primarily used to update the auth context state
-      // after the API call is successful
-
-      const userJson = localStorage.getItem("user")
-
-      if (userJson) {
-        const userData = JSON.parse(userJson) as User
-        setUser(userData)
-        setUserRole(userData.role)
+      const result = await userService.login({ email, password })
+      if (result.success && result.user) {
+        setUser(result.user)
+        setUserRole(result.user.role)
         setIsAuthenticated(true)
+      } else {
+        throw new Error(result.error || "Login failed")
       }
     } catch (error) {
       console.error("Login failed:", error)
@@ -85,16 +66,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const logout = () => {
-    // Clear auth data
-    localStorage.removeItem("accessToken")
-    localStorage.removeItem("refreshToken")
-    localStorage.removeItem("user")
-
-    // Reset state
-    setUser(null)
-    setUserRole(null)
-    setIsAuthenticated(false)
+  const logout = async () => {
+    try {
+      await userService.logout()
+    } finally {
+      // Reset state
+      setUser(null)
+      setUserRole(null)
+      setIsAuthenticated(false)
+    }
   }
 
   return (

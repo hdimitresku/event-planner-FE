@@ -14,11 +14,12 @@ export interface MultilingualText {
  * Available pricing types for venues and services
  */
 export enum PricingType {
-  HOURLY = "hourly",
-  PER_PERSON = "perPerson",
   FIXED = "fixed",
-  PER_DAY = "perDay",
-  CUSTOM = "custom"
+  HOURLY = "hourly",
+  DAILY = "daily",
+  WEEKLY = "weekly",
+  MONTHLY = "monthly",
+  PER_PERSON = "perPerson"
 }
 
 /**
@@ -41,12 +42,15 @@ export interface GeoLocation {
  * Address information
  */
 export interface Address {
-  street: string | null | undefined;
-  city: string | null | undefined;
-  state: string | null | undefined;
-  zipCode: string | null | undefined;
-  country: string | null | undefined;
-  location?: GeoLocation | null | undefined;
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+  zipCode: string;
+  location?: {
+    lat: number;
+    lng: number;
+  } | null;
 }
 
 /**
@@ -108,7 +112,13 @@ export interface TimeRange {
  * Day availability
  */
 export interface DayAvailability {
-  [key: string]: string; // day of week -> time range string (e.g., "9:00 AM - 10:00 PM")
+  monday: string;
+  tuesday: string;
+  wednesday: string;
+  thursday: string;
+  friday: string;
+  saturday: string;
+  sunday: string;
 }
 
 /**
@@ -120,4 +130,36 @@ export interface Host {
   responseRate: number;
   responseTime: string;
   joined: string;
+}
+
+export enum VenueType {
+  BALLROOM = "ballroom",
+  GARDEN = "garden",
+  BEACH = "beach",
+  ROOFTOP = "rooftop",
+  RESTAURANT = "restaurant",
+  CONFERENCE = "conference",
+  WAREHOUSE = "warehouse",
+  THEATER = "theater",
+  MUSEUM = "museum",
+  GALLERY = "gallery",
+  OTHER = "other"
+}
+
+export enum VenueAmenity {
+  WIFI = "wifi",
+  PARKING = "parking",
+  CATERING = "catering",
+  BAR = "bar",
+  STAGE = "stage",
+  SOUNDSYSTEM = "soundsystem",
+  LIGHTING = "lighting",
+  AV_EQUIPMENT = "avequipment",
+  WHEELCHAIR_ACCESS = "wheelchairaccess",
+  OUTDOOR_SPACE = "outdoorspace",
+  KITCHEN = "kitchen",
+  DRESSING_ROOM = "dressingroom",
+  SECURITY = "security",
+  CLEANING = "cleaning",
+  OTHER = "other"
 } 
