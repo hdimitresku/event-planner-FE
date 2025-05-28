@@ -11,226 +11,261 @@ export default function HomePage() {
 
   return (
     <>
-      <section className="relative w-full py-16 md:py-24 lg:py-32 overflow-hidden bg-gradient-to-br from-gray-50 to-sky-50 dark:from-slate-900 dark:to-slate-800">
+      {/* Hero Section */}
+      <section className="relative w-full py-20 md:py-28 lg:py-36 overflow-hidden">
+        {/* Modern gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/20 to-primary/5"></div>
+        
         {/* Abstract background elements */}
-        <div className="absolute inset-0 overflow-hidden opacity-30 dark:opacity-10">
-          <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-sky-200 dark:bg-sky-700 blur-3xl"></div>
-          <div className="absolute top-40 -left-20 w-60 h-60 rounded-full bg-emerald-200 dark:bg-emerald-700 blur-3xl"></div>
+        <div className="absolute inset-0 overflow-hidden opacity-40 dark:opacity-20">
+          <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/20 blur-3xl"></div>
+          <div className="absolute top-40 -left-20 w-60 h-60 rounded-full bg-secondary/20 blur-3xl"></div>
+          <div className="absolute bottom-20 right-20 w-40 h-40 rounded-full bg-accent/20 blur-2xl"></div>
         </div>
         
         <div className="container relative px-4 md:px-6 z-10">
-          <div className="grid gap-8 lg:grid-cols-[1fr_500px] lg:gap-12 xl:grid-cols-[1fr_550px] items-center">
+          <div className="grid gap-12 lg:grid-cols-[1fr_500px] lg:gap-16 xl:grid-cols-[1fr_550px] items-center">
             <div className="flex flex-col justify-center space-y-8">
-              <div className="space-y-4">
-                <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full">
-                  <Star className="mr-1 h-3.5 w-3.5" />
+              <div className="space-y-6">
+                <div className="inline-flex items-center px-4 py-2 text-sm font-medium text-primary bg-primary/10 rounded-full">
+                  <Star className="mr-2 h-3.5 w-3.5" />
                   <span>{t("hero.new") || "New and Improved Experience"}</span>
                 </div>
-                <h1 className="text-4xl font-bold tracking-tight sm:text-5xl xl:text-6xl/none text-gray-800 dark:text-gray-50">
-                  {t("hero.title")}
+                <h1 className="text-5xl font-bold tracking-tight sm:text-6xl xl:text-7xl/none text-foreground">
+                  {t("hero.title") || "Find Your Perfect Event Space"}
                 </h1>
-                <p className="max-w-[600px] text-gray-600 dark:text-gray-300 text-lg md:text-xl">
-                  {t("hero.subtitle")}
+                <p className="max-w-[600px] text-muted-foreground text-xl md:text-2xl leading-relaxed">
+                  {t("hero.subtitle") || "Discover and book unique venues for unforgettable events with our seamless platform."}
                 </p>
               </div>
-              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-slate-700">
-                <div className="grid gap-4">
-                  <div className="flex items-center gap-2 border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 transition-all">
-                    <MapPin className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+              
+              {/* Search Card */}
+              <div className="bg-card rounded-2xl p-8 shadow-large border border-border">
+                <div className="grid gap-6">
+                  <div className="form-input flex items-center gap-3">
+                    <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                     <Input
-                      className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
-                      placeholder={t("search.location")}
+                      className="border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-lg"
+                      placeholder={t("search.location") || "Where is your event?"}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-2 border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 transition-all">
-                      <Calendar className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                    <div className="form-input flex items-center gap-3">
+                      <Calendar className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                       <Input
-                        className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
+                        className="border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
                         type="date"
-                        placeholder={t("search.date")}
+                        placeholder={t("search.date") || "Event date"}
                       />
                     </div>
-                    <div className="flex items-center gap-2 border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 transition-all">
-                      <Users className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                    <div className="form-input flex items-center gap-3">
+                      <Users className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                       <Input
-                        className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
+                        className="border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
                         type="number"
-                        placeholder={t("search.guests")}
+                        placeholder={t("search.guests") || "Guest count"}
                       />
                     </div>
                   </div>
-                  <Button className="w-full bg-sky-500 hover:bg-sky-600 text-white">
-                    <Search className="mr-2 h-4 w-4" /> {t("search.button")}
+                  <Button className="w-full btn-primary h-12 text-lg font-medium">
+                    <Search className="mr-2 h-5 w-5" /> {t("search.button") || "Search Venues"}
                   </Button>
                 </div>
               </div>
             </div>
-            <div className="relative">
-              <div className="absolute -top-4 -left-4 w-24 h-24 bg-emerald-400/20 dark:bg-emerald-400/10 rounded-lg blur-xl"></div>
-              <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-sky-400/20 dark:bg-sky-400/10 rounded-lg blur-xl"></div>
+            
+            {/* Hero Image */}
+            <div className="relative fade-in">
+              <div className="absolute -top-6 -left-6 w-24 h-24 bg-accent/20 rounded-2xl blur-xl"></div>
+              <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-primary/20 rounded-2xl blur-xl"></div>
               <img
                 src="/placeholder.svg?height=600&width=800"
                 width="550"
                 height="550"
                 alt="Featured venue"
-                className="relative mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last lg:aspect-square shadow-xl border border-gray-200 dark:border-gray-700"
+                className="relative mx-auto aspect-video overflow-hidden rounded-2xl object-cover sm:w-full lg:order-last lg:aspect-square shadow-large border border-border"
               />
             </div>
           </div>
         </div>
       </section>
 
-      <section className="w-full py-16 md:py-24">
+      {/* Categories Section */}
+      <section className="w-full py-20 md:py-28">
         <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 rounded-full mb-3">
+          <div className="flex flex-col items-center justify-center space-y-6 text-center mb-16">
+            <div className="inline-flex items-center px-4 py-2 text-sm font-medium text-secondary bg-secondary/10 rounded-full">
               <span>{t("categories.explore") || "Explore Venues"}</span>
             </div>
-            <div className="space-y-2 max-w-3xl">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-gray-800 dark:text-gray-50">
-                {t("categories.title")}
+            <div className="space-y-4 max-w-3xl">
+              <h2 className="text-4xl font-bold tracking-tight md:text-5xl text-foreground">
+                {t("categories.title") || "Every Event Type Covered"}
               </h2>
-              <p className="text-gray-600 dark:text-gray-300 md:text-xl/relaxed">{t("categories.subtitle")}</p>
+              <p className="text-muted-foreground text-xl leading-relaxed">
+                {t("categories.subtitle") || "From intimate gatherings to grand celebrations, find the perfect space for any occasion."}
+              </p>
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
             {[
-              { name: "Meeting Rooms", icon: "🏢" },
-              { name: "Party Venues", icon: "🎉" },
-              { name: "Photography Studios", icon: "📸" },
-              { name: "Wedding Venues", icon: "💍" },
-              { name: "Outdoor Spaces", icon: "🌳" },
-              { name: "Restaurants", icon: "🍽️" },
-              { name: "Lofts & Penthouses", icon: "🏙️" },
-              { name: "Unique Spaces", icon: "🎨" },
-            ].map((category) => (
+              { name: "Meeting Rooms", icon: "🏢", color: "primary" },
+              { name: "Party Venues", icon: "🎉", color: "secondary" },
+              { name: "Photography Studios", icon: "📸", color: "accent" },
+              { name: "Wedding Venues", icon: "💍", color: "primary" },
+              { name: "Outdoor Spaces", icon: "🌳", color: "secondary" },
+              { name: "Restaurants", icon: "🍽️", color: "accent" },
+              { name: "Lofts & Penthouses", icon: "🏙️", color: "primary" },
+              { name: "Unique Spaces", icon: "🎨", color: "secondary" },
+            ].map((category, index) => (
               <Link
                 to={`/venues?category=${category.name.toLowerCase().replace(" ", "-")}`}
                 key={category.name}
-                className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-200 shadow-sm border border-gray-100 dark:border-slate-700 group"
+                className="flex flex-col items-center justify-center p-8 bg-card rounded-2xl hover:bg-card/80 transition-all duration-300 shadow-soft border border-border group card-hover"
               >
-                <span className="text-4xl mb-3 transform group-hover:scale-110 transition-transform duration-200">{category.icon}</span>
-                <span className="font-medium text-center text-gray-800 dark:text-gray-100 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors">{category.name}</span>
+                <span className="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
+                  {category.icon}
+                </span>
+                <span className="font-medium text-center text-card-foreground group-hover:text-primary transition-colors text-lg">
+                  {category.name}
+                </span>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="w-full py-16 md:py-24 bg-gradient-to-br from-gray-50 to-sky-50 dark:from-slate-900 dark:to-slate-800">
+      {/* How It Works Section */}
+      <section className="w-full py-20 md:py-28 bg-gradient-to-br from-muted/30 to-primary/5">
         <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-3">
+          <div className="flex flex-col items-center justify-center space-y-6 text-center mb-16">
+            <div className="inline-flex items-center px-4 py-2 text-sm font-medium text-accent bg-accent/10 rounded-full">
               <span>{t("howItWorks.simple") || "Simple Process"}</span>
             </div>
-            <div className="space-y-2 max-w-3xl">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-gray-800 dark:text-gray-50">
-                {t("howItWorks.hero.title")}
+            <div className="space-y-4 max-w-3xl">
+              <h2 className="text-4xl font-bold tracking-tight md:text-5xl text-foreground">
+                {t("howItWorks.hero.title") || "How It Works"}
               </h2>
-              <p className="text-gray-600 dark:text-gray-300 md:text-xl/relaxed">{t("howItWorks.hero.subtitle")}</p>
+              <p className="text-muted-foreground text-xl leading-relaxed">
+                {t("howItWorks.hero.subtitle") || "Book your perfect venue in three simple steps."}
+              </p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
-            <div className="flex flex-col items-center text-center space-y-4 p-6 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 relative">
-              <div className="absolute -top-3 -left-3">
-                <div className="bg-sky-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold shadow-lg">
-                  1
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+            {[
+              {
+                step: 1,
+                icon: Search,
+                title: t("howItWorks.step1.title") || "Search & Discover",
+                description: t("howItWorks.step1.description") || "Browse our curated collection of unique venues.",
+                color: "primary"
+              },
+              {
+                step: 2,
+                icon: Calendar,
+                title: t("howItWorks.step2.title") || "Compare & Select",
+                description: t("howItWorks.step2.description") || "Compare options and choose your perfect space.",
+                color: "secondary"
+              },
+              {
+                step: 3,
+                icon: Star,
+                title: t("howItWorks.step3.title") || "Book & Celebrate",
+                description: t("howItWorks.step3.description") || "Secure your booking and enjoy your event.",
+                color: "accent"
+              }
+            ].map((step, index) => (
+              <div key={step.step} className="flex flex-col items-center text-center space-y-6 p-8 bg-card rounded-2xl shadow-medium border border-border relative fade-in">
+                <div className="absolute -top-4 -left-4">
+                  <div className="bg-primary text-primary-foreground rounded-2xl w-14 h-14 flex items-center justify-center text-xl font-bold shadow-medium">
+                    {step.step}
+                  </div>
                 </div>
-              </div>
-              <div className="h-20 w-20 rounded-full bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center mt-4">
-                <Search className="h-8 w-8 text-sky-500 dark:text-sky-400" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-50">{t("howItWorks.step1.title")}</h3>
-              <p className="text-gray-600 dark:text-gray-300">{t("howItWorks.step1.description")}</p>
-            </div>
-            <div className="flex flex-col items-center text-center space-y-4 p-6 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 relative">
-              <div className="absolute -top-3 -left-3">
-                <div className="bg-sky-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold shadow-lg">
-                  2
+                <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center mt-6">
+                  <step.icon className="h-10 w-10 text-primary" />
                 </div>
+                <h3 className="text-2xl font-bold text-card-foreground">{step.title}</h3>
+                <p className="text-muted-foreground text-lg leading-relaxed">{step.description}</p>
               </div>
-              <div className="h-20 w-20 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center mt-4">
-                <Calendar className="h-8 w-8 text-emerald-500 dark:text-emerald-400" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-50">{t("howItWorks.step2.title")}</h3>
-              <p className="text-gray-600 dark:text-gray-300">{t("howItWorks.step2.description")}</p>
-            </div>
-            <div className="flex flex-col items-center text-center space-y-4 p-6 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 relative">
-              <div className="absolute -top-3 -left-3">
-                <div className="bg-sky-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold shadow-lg">
-                  3
-                </div>
-              </div>
-              <div className="h-20 w-20 rounded-full bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center mt-4">
-                <Star className="h-8 w-8 text-sky-500 dark:text-sky-400" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-50">{t("howItWorks.step3.title")}</h3>
-              <p className="text-gray-600 dark:text-gray-300">{t("howItWorks.step3.description")}</p>
-            </div>
+            ))}
           </div>
-          <div className="flex justify-center mt-12">
-            <Button size="lg" className="bg-sky-500 hover:bg-sky-600 text-white group" asChild>
+          
+          <div className="flex justify-center mt-16">
+            <Button size="lg" className="btn-primary group h-14 px-8 text-lg" asChild>
               <Link to="/venues">
-                {t("howItWorks.step1.cta")} 
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                {t("howItWorks.step1.cta") || "Start Exploring"} 
+                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
           </div>
         </div>
       </section>
 
-      <section className="w-full py-16 md:py-24">
+      {/* Testimonials Section */}
+      <section className="w-full py-20 md:py-28">
         <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 rounded-full mb-3">
+          <div className="flex flex-col items-center justify-center space-y-6 text-center mb-16">
+            <div className="inline-flex items-center px-4 py-2 text-sm font-medium text-primary bg-primary/10 rounded-full">
               <span>{t("testimonials.title") || "What People Say"}</span>
             </div>
-            <div className="space-y-2 max-w-3xl">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-gray-800 dark:text-gray-50">
-                {t("testimonials.heading") || "Loved by event planners everywhere"}
+            <div className="space-y-4 max-w-3xl">
+              <h2 className="text-4xl font-bold tracking-tight md:text-5xl text-foreground">
+                {t("testimonials.heading") || "Loved by Event Planners"}
               </h2>
-              <p className="text-gray-600 dark:text-gray-300 md:text-xl/relaxed">
+              <p className="text-muted-foreground text-xl leading-relaxed">
                 {t("testimonials.subheading") || "See what our customers have to say about their experience"}
               </p>
             </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="h-12 w-12 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+            {[
+              {
+                name: "Sarah Johnson",
+                rating: 5,
+                text: "Finding the perfect venue for our company retreat was so easy with this platform. The booking process was seamless and the venue exceeded our expectations!"
+              },
+              {
+                name: "Michael Chen", 
+                rating: 5,
+                text: "I planned my entire wedding using this site. The variety of venues and the detailed information made decision-making so much easier."
+              },
+              {
+                name: "Emma Rodriguez",
+                rating: 5,
+                text: "As an event planner, I rely on this platform for all my client events. The customer service is exceptional and the venues are always as described."
+              }
+            ].map((testimonial, i) => (
+              <div key={i} className="bg-card p-8 rounded-2xl shadow-medium border border-border card-hover">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="h-14 w-14 rounded-full bg-primary/10 overflow-hidden flex items-center justify-center">
                     <img 
-                      src={`/placeholder.svg?height=48&width=48&text=User${i}`} 
-                      alt="User" 
+                      src={`/placeholder.svg?height=56&width=56&text=${testimonial.name.split(' ').map(n => n[0]).join('')}`} 
+                      alt={testimonial.name}
                       className="h-full w-full object-cover"
                     />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-800 dark:text-gray-100">
-                      {["Sarah Johnson", "Michael Chen", "Emma Rodriguez"][i-1]}
+                    <h4 className="font-semibold text-card-foreground text-lg">
+                      {testimonial.name}
                     </h4>
                     <div className="flex items-center">
-                      {[...Array(5)].map((_, j) => (
-                        <Star key={j} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      {[...Array(testimonial.rating)].map((_, j) => (
+                        <Star key={j} className="h-4 w-4 fill-amber-400 text-amber-400" />
                       ))}
                     </div>
                   </div>
                 </div>
-                <p className="text-gray-600 dark:text-gray-300 italic">
-                  {[
-                    "Finding the perfect venue for our company retreat was so easy with this platform. The booking process was seamless and the venue exceeded our expectations!",
-                    "I planned my entire wedding using this site. The variety of venues and the detailed information made decision-making so much easier.",
-                    "As an event planner, I rely on this platform for all my client events. The customer service is exceptional and the venues are always as described."
-                  ][i-1]}
+                <p className="text-muted-foreground text-lg leading-relaxed italic">
+                  "{testimonial.text}"
                 </p>
               </div>
             ))}
           </div>
           
           <div className="flex justify-center mt-12">
-            <Button variant="outline" className="border-sky-500 text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/20 group">
+            <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 group h-12 px-6">
               {t("testimonials.readMore") || "Read more testimonials"}
               <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Button>

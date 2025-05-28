@@ -54,46 +54,52 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="border-b bg-background/80 sticky top-0 z-50 backdrop-blur-md">
+    <header className="border-b border-border bg-background/80 sticky top-0 z-50 backdrop-blur-md">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-        <Link to="/" className="flex items-center gap-2 font-bold text-xl">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2 font-bold text-2xl">
           <span className="text-primary">Venue</span>
           <span className="text-secondary">Space</span>
         </Link>
 
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex gap-8">
           <Link to="/venues" className={`nav-link ${location.pathname === "/venues" ? "active" : ""}`}>
-            {t("nav.venues")}
+            {t("nav.venues") || "Venues"}
           </Link>
           <Link to="/services" className={`nav-link ${location.pathname === "/services" ? "active" : ""}`}>
-            {t("nav.services")}
+            {t("nav.services") || "Services"}
           </Link>
           <Link to="/how-it-works" className={`nav-link ${location.pathname === "/how-it-works" ? "active" : ""}`}>
-            {t("nav.howItWorks")}
+            {t("nav.howItWorks") || "How It Works"}
           </Link>
         </nav>
 
+        {/* Header Actions */}
         <div className="flex items-center gap-4">
           <LanguageSwitcher />
           <ThemeToggle />
+          
           <div className="hidden md:flex items-center gap-4">
             {isAuthenticated ? (
               <>
                 <Link to={getDashboardLink()}>
-                  <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:bg-primary/10 hover:text-primary">
                     <LayoutDashboard className="h-4 w-4" />
-                    {t("nav.dashboard")}
+                    {t("nav.dashboard") || "Dashboard"}
                   </Button>
                 </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="rounded-full">
+                    <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/10">
                       <Avatar className="h-8 w-8">
-                        <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                        <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                          {getUserInitials()}
+                        </AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel>
                       {user?.firstName ? `${user.firstName} ${user.lastName}` : user?.email}
                     </DropdownMenuLabel>
@@ -101,27 +107,27 @@ export function SiteHeader() {
                     <DropdownMenuItem asChild>
                       <Link to={getProfileLink()}>
                         <User className="mr-2 h-4 w-4" />
-                        {t("nav.profile")}
+                        {t("nav.profile") || "Profile"}
                       </Link>
                     </DropdownMenuItem>
                     {userRole !== "host" && (
                       <DropdownMenuItem asChild>
                         <Link to="/dashboard/favorites">
                           <Heart className="mr-2 h-4 w-4" />
-                          {t("nav.favorites")}
+                          {t("nav.favorites") || "Favorites"}
                         </Link>
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuItem asChild>
                       <Link to={userRole === "host" ? "/business/settings" : "/dashboard/settings"}>
                         <Settings className="mr-2 h-4 w-4" />
-                        {t("nav.settings")}
+                        {t("nav.settings") || "Settings"}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout} className="text-red-500">
+                    <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
                       <LogOut className="mr-2 h-4 w-4" />
-                      {t("nav.logout")}
+                      {t("nav.logout") || "Logout"}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -130,21 +136,22 @@ export function SiteHeader() {
               <>
                 <Link to="/login">
                   <Button variant="outline" size="sm" className="border-primary text-primary hover:bg-primary/10">
-                    {t("nav.login")}
+                    {t("nav.login") || "Login"}
                   </Button>
                 </Link>
                 <Link to="/signup">
-                  <Button size="sm" variant="accent" className="hover:bg-accent/90 text-accent-foreground shadow-sm">
-                    {t("nav.signup")}
+                  <Button size="sm" className="btn-primary">
+                    {t("nav.signup") || "Sign Up"}
                   </Button>
                 </Link>
               </>
             )}
           </div>
 
+          {/* Mobile Menu */}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="hover:bg-primary/10">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
@@ -158,7 +165,7 @@ export function SiteHeader() {
                   }`}
                   onClick={() => setOpen(false)}
                 >
-                  {t("nav.venues")}
+                  {t("nav.venues") || "Venues"}
                 </Link>
                 <Link
                   to="/services"
@@ -167,7 +174,7 @@ export function SiteHeader() {
                   }`}
                   onClick={() => setOpen(false)}
                 >
-                  {t("nav.services")}
+                  {t("nav.services") || "Services"}
                 </Link>
                 <Link
                   to="/how-it-works"
@@ -176,7 +183,7 @@ export function SiteHeader() {
                   }`}
                   onClick={() => setOpen(false)}
                 >
-                  {t("nav.howItWorks")}
+                  {t("nav.howItWorks") || "How It Works"}
                 </Link>
 
                 {isAuthenticated && (
@@ -190,42 +197,42 @@ export function SiteHeader() {
                     onClick={() => setOpen(false)}
                   >
                     <LayoutDashboard className="h-5 w-5" />
-                    {t("nav.dashboard")}
+                    {t("nav.dashboard") || "Dashboard"}
                   </Link>
                 )}
 
-                <div className="flex flex-col gap-2 mt-4">
+                <div className="flex flex-col gap-3 mt-6">
                   {isAuthenticated ? (
                     <>
                       <Link to={getProfileLink()} onClick={() => setOpen(false)}>
-                        <Button variant="outline" className="w-full justify-start">
+                        <Button variant="outline" className="w-full justify-start border-primary text-primary hover:bg-primary/10">
                           <User className="mr-2 h-4 w-4" />
-                          {t("nav.profile")}
+                          {t("nav.profile") || "Profile"}
                         </Button>
                       </Link>
                       {userRole !== "host" && (
                         <Link to="/dashboard/favorites" onClick={() => setOpen(false)}>
-                          <Button variant="outline" className="w-full justify-start">
+                          <Button variant="outline" className="w-full justify-start border-primary text-primary hover:bg-primary/10">
                             <Heart className="mr-2 h-4 w-4" />
-                            {t("nav.favorites")}
+                            {t("nav.favorites") || "Favorites"}
                           </Button>
                         </Link>
                       )}
                       <Button variant="destructive" className="w-full" onClick={handleLogout}>
                         <LogOut className="mr-2 h-4 w-4" />
-                        {t("nav.logout")}
+                        {t("nav.logout") || "Logout"}
                       </Button>
                     </>
                   ) : (
                     <>
                       <Link to="/login" onClick={() => setOpen(false)}>
                         <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10">
-                          {t("nav.login")}
+                          {t("nav.login") || "Login"}
                         </Button>
                       </Link>
                       <Link to="/signup" onClick={() => setOpen(false)}>
-                        <Button variant="accent" className="w-full hover:bg-accent/90 text-accent-foreground shadow-sm">
-                          {t("nav.signup")}
+                        <Button className="w-full btn-primary">
+                          {t("nav.signup") || "Sign Up"}
                         </Button>
                       </Link>
                     </>
