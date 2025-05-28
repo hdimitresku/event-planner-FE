@@ -1,0 +1,44 @@
+[
+  {
+    "id": "1",
+    "name": "Grand Ballroom",
+    "description": "An elegant venue for weddings and formal events",
+    "capacity": 500,
+    "price": 5000,
+    "location": "Downtown",
+    "images": [
+      "/images/venues/ballroom1.jpg",
+      "/images/venues/ballroom2.jpg",
+      "/images/venues/ballroom3.jpg"
+    ],
+    "amenities": ["Catering", "Sound System", "Lighting", "Stage", "Parking"]
+  },
+  {
+    "id": "2",
+    "name": "Garden Terrace",
+    "description": "Beautiful outdoor venue with stunning garden views",
+    "capacity": 200,
+    "price": 3000,
+    "location": "Uptown",
+    "images": [
+      "/images/venues/garden1.jpg",
+      "/images/venues/garden2.jpg",
+      "/images/venues/garden3.jpg"
+    ],
+    "amenities": ["Tent Option", "Catering", "Lighting", "Parking"]
+  },
+  {
+    "id": "3",
+    "name": "Modern Loft",
+    "description": "Industrial chic space for corporate events and parties",
+    "capacity": 150,
+    "price": 2500,
+    "location": "Midtown",
+    "images": [
+      "/images/venues/loft1.jpg",
+      "/images/venues/loft2.jpg",
+      "/images/venues/loft3.jpg"
+    ],
+    "amenities": ["Catering", "Sound System", "Projector", "Wifi", "Bar"]
+  }
+]
