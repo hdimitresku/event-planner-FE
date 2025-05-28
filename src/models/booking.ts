@@ -1,4 +1,5 @@
-import { BaseEntity } from "./common";
+import { Venue } from './venue'
+import { ServiceOption } from './service'
 
 /**
  * Booking status
@@ -6,9 +7,8 @@ import { BaseEntity } from "./common";
 export enum BookingStatus {
   PENDING = 'pending',
   CONFIRMED = 'confirmed',
-  CANCELLED = 'cancelled',
   COMPLETED = 'completed',
-  REJECTED = 'rejected'
+  CANCELLED = 'cancelled'
 }
 
 /**
@@ -26,13 +26,17 @@ export enum PaymentStatus {
  * Event type for bookings
  */
 export enum EventType {
+  PHOTOSHOOT = 'photoshoot',
+  BABYSHOWER = 'babyshower',
+  BAPTISM = 'baptism',
+  GENDER_REVEAL = 'gender_reveal',
+  SEASONAL_EVENT = 'seasonal_event',
+  CORPORATE = 'corporate',
   WEDDING = 'wedding',
-  CORPORATE_EVENT = 'corporate_event',
-  BIRTHDAY_PARTY = 'birthday_party',
   CONFERENCE = 'conference',
-  PHOTO_SHOOT = 'photo_shoot',
-  PRIVATE_PARTY = 'private_party',
-  OTHER = 'other'
+  BIRTHDAY = 'birthday',
+  ANNIVERSARY = 'anniversary',
+  OTHER = 'other',
 }
 
 /**
@@ -65,32 +69,46 @@ export interface BookingCost {
 /**
  * Booking model
  */
-export interface Booking extends BaseEntity {
-  venueId: string;
-  userId: string;
-  startDateTime: string;     // ISO date string
-  endDateTime: string;       // ISO date string
-  duration: number;          // In hours
-  eventType: EventType;
-  guestCount: number;
-  status: BookingStatus;
-  paymentStatus: PaymentStatus;
-  specialRequests?: string;
-  serviceOptions: BookingServiceOption[];
-  costs: BookingCost;
-  confirmationCode?: string;
-  cancellationReason?: string;
+export interface Booking {
+  id: string
+  userId: string
+  venue: Venue
+  startDate: string
+  endDate: string
+  startTime: string
+  endTime: string
+  numberOfGuests: number
+  totalAmount: string
+  serviceFee: number
+  serviceFeePercentage: string
+  status: string
+  specialRequests?: string
+  eventType: string
+  serviceOptions: ServiceOption[]
+  metadata: {
+    eventType: string
+    contactDetails: {
+      firstName: string
+      lastName: string
+      email: string
+      phone: string
+    }
+  }
+  createdAt: string
+  updatedAt: string
 }
 
 /**
  * Booking creation data
  */
 export interface BookingCreateData {
-  venueId: string;
-  startDateTime: string;
-  endDateTime: string;
-  eventType: EventType;
-  guestCount: number;
-  specialRequests?: string;
-  serviceOptions: Omit<BookingServiceOption, 'totalPrice'>[];
+  venueId: string
+  startDate: string
+  endDate: string
+  startTime: string
+  endTime: string
+  numberOfGuests: number
+  serviceOptionIds: string[]
+  specialRequests?: string
+  metadata?: Record<string, any>
 } 

@@ -6,7 +6,7 @@ import { useLanguage } from "../../context/language-context"
 import { BusinessLayout } from "../../components/business/layout"
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
-import { Edit, Plus, Search, MapPin, Users, Clock, DollarSign, Eye, Trash } from "lucide-react"
+import { Edit, Plus, Search, MapPin, Users, DollarSign, Eye, Trash, Star } from "lucide-react"
 import { VenueNewModal } from "./venue-new"
 import { Card } from "../../components/ui/card"
 import { Badge } from "../../components/ui/badge"
@@ -22,7 +22,7 @@ import { Label } from "../../components/ui/label"
 import { Textarea } from "../../components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import * as venueService from "../../services/venueService"
-import { Venue, VenueType, VenueAmenity } from "../../models/venue"
+import { type Venue, VenueType, VenueAmenity } from "../../models/venue"
 import { PricingType } from "../../models/common"
 import { toast } from "../../components/ui/use-toast"
 
@@ -46,19 +46,19 @@ export default function BusinessVenuesPage() {
       city: "",
       state: "",
       zipCode: "",
-      country: ""
+      country: "",
     },
     amenities: [] as VenueAmenity[],
     capacity: {
       min: 0,
       max: 0,
-      recommended: 0
+      recommended: 0,
     },
     price: {
       amount: 0,
       currency: "USD",
-      type: PricingType.HOURLY
-    }
+      type: PricingType.HOURLY,
+    },
   })
 
   useEffect(() => {
@@ -69,21 +69,16 @@ export default function BusinessVenuesPage() {
     setLoading(true)
     try {
       // Get all venues
-      const result = await venueService.getVenues()
       // For each venue summary, get the full venue details
-      const venueDetails = await Promise.all(
-        result.venues.map(async (venue) => {
-          const details = await venueService.getVenueById(venue.id)
-          return details
-        })
-      )
+      const venueDetails = await venueService.getVenueByOwner()
+      
       setVenues(venueDetails.filter((v): v is Venue => v !== null))
     } catch (error) {
       console.error("Error fetching venues:", error)
       toast({
         title: "Error",
         description: "Failed to load venues. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       })
     } finally {
       setLoading(false)
@@ -95,14 +90,15 @@ export default function BusinessVenuesPage() {
     const matchesSearch =
       venue.name.en.toLowerCase().includes(searchQuery.toLowerCase()) ||
       venue.name.sq.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      venue.location.en.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      venue.location.sq.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      venue.address.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      venue.address.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
       venue.description.en.toLowerCase().includes(searchQuery.toLowerCase()) ||
       venue.description.sq.toLowerCase().includes(searchQuery.toLowerCase())
 
-    const matchesStatus = filterStatus === "all" || 
-      (filterStatus === "active" && venue.active) || 
-      (filterStatus === "inactive" && !venue.active)
+    const matchesStatus =
+      filterStatus === "all" ||
+      (filterStatus === "active" && venue.isActive) ||
+      (filterStatus === "inactive" && !venue.isActive)
 
     return matchesSearch && matchesStatus
   })
@@ -118,12 +114,15 @@ export default function BusinessVenuesPage() {
     setEditForm({
       name: { ...venue.name },
       description: { ...venue.description },
-      location: { ...venue.location },
+      location: {
+        en: `${venue.address.city}, ${venue.address.state}`,
+        sq: `${venue.address.city}, ${venue.address.state}`,
+      },
       type: venue.type,
       address: { ...venue.address },
       amenities: [...venue.amenities],
       capacity: { ...venue.capacity },
-      price: { ...venue.price }
+      price: { ...venue.price },
     })
     setIsEditModalOpen(true)
   }
@@ -142,7 +141,7 @@ export default function BusinessVenuesPage() {
           toast({
             title: "Error",
             description: result.error || "Failed to delete venue",
-            variant: "destructive"
+            variant: "destructive",
           })
         }
       } catch (error) {
@@ -150,7 +149,7 @@ export default function BusinessVenuesPage() {
         toast({
           title: "Error",
           description: "Failed to delete venue. Please try again.",
-          variant: "destructive"
+          variant: "destructive",
         })
       }
     }
@@ -158,7 +157,7 @@ export default function BusinessVenuesPage() {
 
   const handleSaveEdit = async () => {
     if (!selectedVenue) return
-    
+
     try {
       const result = await venueService.updateVenue(selectedVenue.id, editForm)
       if (result.success) {
@@ -172,7 +171,7 @@ export default function BusinessVenuesPage() {
         toast({
           title: "Error",
           description: result.error || "Failed to update venue",
-          variant: "destructive"
+          variant: "destructive",
         })
       }
     } catch (error) {
@@ -180,23 +179,23 @@ export default function BusinessVenuesPage() {
       toast({
         title: "Error",
         description: "Failed to update venue. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       })
     }
   }
 
   const handleToggleAmenity = (amenity: VenueAmenity) => {
-    setEditForm(prev => {
+    setEditForm((prev) => {
       const amenities = prev.amenities.includes(amenity)
-        ? prev.amenities.filter(a => a !== amenity)
+        ? prev.amenities.filter((a) => a !== amenity)
         : [...prev.amenities, amenity]
       return { ...prev, amenities }
     })
   }
 
-  const amenityOptions = Object.values(VenueAmenity).map(amenity => ({
+  const amenityOptions = Object.values(VenueAmenity).map((amenity) => ({
     value: amenity,
-    label: t(`venues.amenities.${amenity.toLowerCase()}`) || amenity.replace('_', ' ')
+    label: t(`venues.amenities.${amenity.toLowerCase()}`) || amenity.replace("_", " "),
   }))
 
   return (
@@ -219,9 +218,9 @@ export default function BusinessVenuesPage() {
       </div>
 
       {/* Venue New Modal */}
-      <VenueNewModal 
-        isOpen={isAddVenueModalOpen} 
-        onClose={() => setIsAddVenueModalOpen(false)} 
+      <VenueNewModal
+        isOpen={isAddVenueModalOpen}
+        onClose={() => setIsAddVenueModalOpen(false)}
         onSuccess={() => {
           setIsAddVenueModalOpen(false)
           fetchVenues()
@@ -233,74 +232,119 @@ export default function BusinessVenuesPage() {
         <DialogContent className="sm:max-w-[600px] custom-scrollbar">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">{selectedVenue?.name.en}</DialogTitle>
-            <DialogDescription>{t("business.venues.viewVenueDetails")}</DialogDescription>
           </DialogHeader>
 
           {selectedVenue && (
-            <div className="space-y-6">
-              <div className="aspect-video overflow-hidden rounded-lg">
-                <img
-                  src={selectedVenue.media?.[0]?.url || "/placeholder.svg"}
-                  alt={selectedVenue.name.en}
-                  className="h-full w-full object-cover"
-                />
+            <div className="grid gap-4 py-4">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-muted-foreground" />
+                <p>
+                  {selectedVenue.address.street}, {selectedVenue.address.city}, {selectedVenue.address.state}{" "}
+                  {selectedVenue.address.zipCode}, {selectedVenue.address.country}
+                </p>
               </div>
 
-              <div className="grid gap-4 py-4">
+              <div>
+                <h3 className="font-medium">{t("business.common.description")}</h3>
+                <p className="text-muted-foreground">{selectedVenue.description.en}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-muted-foreground" />
-                  <p>{selectedVenue.location.en}</p>
+                  <Users className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <h3 className="font-medium">{t("venueBook.guestCapacity")}</h3>
+                    <p>
+                      {selectedVenue.capacity.min} - {selectedVenue.capacity.max} {t("venueBook.guests")}
+                      (Recommended: {selectedVenue.capacity.recommended})
+                    </p>
+                  </div>
                 </div>
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <h3 className="font-medium">{t("business.common.price")}</h3>
+                    <p>
+                      {selectedVenue.price.currency} {selectedVenue.price.amount} ({t(`venues.filters.priceType.${selectedVenue.price.type}`)})
+                    </p>
+                  </div>
+                </div>
+              </div>
 
+              <div>
+                <h3 className="font-medium mb-2">{t("venueDetail.operatingHours")}</h3>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {Object.entries(selectedVenue.dayAvailability || {}).map(([day, hours]) => (
+                    <div key={day} className="flex justify-between">
+                      <span className="capitalize font-medium">{day}:</span>
+                      <span className="text-muted-foreground">{hours}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-medium mb-2">{t("venueDetail.amenities")}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {selectedVenue.amenities.map((amenity) => (
+                    <Badge key={amenity} variant="secondary">
+                      {t(`venues.amenities.${amenity.toLowerCase()}`) || amenity.replace("_", " ")}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {selectedVenue.metadata?.blockedDates && selectedVenue.metadata.blockedDates.length > 0 && (
                 <div>
-                  <h3 className="font-medium">{t("business.common.description")}</h3>
-                  <p className="text-muted-foreground">{selectedVenue.description.en}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <h3 className="font-medium">{t("business.venues.capacity")}</h3>
-                      <p>
-                        {selectedVenue.capacity.max} {t("business.venues.people")}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <h3 className="font-medium">{t("business.venues.price")}</h3>
-                      <p>
-                        ${selectedVenue.price.amount}/{t(`common.${selectedVenue.price.type.toLowerCase()}`)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {selectedVenue.availability && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <h3 className="font-medium">{t("business.venues.availableHours")}</h3>
-                        <p>{selectedVenue.availability.startTime} - {selectedVenue.availability.endTime}</p>
+                  <h3 className="font-medium mb-2">{t("business.venues.blockedDates")}</h3>
+                  <div className="space-y-1">
+                    {selectedVenue.metadata.blockedDates.map((blocked, index) => (
+                      <div key={index} className="text-sm text-muted-foreground">
+                        {new Date(blocked.startDate).toLocaleDateString()} -{" "}
+                        {new Date(blocked.endDate).toLocaleDateString()}
+                        {blocked.isConfirmed && (
+                          <Badge variant="destructive" className="ml-2">
+                            Confirmed
+                          </Badge>
+                        )}
                       </div>
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <h3 className="font-medium mb-2">{t("business.venues.amenities")}</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedVenue.amenities.map((amenity) => (
-                      <Badge key={amenity} variant="secondary">
-                        {t(`venues.amenities.${amenity.toLowerCase()}`) || amenity.replace('_', ' ')}
-                      </Badge>
                     ))}
                   </div>
                 </div>
-              </div>
+              )}
+
+              {selectedVenue.reviews && selectedVenue.reviews.length > 0 && (
+                <div>
+                  <h3 className="font-medium mb-2">{t("business.venues.reviews")}</h3>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {selectedVenue.reviews.map((review) => (
+                      <div key={review.id} className="border rounded p-2">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-3 w-3 ${
+                                  i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          {review.isVerified && (
+                            <Badge variant="secondary" className="text-xs">
+                              Verified
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">{review.comment}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(review.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
@@ -311,12 +355,11 @@ export default function BusinessVenuesPage() {
         <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t("business.venues.editVenue")}</DialogTitle>
-            <DialogDescription>{t("business.venues.editVenueDescription")}</DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-1 gap-2">
-              <Label htmlFor="name-en">{t("business.venues.name")} (English)</Label>
+              <Label htmlFor="name-en">{t("business.common.name")} (English)</Label>
               <Input
                 id="name-en"
                 value={editForm.name.en}
@@ -325,7 +368,7 @@ export default function BusinessVenuesPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-2">
-              <Label htmlFor="name-sq">{t("business.venues.name")} (Albanian)</Label>
+              <Label htmlFor="name-sq">{t("business.common.name")} (Albanian)</Label>
               <Input
                 id="name-sq"
                 value={editForm.name.sq}
@@ -334,38 +377,42 @@ export default function BusinessVenuesPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-2">
-              <Label htmlFor="description-en">{t("business.venues.description")} (English)</Label>
+              <Label htmlFor="description-en">{t("business.common.description")} (English)</Label>
               <Textarea
                 id="description-en"
                 value={editForm.description.en}
-                onChange={(e) => setEditForm({ ...editForm, description: { ...editForm.description, en: e.target.value } })}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, description: { ...editForm.description, en: e.target.value } })
+                }
                 rows={3}
               />
             </div>
 
             <div className="grid grid-cols-1 gap-2">
-              <Label htmlFor="description-sq">{t("business.venues.description")} (Albanian)</Label>
+              <Label htmlFor="description-sq">{t("business.common.description")} (Albanian)</Label>
               <Textarea
                 id="description-sq"
                 value={editForm.description.sq}
-                onChange={(e) => setEditForm({ ...editForm, description: { ...editForm.description, sq: e.target.value } })}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, description: { ...editForm.description, sq: e.target.value } })
+                }
                 rows={3}
               />
             </div>
 
             <div className="grid grid-cols-1 gap-2">
-              <Label htmlFor="venue-type">{t("business.venues.type")}</Label>
+              <Label htmlFor="venue-type">{t("business.common.type")}</Label>
               <Select
                 value={editForm.type}
                 onValueChange={(value) => setEditForm({ ...editForm, type: value as VenueType })}
               >
                 <SelectTrigger id="venue-type">
-                  <SelectValue placeholder={t("business.venues.selectType")} />
+                  <SelectValue placeholder={t("business.common.selectType")} />
                 </SelectTrigger>
                 <SelectContent>
                   {Object.values(VenueType).map((type) => (
                     <SelectItem key={type} value={type}>
-                      {t(`venues.types.${type.toLowerCase()}`) || type.replace('_', ' ')}
+                      {t(`business.venueTypes.${type}`) || type.replace("_", " ")}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -374,19 +421,23 @@ export default function BusinessVenuesPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid grid-cols-1 gap-2">
-                <Label htmlFor="price">{t("business.venues.price")}</Label>
+                <Label htmlFor="price">{t("business.common.price")}</Label>
                 <Input
                   id="price"
                   type="number"
                   value={editForm.price.amount}
-                  onChange={(e) => setEditForm({ ...editForm, price: { ...editForm.price, amount: parseInt(e.target.value) } })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, price: { ...editForm.price, amount: Number.parseInt(e.target.value) } })
+                  }
                 />
               </div>
               <div className="grid grid-cols-1 gap-2">
-                <Label htmlFor="price-type">{t("business.venues.priceType")}</Label>
+                <Label htmlFor="price-type">{t("venues.filters.priceType")}</Label>
                 <Select
                   value={editForm.price.type}
-                  onValueChange={(value) => setEditForm({ ...editForm, price: { ...editForm.price, type: value as PricingType } })}
+                  onValueChange={(value) =>
+                    setEditForm({ ...editForm, price: { ...editForm.price, type: value as PricingType } })
+                  }
                 >
                   <SelectTrigger id="price-type">
                     <SelectValue placeholder={t("business.venues.selectPriceType")} />
@@ -394,7 +445,7 @@ export default function BusinessVenuesPage() {
                   <SelectContent>
                     {Object.values(PricingType).map((type) => (
                       <SelectItem key={type} value={type}>
-                        {t(`common.${type.toLowerCase()}`) || type.replace('_', ' ')}
+                        {t(`venues.filters.priceType.${type}`) || type.replace("_", " ")}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -404,36 +455,51 @@ export default function BusinessVenuesPage() {
 
             <div className="grid grid-cols-3 gap-4">
               <div className="grid grid-cols-1 gap-2">
-                <Label htmlFor="capacity-min">{t("business.venues.minCapacity")}</Label>
+                <Label htmlFor="capacity-min">{t("business.venueNew.minCapacity")}</Label>
                 <Input
                   id="capacity-min"
                   type="number"
                   value={editForm.capacity.min}
-                  onChange={(e) => setEditForm({ ...editForm, capacity: { ...editForm.capacity, min: parseInt(e.target.value) } })}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      capacity: { ...editForm.capacity, min: Number.parseInt(e.target.value) },
+                    })
+                  }
                 />
               </div>
               <div className="grid grid-cols-1 gap-2">
-                <Label htmlFor="capacity-max">{t("business.venues.maxCapacity")}</Label>
+                <Label htmlFor="capacity-max">{t("business.venueNew.maxCapacity")}</Label>
                 <Input
                   id="capacity-max"
                   type="number"
                   value={editForm.capacity.max}
-                  onChange={(e) => setEditForm({ ...editForm, capacity: { ...editForm.capacity, max: parseInt(e.target.value) } })}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      capacity: { ...editForm.capacity, max: Number.parseInt(e.target.value) },
+                    })
+                  }
                 />
               </div>
               <div className="grid grid-cols-1 gap-2">
-                <Label htmlFor="capacity-recommended">{t("business.venues.recommendedCapacity")}</Label>
+                <Label htmlFor="capacity-recommended">{t("business.venueNew.recommendedCapacity")}</Label>
                 <Input
                   id="capacity-recommended"
                   type="number"
                   value={editForm.capacity.recommended}
-                  onChange={(e) => setEditForm({ ...editForm, capacity: { ...editForm.capacity, recommended: parseInt(e.target.value) } })}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      capacity: { ...editForm.capacity, recommended: Number.parseInt(e.target.value) },
+                    })
+                  }
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-2">
-              <Label>{t("business.venues.amenities")}</Label>
+              <Label>{t("venueDetail.amenities")}</Label>
               <div className="grid grid-cols-2 gap-2">
                 {amenityOptions.map((amenity) => (
                   <div key={amenity.value} className="flex items-center space-x-2">
@@ -481,8 +547,8 @@ export default function BusinessVenuesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t("business.common.all") || "All"}</SelectItem>
-                <SelectItem value="active">{t("business.common.active") || "Active"}</SelectItem>
-                <SelectItem value="inactive">{t("business.common.inactive") || "Inactive"}</SelectItem>
+                <SelectItem value="active">{t("business.venues.active") || "Active"}</SelectItem>
+                <SelectItem value="inactive">{t("business.venues.inactive") || "Inactive"}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -508,22 +574,32 @@ export default function BusinessVenuesPage() {
                   />
                   <Badge
                     className={`absolute right-2 top-2 ${
-                      venue.active
+                      venue.isActive
                         ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400"
                         : "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400"
                     }`}
                   >
-                    {venue.active ? t("business.common.active") || "Active" : t("business.common.inactive") || "Inactive"}
+                    {venue.isActive
+                      ? t("business.venues.active") || "Active"
+                      : t("business.venues.inactive") || "Inactive"}
                   </Badge>
                 </div>
                 <div className="p-4">
                   <h3 className="text-lg font-semibold tracking-tight">{venue.name.en}</h3>
                   <p className="text-muted-foreground line-clamp-2 mt-1">{venue.description.en}</p>
+                  <div className="flex items-center text-sm text-muted-foreground mt-2">
+                    <MapPin className="mr-1 h-4 w-4" />
+                    <span>
+                      {venue.address.street}, {venue.address.city}, {venue.address.state}
+                    </span>
+                  </div>
 
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <Badge variant="outline">{t(`venues.types.${venue.type.toLowerCase()}`) || venue.type.replace('_', ' ')}</Badge>
                     <Badge variant="outline">
-                      ${venue.price.amount}/{t(`common.${venue.price.type.toLowerCase()}`)}
+                      {t(`business.venueTypes.${venue.type}`) || venue.type.replace("_", " ")}
+                    </Badge>
+                    <Badge variant="outline">
+                      {venue.price.currency} {venue.price.amount} ({t(`venues.filters.priceType.${venue.price.type}`)})
                     </Badge>
                   </div>
 

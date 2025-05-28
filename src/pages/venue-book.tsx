@@ -37,6 +37,8 @@ import { Badge } from "../components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar"
 import * as venueService from "../services/venueService"
 import * as serviceService from "../services/serviceService"
+import * as bookingService from "../services/bookingService"
+import { EventType } from "@/models"
 
 // Define interfaces for the API data structure
 interface LocalizedText {
@@ -311,10 +313,63 @@ export default function VenueBookPage() {
     return `${apiUrl}/${url.replace(/\\/g, "/")}`
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // In a real app, this would send the booking data to an API
-    navigate(`/venues/${id}/checkout`)
+    
+    // Get form data
+    const firstName = (document.getElementById('first-name') as HTMLInputElement).value
+    const lastName = (document.getElementById('last-name') as HTMLInputElement).value
+    const email = (document.getElementById('email') as HTMLInputElement).value
+    const phone = (document.getElementById('phone') as HTMLInputElement).value
+    const specialRequests = (document.getElementById('special-requests') as HTMLTextAreaElement).value
+
+    // Format dates and times
+    const formattedStartDate = startDate ? format(startDate, 'yyyy-MM-dd') : ''
+    const formattedEndDate = endDate ? format(endDate, 'yyyy-MM-dd') : ''
+    const formattedStartTime = startDate ? format(startDate, 'HH:mm') : ''
+    const formattedEndTime = endDate ? format(endDate, 'HH:mm') : ''
+
+    // Collect all selected service option IDs
+    const serviceOptionIds = Object.values(selectedServices).flat()
+
+    // Prepare booking data
+    const bookingData = {
+      venueId: id || '',
+      startDate: formattedStartDate,
+      endDate: formattedEndDate,
+      startTime: formattedStartTime,
+      endTime: formattedEndTime,
+      numberOfGuests: guests,
+      serviceOptionIds,
+      specialRequests,
+      metadata: {
+        contactDetails: {
+          firstName,
+          lastName,
+          email,
+          phone
+        },
+        eventType
+      }
+    }
+
+    try {
+      const response = await bookingService.createBooking(bookingData)
+      if (response.success && response.bookingId) {
+        // Redirect to dashboard instead of checkout
+        navigate('/dashboard', { 
+          state: { 
+            bookingId: response.bookingId,
+            ...bookingData
+          }
+        })
+      } else {
+        // Handle error - you might want to show an error message to the user
+        console.error('Failed to create booking:', response.error)
+      }
+    } catch (error) {
+      console.error('Error creating booking:', error)
+    }
   }
 
   const calculateDuration = () => {
@@ -555,8 +610,8 @@ export default function VenueBookPage() {
                     <span className="text-sm font-medium">
                       {venue.reviews && venue.reviews.length > 0
                         ? (
-                            venue.reviews.reduce((sum, review) => sum + review.rating, 0) / venue.reviews.length
-                          ).toFixed(1)
+                          venue.reviews.reduce((sum, review) => sum + review.rating, 0) / venue.reviews.length
+                        ).toFixed(1)
                         : "0.0"}
                     </span>
                     <span className="text-xs text-muted-foreground ml-1">({venue.reviews?.length || 0})</span>
@@ -613,426 +668,426 @@ export default function VenueBookPage() {
                       required
                     >
                       <option value="">{t("venueBook.selectEventType")}</option>
-                      <option value="corporate">{t("venueBook.corporate")}</option>
-                      <option value="wedding">{t("venueBook.wedding")}</option>
-                      <option value="birthday">{t("venueBook.birthday")}</option>
-                      <option value="photoshoot">{t("venueBook.photoshoot")}</option>
-                      <option value="other">{t("venueBook.other")}</option>
+                      {Object.values(EventType).map((type) => (
+                        <option key={type} value={type}>
+                          {t(`venueBook.${type}`)}
+                        </option>
+                      ))}
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <label className="text-sm font-semibold text-foreground">{t("venueBook.dateRange")}</label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Start Date Display */}
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground">{t("venueBook.from")}</label>
-                      <div className="flex items-center border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50">
-                        <CalendarIcon className="h-4 w-4 text-muted-foreground mr-2" />
-                        <span>{startDate ? format(startDate, "PPP p") : t("venueBook.startDateTime")}</span>
-                      </div>
-                    </div>
-
-                    {/* End Date Display */}
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground">{t("venueBook.to")}</label>
-                      <div className="flex items-center border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50">
-                        <Clock className="h-4 w-4 text-muted-foreground mr-2" />
-                        <span>{endDate ? format(endDate, "PPP p") : t("venueBook.endDateTime")}</span>
-                      </div>
+              <div className="space-y-4">
+                <label className="text-sm font-semibold text-foreground">{t("venueBook.dateRange")}</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Start Date Display */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">{t("venueBook.from")}</label>
+                    <div className="flex items-center border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50">
+                      <CalendarIcon className="h-4 w-4 text-muted-foreground mr-2" />
+                      <span>{startDate ? format(startDate, "PPP p") : t("venueBook.startDateTime")}</span>
                     </div>
                   </div>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {duration > 0 && (
-                      <span>
-                        {t("venueBook.duration")}: {duration} {t("venueBook.hours")}
-                      </span>
-                    )}
-                  </p>
-                </div>
 
-                <div className="space-y-3">
-                  <label className="text-sm font-medium">{t("venueBook.guests")}</label>
-                  <div className="flex items-center border rounded-md bg-background overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-colors hover:border-primary hover:shadow-sm">
-                    <Users className="ml-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="number"
-                      min={venue.capacity.min}
-                      max={venue.capacity.max}
-                      value={guests}
-                      onChange={(e) => setGuests(Number.parseInt(e.target.value))}
-                      className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      required
-                    />
+                  {/* End Date Display */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">{t("venueBook.to")}</label>
+                    <div className="flex items-center border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50">
+                      <Clock className="h-4 w-4 text-muted-foreground mr-2" />
+                      <span>{endDate ? format(endDate, "PPP p") : t("venueBook.endDateTime")}</span>
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {t("venueBook.guestCapacity", { min: venue.capacity.min, max: venue.capacity.max })}
-                  </p>
                 </div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  {duration > 0 && (
+                    <span>
+                      {t("venueBook.duration")}: {duration} {t("venueBook.hours")}
+                    </span>
+                  )}
+                </p>
               </div>
 
-              {/* Services Section - Grouped by Type */}
-              <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
-                <div>
-                  <h2 className="text-xl font-semibold">{t("venueBook.services")}</h2>
-                  <p className="text-muted-foreground text-sm mt-1">{t("venueBook.servicesSubtitle")}</p>
+              <div className="space-y-3">
+                <label className="text-sm font-medium">{t("venueBook.guests")}</label>
+                <div className="flex items-center border rounded-md bg-background overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-colors hover:border-primary hover:shadow-sm">
+                  <Users className="ml-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="number"
+                    min={venue.capacity.min}
+                    max={venue.capacity.max}
+                    value={guests}
+                    onChange={(e) => setGuests(Number.parseInt(e.target.value))}
+                    className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    required
+                  />
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("venueBook.guestCapacity", { min: venue.capacity.min, max: venue.capacity.max })}
+                </p>
+              </div>
+          </div>
 
-                {/* Scrollable Services Container */}
-                <div className="services-container max-h-[500px] overflow-y-auto pr-2 space-y-6">
-                  {/* Render services grouped by type */}
-                  {serviceTypes.length > 0 ? (
-                    serviceTypes.map((serviceType) => {
-                      const isTypeExpanded = expandedTypes.includes(serviceType.type)
-                      const servicesOfType = servicesByType[serviceType.type] || []
-                      const selectedCount = countSelectedOptionsForType(serviceType.type)
-                      const typeDisplayName = serviceTypeNames[serviceType.type]?.[language] || serviceType.type
-                      const IconComponent = getIconByName(serviceType.icon)
+          {/* Services Section - Grouped by Type */}
+          <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+            <div>
+              <h2 className="text-xl font-semibold">{t("venueBook.services")}</h2>
+              <p className="text-muted-foreground text-sm mt-1">{t("venueBook.servicesSubtitle")}</p>
+            </div>
 
-                      return (
-                        <div
-                          key={serviceType.type}
-                          className="service-type-section border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden"
-                        >
-                          {/* Service Type Header */}
-                          <div
-                            className="service-type-header p-4 bg-gray-50 dark:bg-gray-800/50 flex items-center justify-between cursor-pointer"
-                            onClick={() => toggleTypeExpansion(serviceType.type)}
-                          >
-                            <div className="flex items-center">
-                              <div className="h-10 w-10 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center mr-3">
-                                <IconComponent className="h-5 w-5 text-sky-500 dark:text-sky-400" />
-                              </div>
-                              <div>
-                                <h3 className="font-medium">{typeDisplayName}</h3>
-                                <p className="text-xs text-muted-foreground">
-                                  {servicesOfType.length} {t("venueBook.providersAvailable")}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center">
-                              {selectedCount > 0 && (
-                                <Badge className="mr-3 bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-400">
-                                  {selectedCount} {t("venueBook.selected")}
-                                </Badge>
-                              )}
-                              <ChevronRight
-                                className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${isTypeExpanded ? "rotate-90" : ""}`}
-                              />
-                            </div>
+            {/* Scrollable Services Container */}
+            <div className="services-container max-h-[500px] overflow-y-auto pr-2 space-y-6">
+              {/* Render services grouped by type */}
+              {serviceTypes.length > 0 ? (
+                serviceTypes.map((serviceType) => {
+                  const isTypeExpanded = expandedTypes.includes(serviceType.type)
+                  const servicesOfType = servicesByType[serviceType.type] || []
+                  const selectedCount = countSelectedOptionsForType(serviceType.type)
+                  const typeDisplayName = serviceTypeNames[serviceType.type]?.[language] || serviceType.type
+                  const IconComponent = getIconByName(serviceType.icon)
+
+                  return (
+                    <div
+                      key={serviceType.type}
+                      className="service-type-section border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden"
+                    >
+                      {/* Service Type Header */}
+                      <div
+                        className="service-type-header p-4 bg-gray-50 dark:bg-gray-800/50 flex items-center justify-between cursor-pointer"
+                        onClick={() => toggleTypeExpansion(serviceType.type)}
+                      >
+                        <div className="flex items-center">
+                          <div className="h-10 w-10 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center mr-3">
+                            <IconComponent className="h-5 w-5 text-sky-500 dark:text-sky-400" />
                           </div>
+                          <div>
+                            <h3 className="font-medium">{typeDisplayName}</h3>
+                            <p className="text-xs text-muted-foreground">
+                              {servicesOfType.length} {t("venueBook.providersAvailable")}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center">
+                          {selectedCount > 0 && (
+                            <Badge className="mr-3 bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-400">
+                              {selectedCount} {t("venueBook.selected")}
+                            </Badge>
+                          )}
+                          <ChevronRight
+                            className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${isTypeExpanded ? "rotate-90" : ""}`}
+                          />
+                        </div>
+                      </div>
 
-                          {/* Providers for this service type */}
-                          {isTypeExpanded && (
-                            <div className="service-providers p-4 space-y-4 border-t border-gray-100 dark:border-gray-700">
-                              {servicesOfType.length > 0 ? (
-                                servicesOfType.map((service) => {
-                                  const isProviderExpanded = expandedProviders.includes(service.provider.id)
-                                  const selectedOptionsCount = selectedServices[service.id]?.length || 0
+                      {/* Providers for this service type */}
+                      {isTypeExpanded && (
+                        <div className="service-providers p-4 space-y-4 border-t border-gray-100 dark:border-gray-700">
+                          {servicesOfType.length > 0 ? (
+                            servicesOfType.map((service) => {
+                              const isProviderExpanded = expandedProviders.includes(service.provider.id)
+                              const selectedOptionsCount = selectedServices[service.id]?.length || 0
 
-                                  return (
-                                    <div
-                                      key={service.id}
-                                      className="provider-section border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden"
-                                    >
-                                      {/* Provider Header */}
-                                      <div
-                                        className="provider-header p-3 bg-gray-50/50 dark:bg-gray-800/30 flex items-center justify-between cursor-pointer"
-                                        onClick={() => toggleProviderExpansion(service.provider.id)}
-                                      >
-                                        <div className="flex items-center">
-                                          <Avatar className="h-8 w-8 mr-2">
-                                            <AvatarImage
-                                              src={
-                                                service.provider.profilePicture
-                                                  ? formatImageUrl(service.provider.profilePicture)
-                                                  : "/placeholder.svg?height=32&width=32"
-                                              }
-                                              alt={`${service.provider.firstName} ${service.provider.lastName}`}
-                                            />
-                                            <AvatarFallback>
-                                              {service.provider.firstName.charAt(0)}
-                                              {service.provider.lastName.charAt(0)}
-                                            </AvatarFallback>
-                                          </Avatar>
-                                          <div>
-                                            <h4 className="font-medium text-sm">
-                                              {service.provider.firstName} {service.provider.lastName}
-                                            </h4>
-                                            <p className="text-xs text-muted-foreground">{service.name[language]}</p>
-                                          </div>
-                                        </div>
-                                        <div className="flex items-center">
-                                          {selectedOptionsCount > 0 && (
-                                            <Badge className="mr-2 text-xs bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-400">
-                                              {selectedOptionsCount} {t("venueBook.selected")}
-                                            </Badge>
-                                          )}
-                                          <ChevronRight
-                                            className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${isProviderExpanded ? "rotate-90" : ""}`}
-                                          />
-                                        </div>
+                              return (
+                                <div
+                                  key={service.id}
+                                  className="provider-section border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden"
+                                >
+                                  {/* Provider Header */}
+                                  <div
+                                    className="provider-header p-3 bg-gray-50/50 dark:bg-gray-800/30 flex items-center justify-between cursor-pointer"
+                                    onClick={() => toggleProviderExpansion(service.provider.id)}
+                                  >
+                                    <div className="flex items-center">
+                                      <Avatar className="h-8 w-8 mr-2">
+                                        <AvatarImage
+                                          src={
+                                            service.provider.profilePicture
+                                              ? formatImageUrl(service.provider.profilePicture)
+                                              : "/placeholder.svg?height=32&width=32"
+                                          }
+                                          alt={`${service.provider.firstName} ${service.provider.lastName}`}
+                                        />
+                                        <AvatarFallback>
+                                          {service.provider.firstName.charAt(0)}
+                                          {service.provider.lastName.charAt(0)}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div>
+                                        <h4 className="font-medium text-sm">
+                                          {service.provider.firstName} {service.provider.lastName}
+                                        </h4>
+                                        <p className="text-xs text-muted-foreground">{service.name[language]}</p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center">
+                                      {selectedOptionsCount > 0 && (
+                                        <Badge className="mr-2 text-xs bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-400">
+                                          {selectedOptionsCount} {t("venueBook.selected")}
+                                        </Badge>
+                                      )}
+                                      <ChevronRight
+                                        className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${isProviderExpanded ? "rotate-90" : ""}`}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  {/* Service Options */}
+                                  {isProviderExpanded && (
+                                    <div className="service-options p-3 space-y-3 border-t border-gray-100 dark:border-gray-700">
+                                      <div className="text-sm text-muted-foreground mb-2">
+                                        {service.description[language]}
                                       </div>
 
-                                      {/* Service Options */}
-                                      {isProviderExpanded && (
-                                        <div className="service-options p-3 space-y-3 border-t border-gray-100 dark:border-gray-700">
-                                          <div className="text-sm text-muted-foreground mb-2">
-                                            {service.description[language]}
-                                          </div>
-
-                                          {service.options && service.options.length > 0 ? (
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                              {service.options.map((option) => {
-                                                const isSelected = selectedServices[service.id]?.includes(option.id)
-                                                return (
-                                                  <button
-                                                    key={option.id}
-                                                    type="button"
-                                                    className={cn(
-                                                      "service-option flex flex-col items-start justify-center p-3 relative rounded-lg border-2 border-transparent hover:border-sky-200 dark:hover:border-sky-800 transition-all duration-200",
-                                                      isSelected
-                                                        ? "bg-sky-50 dark:bg-sky-900/30 border-sky-200 dark:border-sky-800"
-                                                        : "bg-gray-50 dark:bg-slate-800/50 hover:bg-gray-100 dark:hover:bg-slate-700/70",
-                                                    )}
-                                                    onClick={() => toggleService(service.id, option.id)}
-                                                  >
-                                                    {isSelected && (
-                                                      <Check className="h-4 w-4 text-primary absolute top-2 right-2" />
-                                                    )}
-                                                    <div className="flex flex-col items-start">
-                                                      <span className="font-medium text-sm">
-                                                        {option.name[language]}
-                                                      </span>
-                                                      <p className="text-xs text-muted-foreground mt-1 text-left">
-                                                        {option.description[language]}
-                                                      </p>
-                                                      <div className="flex items-center mt-2">
-                                                        <Badge
-                                                          className={`text-xs ${getPriceTypeBadge(option.price.type).bgColor} mr-2`}
-                                                        >
-                                                          {getPriceTypeBadge(option.price.type).text}
-                                                        </Badge>
-                                                        <span className="font-medium">
-                                                          ${option.price.amount}
-                                                        </span>
-                                                      </div>
-                                                    </div>
-                                                  </button>
-                                                )
-                                              })}
-                                            </div>
-                                          ) : (
-                                            <p className="text-sm text-muted-foreground">
-                                              {t("venueBook.noOptionsAvailable")}
-                                            </p>
-                                          )}
-
-                                          {/* Contact Provider Button */}
-                                          <div className="flex justify-end mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
-                                            <Button variant="outline" size="sm" className="text-xs">
-                                              <MessageSquare className="h-3 w-3 mr-1" />
-                                              {t("venueBook.contactProvider")}
-                                            </Button>
-                                          </div>
+                                      {service.options && service.options.length > 0 ? (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                          {service.options.map((option) => {
+                                            const isSelected = selectedServices[service.id]?.includes(option.id)
+                                            return (
+                                              <button
+                                                key={option.id}
+                                                type="button"
+                                                className={cn(
+                                                  "service-option flex flex-col items-start justify-center p-3 relative rounded-lg border-2 border-transparent hover:border-sky-200 dark:hover:border-sky-800 transition-all duration-200",
+                                                  isSelected
+                                                    ? "bg-sky-50 dark:bg-sky-900/30 border-sky-200 dark:border-sky-800"
+                                                    : "bg-gray-50 dark:bg-slate-800/50 hover:bg-gray-100 dark:hover:bg-slate-700/70",
+                                                )}
+                                                onClick={() => toggleService(service.id, option.id)}
+                                              >
+                                                {isSelected && (
+                                                  <Check className="h-4 w-4 text-primary absolute top-2 right-2" />
+                                                )}
+                                                <div className="flex flex-col items-start">
+                                                  <span className="font-medium text-sm">
+                                                    {option.name[language]}
+                                                  </span>
+                                                  <p className="text-xs text-muted-foreground mt-1 text-left">
+                                                    {option.description[language]}
+                                                  </p>
+                                                  <div className="flex items-center mt-2">
+                                                    <Badge
+                                                      className={`text-xs ${getPriceTypeBadge(option.price.type).bgColor} mr-2`}
+                                                    >
+                                                      {getPriceTypeBadge(option.price.type).text}
+                                                    </Badge>
+                                                    <span className="font-medium">
+                                                      ${option.price.amount}
+                                                    </span>
+                                                  </div>
+                                                </div>
+                                              </button>
+                                            )
+                                          })}
                                         </div>
+                                      ) : (
+                                        <p className="text-sm text-muted-foreground">
+                                          {t("venueBook.noOptionsAvailable")}
+                                        </p>
                                       )}
+
+                                      {/* Contact Provider Button */}
+                                      <div className="flex justify-end mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+                                        <Button variant="outline" size="sm" className="text-xs">
+                                          <MessageSquare className="h-3 w-3 mr-1" />
+                                          {t("venueBook.contactProvider")}
+                                        </Button>
+                                      </div>
                                     </div>
-                                  )
-                                })
-                              ) : (
-                                <div className="text-center p-4 bg-gray-50 dark:bg-gray-800/30 rounded-lg">
-                                  <p className="text-muted-foreground">{t("venueBook.noProvidersAvailable")}</p>
+                                  )}
                                 </div>
-                              )}
+                              )
+                            })
+                          ) : (
+                            <div className="text-center p-4 bg-gray-50 dark:bg-gray-800/30 rounded-lg">
+                              <p className="text-muted-foreground">{t("venueBook.noProvidersAvailable")}</p>
                             </div>
                           )}
                         </div>
-                      )
-                    })
-                  ) : (
-                    <div className="text-center p-8 bg-gray-50 dark:bg-gray-800/30 rounded-lg">
-                      <p className="text-muted-foreground">{t("venueBook.noServicesAvailable")}</p>
+                      )}
                     </div>
-                  )}
+                  )
+                })
+              ) : (
+                <div className="text-center p-8 bg-gray-50 dark:bg-gray-800/30 rounded-lg">
+                  <p className="text-muted-foreground">{t("venueDetail.noServices")}</p>
                 </div>
+              )}
+            </div>
+          </div>
+
+          <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+            <h2 className="text-xl font-semibold">{t("venueBook.contactDetails")}</h2>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2 ">
+                <label className="text-sm font-medium" htmlFor="first-name">
+                  {t("venueBook.firstName")}
+                </label>
+                <Input
+                  id="first-name"
+                  className="hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                  required
+                />
               </div>
 
-              <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
-                <h2 className="text-xl font-semibold">{t("venueBook.contactDetails")}</h2>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2 ">
-                    <label className="text-sm font-medium" htmlFor="first-name">
-                      {t("venueBook.firstName")}
-                    </label>
-                    <Input
-                      id="first-name"
-                      className="hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="last-name">
-                      {t("venueBook.lastName")}
-                    </label>
-                    <Input
-                      id="last-name"
-                      className="hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="email">
-                    {t("venueBook.email")}
-                  </label>
-                  <Input
-                    id="email"
-                    type="email"
-                    className="hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="phone">
-                    {t("venueBook.phone")}
-                  </label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    className="focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
-                <h2 className="text-xl font-semibold">{t("venueBook.additionalInfo")}</h2>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="special-requests">
-                    {t("venueBook.specialRequests")}
-                  </label>
-                  <Textarea
-                    id="special-requests"
-                    placeholder={t("venueBook.specialRequestsPlaceholder")}
-                    className="min-h-[100px] focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-                  />
-                </div>
-              </div>
-            </form>
-
-            <div className="space-y-6">
-              <div className="sticky top-6 venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
-                <h2 className="text-xl font-semibold">{t("venueBook.summary")}</h2>
-
-                <div className="space-y-3">
-                  <h3 className="font-medium">{venue.name[language]}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {venue.address ? `${venue.address.city}, ${venue.address.country}` : ""}
-                  </p>
-
-                  <div className="flex items-center text-sm pt-2">
-                    <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>{startDate ? format(startDate, "PPP") : t("venueBook.date")}</span>
-                  </div>
-
-                  <div className="flex items-center text-sm">
-                    <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>
-                      {startDate ? format(startDate, "p") : ""} - {endDate ? format(endDate, "p") : ""}
-                      {duration > 0 && ` (${duration} ${t("venueBook.hours")})`}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center text-sm">
-                    <Users className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>
-                      {guests} {t("venueBook.guests")}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="border-t pt-4 mt-4 space-y-2">
-                  <div className="flex justify-between">
-                    <div className="flex items-center">
-                      <span>{t("venueBook.venueRental")}</span>
-                      <Badge className={`ml-2 text-[10px] ${getPriceTypeBadge(venue.price.type).bgColor}`}>
-                        {getPriceTypeBadge(venue.price.type).text}
-                      </Badge>
-                    </div>
-                    <span>${basePrice}</span>
-                  </div>
-
-                  {/* Services summary */}
-                  {Object.entries(selectedServices).map(([serviceId, optionIds]) =>
-                    optionIds.map((optionId) => {
-                      const service = services.find((s) => s.id === serviceId)
-                      if (!service) return null
-
-                      const option = service.options.find((o) => o.id === optionId)
-                      if (!option) return null
-
-                      let price = option.price.amount
-                      if (option.price.type === "perPerson") {
-                        price = option.price.amount * guests
-                      }
-
-                      return (
-                        <div key={`${serviceId}-${optionId}`} className="flex justify-between text-sm">
-                          <div>
-                            <span>{service.name[language]}</span>
-                            <span className="text-muted-foreground ml-1">({option.name[language]})</span>
-                            {option.price.type === "perPerson" && (
-                              <span className="text-xs text-muted-foreground ml-1">
-                                (${option.price.amount} × {guests})
-                              </span>
-                            )}
-                          </div>
-                          <span>${price}</span>
-                        </div>
-                      )
-                    }),
-                  )}
-
-                  <div className="flex justify-between">
-                    <div className="flex items-center">
-                      <span>{t("venueBook.serviceFee")}</span>
-                      <div className="relative ml-1 group">
-                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-popover text-popover-foreground text-xs rounded shadow-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity">
-                          {t("venueBook.serviceFeeInfo")}
-                        </div>
-                      </div>
-                    </div>
-                    <span>${serviceFee}</span>
-                  </div>
-
-                  <div className="flex justify-between font-bold pt-2 border-t">
-                    <span>{t("venueBook.total")}</span>
-                    <span>${total}</span>
-                  </div>
-                </div>
-
-                <Button
-                  className="w-full cta-button mt-4 bg-sky-500 hover:bg-sky-600 hover:translate-y-[-2px] transition-all duration-200 shadow-md hover:shadow-lg"
-                  onClick={handleSubmit}
-                >
-                  {t("venueBook.continueToPayment")} <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-
-                <p className="text-xs text-muted-foreground text-center mt-4">{t("venueBook.cancellationPolicy")}</p>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="last-name">
+                  {t("venueBook.lastName")}
+                </label>
+                <Input
+                  id="last-name"
+                  className="hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                  required
+                />
               </div>
             </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="email">
+                {t("venueBook.email")}
+              </label>
+              <Input
+                id="email"
+                type="email"
+                className="hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="phone">
+                {t("venueBook.phone")}
+              </label>
+              <Input
+                id="phone"
+                type="tel"
+                className="focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+            <h2 className="text-xl font-semibold">{t("venueBook.additionalInfo")}</h2>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="special-requests">
+                {t("venueBook.specialRequests")}
+              </label>
+              <Textarea
+                id="special-requests"
+                placeholder={t("venueBook.specialRequestsPlaceholder")}
+                className="min-h-[100px] focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+            </div>
+          </div>
+        </form>
+
+        <div className="space-y-6">
+          <div className="sticky top-6 venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+            <h2 className="text-xl font-semibold">{t("venueBook.summary")}</h2>
+
+            <div className="space-y-3">
+              <h3 className="font-medium">{venue.name[language]}</h3>
+              <p className="text-sm text-muted-foreground">
+                {venue.address ? `${venue.address.city}, ${venue.address.country}` : ""}
+              </p>
+
+              <div className="flex items-center text-sm pt-2">
+                <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                <span>{startDate ? format(startDate, "PPP") : t("venueBook.date")}</span>
+              </div>
+
+              <div className="flex items-center text-sm">
+                <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                <span>
+                  {startDate ? format(startDate, "p") : ""} - {endDate ? format(endDate, "p") : ""}
+                  {duration > 0 && ` (${duration} ${t("venueBook.hours")})`}
+                </span>
+              </div>
+
+              <div className="flex items-center text-sm">
+                <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+                <span>
+                  {guests} {t("venueBook.guests")}
+                </span>
+              </div>
+            </div>
+
+            <div className="border-t pt-4 mt-4 space-y-2">
+              <div className="flex justify-between">
+                <div className="flex items-center">
+                  <span>{t("venueBook.venueRental")}</span>
+                  <Badge className={`ml-2 text-[10px] ${getPriceTypeBadge(venue.price.type).bgColor}`}>
+                    {getPriceTypeBadge(venue.price.type).text}
+                  </Badge>
+                </div>
+                <span>${basePrice}</span>
+              </div>
+
+              {/* Services summary */}
+              {Object.entries(selectedServices).map(([serviceId, optionIds]) =>
+                optionIds.map((optionId) => {
+                  const service = services.find((s) => s.id === serviceId)
+                  if (!service) return null
+
+                  const option = service.options.find((o) => o.id === optionId)
+                  if (!option) return null
+
+                  let price = option.price.amount
+                  if (option.price.type === "perPerson") {
+                    price = option.price.amount * guests
+                  }
+
+                  return (
+                    <div key={`${serviceId}-${optionId}`} className="flex justify-between text-sm">
+                      <div>
+                        <span>{service.name[language]}</span>
+                        <span className="text-muted-foreground ml-1">({option.name[language]})</span>
+                        {option.price.type === "perPerson" && (
+                          <span className="text-xs text-muted-foreground ml-1">
+                            (${option.price.amount} × {guests})
+                          </span>
+                        )}
+                      </div>
+                      <span>${price}</span>
+                    </div>
+                  )
+                }),
+              )}
+
+              <div className="flex justify-between">
+                <div className="flex items-center">
+                  <span>{t("venueBook.serviceFee")}</span>
+                  <div className="relative ml-1 group">
+                    <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-popover text-popover-foreground text-xs rounded shadow-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity">
+                      {t("venueBook.serviceFeeInfo")}
+                    </div>
+                  </div>
+                </div>
+                <span>${serviceFee}</span>
+              </div>
+
+              <div className="flex justify-between font-bold pt-2 border-t">
+                <span>{t("venueBook.total")}</span>
+                <span>${total}</span>
+              </div>
+            </div>
+
+            <Button
+              className="w-full cta-button mt-4 bg-sky-500 hover:bg-sky-600 hover:translate-y-[-2px] transition-all duration-200 shadow-md hover:shadow-lg"
+              onClick={handleSubmit}
+            >
+              {t("venueBook.continueToBook")} <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+
+            <p className="text-xs text-muted-foreground text-center mt-4">{t("venueBook.cancellationPolicy")}</p>
           </div>
         </div>
       </div>
+    </div >
+      </div >
     </>
   )
 }

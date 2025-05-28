@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useLanguage } from "../../context/language-context"
 import { BusinessLayout } from "../../components/business/layout"
 import { EditBookingModal } from "../../components/business/edit-booking-modal"
@@ -34,9 +34,12 @@ import {
 import { Badge } from "../../components/ui/badge"
 import { Separator } from "../../components/ui/separator"
 import { toast } from "../../components/ui/use-toast"
+import * as venueService from "../../services/venueService"
+import * as bookingService from "../../services/bookingService"
+import { ServiceOption } from "@/models/service"
 
 export default function BusinessBookingsPage() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [activeTab, setActiveTab] = useState("upcoming")
   const [selectedBooking, setSelectedBooking] = useState<any>(null)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
@@ -44,92 +47,59 @@ export default function BusinessBookingsPage() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
   const [bookingToCancel, setBookingToCancel] = useState<string | null>(null)
 
-  // Mock data
-  const bookings = [
-    {
-      id: "1",
-      customer: {
-        name: "John Smith",
-        email: "john.smith@example.com",
-        phone: "+1 (555) 123-4567",
-      },
-      venue: "Grand Ballroom",
-      date: "2025-06-15",
-      time: "18:00 - 22:00",
-      guests: 150,
-      status: "confirmed",
-      total: 2500,
-      notes: "Wedding reception. Requires stage setup for band and dance floor.",
-      services: ["Catering", "DJ", "Photography"],
-    },
-    {
-      id: "2",
-      customer: {
-        name: "Sarah Johnson",
-        email: "sarah.johnson@example.com",
-        phone: "+1 (555) 987-6543",
-      },
-      venue: "Garden Terrace",
-      date: "2025-06-20",
-      time: "12:00 - 16:00",
-      guests: 80,
-      status: "pending",
-      total: 1200,
-      notes: "Corporate luncheon. Requires projector and screen.",
-      services: ["Catering", "AV Equipment"],
-    },
-    {
-      id: "3",
-      customer: {
-        name: "Michael Brown",
-        email: "michael.brown@example.com",
-        phone: "+1 (555) 456-7890",
-      },
-      venue: "Skyline Loft",
-      date: "2025-06-25",
-      time: "19:00 - 23:00",
-      guests: 100,
-      status: "confirmed",
-      total: 1800,
-      notes: "Birthday celebration. Requires special lighting setup.",
-      services: ["Catering", "DJ", "Decoration"],
-    },
-    {
-      id: "4",
-      customer: {
-        name: "Emily Davis",
-        email: "emily.davis@example.com",
-        phone: "+1 (555) 234-5678",
-      },
-      venue: "Grand Ballroom",
-      date: "2023-05-10",
-      time: "17:00 - 21:00",
-      guests: 200,
-      status: "completed",
-      total: 3000,
-      notes: "Charity gala. Required red carpet entrance.",
-      services: ["Catering", "Photography", "Videography", "Security"],
-    },
-    {
-      id: "5",
-      customer: {
-        name: "David Wilson",
-        email: "david.wilson@example.com",
-        phone: "+1 (555) 876-5432",
-      },
-      venue: "Garden Terrace",
-      date: "2023-05-05",
-      time: "13:00 - 17:00",
-      guests: 60,
-      status: "cancelled",
-      total: 900,
-      notes: "Cancelled due to weather concerns.",
-      services: ["Catering"],
-    },
-  ]
+  const [venues, setVenues] = useState<any[]>([])
+  const [bookings, setBookings] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const filteredBookings = bookings.filter((booking) => {
-    const bookingDate = new Date(booking.date)
+  // Fetch venues and their bookings
+  useEffect(() => {
+    const fetchVenuesAndBookings = async () => {
+      try {
+        setLoading(true)
+        const venueDetails = await venueService.getVenueByOwner()
+        setVenues(venueDetails)
+        const allBookings = venueDetails.flatMap((venue: any) =>
+          venue.bookings.map((booking: any) => ({
+            ...booking,
+            venueName: venue.name,
+            venueId: venue.id,
+            customer: {
+              name: `${booking.metadata?.contactDetails?.firstName || ""} ${booking.metadata?.contactDetails?.lastName || ""}`.trim(),
+              email: booking.metadata?.contactDetails?.email || "",
+              phone: booking.metadata?.contactDetails?.phone || "",
+            },
+          })),
+        )
+        console.log("allBookings", allBookings)
+        setBookings(allBookings)
+      } catch (err) {
+        setError("Failed to fetch venues and bookings")
+        console.error("Error fetching venues:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchVenuesAndBookings()
+  }, [])
+
+  // Extract all bookings from venues
+  const allBookings = venues.flatMap((venue) =>
+    venue.bookings.map((booking: any) => ({
+      ...booking,
+      venueName: venue.name,
+      venueId: venue.id,
+      customer: {
+        name: `${booking.metadata?.contactDetails?.firstName || ""} ${booking.metadata?.contactDetails?.lastName || ""}`.trim(),
+        email: booking.metadata?.contactDetails?.email || "",
+        phone: booking.metadata?.contactDetails?.phone || "",
+      },
+    })),
+  )
+
+  const filteredBookings = allBookings.filter((booking) => {
+    const bookingDate = new Date(booking.startDate)
     const today = new Date()
 
     if (activeTab === "upcoming") {
@@ -156,13 +126,13 @@ export default function BusinessBookingsPage() {
   const handleSaveBooking = (updatedBooking: any) => {
     // In a real app, this would update the booking in the database
     console.log(`Updating booking ${updatedBooking.id}`, updatedBooking)
-    
+
     toast({
       title: t("business.bookings.bookingUpdated") || "Booking Updated",
       description: t("business.bookings.bookingUpdatedDescription") || "The booking has been successfully updated.",
       variant: "default",
     })
-    
+
     setIsEditModalOpen(false)
   }
 
@@ -174,27 +144,57 @@ export default function BusinessBookingsPage() {
   const handleCancelBooking = () => {
     // In a real app, this would update the booking status in the database
     console.log(`Cancelling booking ${bookingToCancel}`)
-    
+
     toast({
       title: t("business.bookings.bookingCancelled") || "Booking Cancelled",
       description: t("business.bookings.bookingCancelledDescription") || "The booking has been cancelled.",
       variant: "default",
     })
-    
+
     setIsCancelModalOpen(false)
     setBookingToCancel(null)
   }
 
-  const handleApproveBooking = (bookingId: string) => {
-    // In a real app, this would update the booking status in the database
-    console.log(`Approving booking ${bookingId}`)
-    setIsViewModalOpen(false)
+  const handleApproveBooking = async (bookingId: string) => {
+    try {
+      await bookingService.updateBookingStatus(bookingId, "confirmed")
+      // Refresh venues data
+      const venueDetails = await venueService.getVenueByOwner()
+      setVenues(venueDetails)
+      setIsViewModalOpen(false)
+      toast({
+        title: "Booking Approved",
+        description: "The booking has been successfully approved.",
+      })
+    } catch (error) {
+      console.error("Error approving booking:", error)
+      toast({
+        title: "Error",
+        description: "Failed to approve booking. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
-  const handleDeclineBooking = (bookingId: string) => {
-    // In a real app, this would update the booking status in the database
-    console.log(`Declining booking ${bookingId}`)
-    setIsViewModalOpen(false)
+  const handleDeclineBooking = async (bookingId: string) => {
+    try {
+      await bookingService.updateBookingStatus(bookingId, "cancelled")
+      // Refresh venues data
+      const venueDetails = await venueService.getVenueByOwner()
+      setVenues(venueDetails)
+      setIsViewModalOpen(false)
+      toast({
+        title: "Booking Declined",
+        description: "The booking has been declined.",
+      })
+    } catch (error) {
+      console.error("Error declining booking:", error)
+      toast({
+        title: "Error",
+        description: "Failed to decline booking. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   const getStatusBadgeClass = (status: string) => {
@@ -234,6 +234,50 @@ export default function BusinessBookingsPage() {
             {t("business.bookings.export") || "Export"}
           </Button>
         </div>
+      </div>
+
+      {/* Venues Overview */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4">{t("business.bookings.venuesOverview") || "Bookings by Venue"}</h2>
+        {loading ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="animate-pulse bg-muted rounded-lg p-4 h-32" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {venues.map((venue) => {
+              const venueBookings = venue.bookings || []
+              const pendingCount = venueBookings.filter((b: any) => b.status === "pending").length
+              const confirmedCount = venueBookings.filter((b: any) => b.status === "confirmed").length
+              const totalCount = venueBookings.length
+
+              return (
+                <div key={venue.id} className="bg-background border rounded-lg p-4 shadow-sm">
+                  <h3 className="font-medium text-lg mb-2">{venue.name[language] || venue.name.en}</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {venue.address.street}, {venue.address.city}, {venue.address.state}
+                  </p>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <div className="text-lg font-semibold text-primary">{totalCount}</div>
+                      <div className="text-xs text-muted-foreground">Total</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-semibold text-warning">{pendingCount}</div>
+                      <div className="text-xs text-muted-foreground">Pending</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-semibold text-success">{confirmedCount}</div>
+                      <div className="text-xs text-muted-foreground">Confirmed</div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* View Booking Modal */}
@@ -284,7 +328,7 @@ export default function BusinessBookingsPage() {
                   <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
                     <h4 className="font-medium">{t("business.bookings.venue")}</h4>
-                    <p>{selectedBooking.venue}</p>
+                    <p>{selectedBooking.venueName[language] || selectedBooking.venueName.en}</p>
                   </div>
                 </div>
 
@@ -293,7 +337,7 @@ export default function BusinessBookingsPage() {
                     <CalendarDays className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <h4 className="font-medium">{t("business.bookings.date")}</h4>
-                      <p>{selectedBooking.date}</p>
+                      <p>{selectedBooking.startDate} - {selectedBooking.endDate}</p>
                     </div>
                   </div>
 
@@ -301,7 +345,7 @@ export default function BusinessBookingsPage() {
                     <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <h4 className="font-medium">{t("business.bookings.time")}</h4>
-                      <p>{selectedBooking.time}</p>
+                      <p>{selectedBooking.startTime} - {selectedBooking.endTime}</p>
                     </div>
                   </div>
                 </div>
@@ -321,7 +365,7 @@ export default function BusinessBookingsPage() {
                     <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <h4 className="font-medium">{t("business.bookings.total")}</h4>
-                      <p>${selectedBooking.total.toFixed(2)}</p>
+                      <p>${Number.parseFloat(selectedBooking.totalAmount).toFixed(2)}</p>
                     </div>
                   </div>
                 </div>
@@ -329,9 +373,9 @@ export default function BusinessBookingsPage() {
                 <div>
                   <h4 className="font-medium mb-2">{t("business.bookings.services")}</h4>
                   <div className="flex flex-wrap gap-2">
-                    {selectedBooking.services.map((service: string) => (
-                      <Badge key={service} variant="success">
-                        {service}
+                    {selectedBooking.serviceOptions.map((service: ServiceOption) => (
+                      <Badge key={service.id} variant="success">
+                        {service.name[language] || service.name.en}
                       </Badge>
                     ))}
                   </div>
@@ -367,8 +411,8 @@ export default function BusinessBookingsPage() {
                 ) : (
                   <div className="flex gap-2">
                     {selectedBooking.status !== "completed" && selectedBooking.status !== "cancelled" ? (
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         onClick={() => {
                           setIsViewModalOpen(false)
                           handleEditBooking(selectedBooking)
@@ -378,9 +422,7 @@ export default function BusinessBookingsPage() {
                         {t("business.common.edit") || "Edit"}
                       </Button>
                     ) : null}
-                    <Button onClick={() => setIsViewModalOpen(false)}>
-                      {t("business.common.close") || "Close"}
-                    </Button>
+                    <Button onClick={() => setIsViewModalOpen(false)}>{t("business.common.close") || "Close"}</Button>
                   </div>
                 )}
               </DialogFooter>
@@ -407,7 +449,8 @@ export default function BusinessBookingsPage() {
               {t("business.bookings.cancelBooking") || "Cancel Booking"}
             </DialogTitle>
             <DialogDescription>
-              {t("business.bookings.cancelBookingConfirmation") || "Are you sure you want to cancel this booking? This action cannot be undone."}
+              {t("business.bookings.cancelBookingConfirmation") ||
+                "Are you sure you want to cancel this booking? This action cannot be undone."}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center py-4">
@@ -417,10 +460,7 @@ export default function BusinessBookingsPage() {
             <Button variant="outline" onClick={() => setIsCancelModalOpen(false)}>
               {t("business.common.cancel") || "Cancel"}
             </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleCancelBooking}
-            >
+            <Button variant="destructive" onClick={handleCancelBooking}>
               {t("business.bookings.confirmCancel") || "Yes, Cancel Booking"}
             </Button>
           </DialogFooter>
@@ -452,13 +492,30 @@ export default function BusinessBookingsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredBookings.map((booking) => (
+                  {loading && (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    </div>
+                  )}
+
+                  {error && (
+                    <div className="text-center py-8 text-destructive">
+                      <p>{error}</p>
+                      <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+                        Retry
+                      </Button>
+                    </div>
+                  )}
+
+                  {bookings.map((booking) => (
                     <tr key={booking.id} className="border-b hover:bg-muted/50">
                       <td className="px-4 py-3">{booking.customer.name}</td>
-                      <td className="px-4 py-3">{booking.venue}</td>
-                      <td className="px-4 py-3">{booking.date}</td>
-                      <td className="px-4 py-3">{booking.time}</td>
-                      <td className="px-4 py-3">{booking.guests}</td>
+                      <td className="px-4 py-3">{booking.venueName[language] || booking.venueName.en}</td>
+                      <td className="px-4 py-3">{booking.startDate}</td>
+                      <td className="px-4 py-3">
+                        {booking.startTime} - {booking.endTime}
+                      </td>
+                      <td className="px-4 py-3">{booking.numberOfGuests}</td>
                       <td className="px-4 py-3">
                         <Badge className={getStatusBadgeClass(booking.status)}>
                           {booking.status === "confirmed"
@@ -470,7 +527,7 @@ export default function BusinessBookingsPage() {
                                 : t("business.bookings.cancelled") || "Cancelled"}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3">${booking.total.toFixed(2)}</td>
+                      <td className="px-4 py-3">${Number.parseFloat(booking.totalAmount).toFixed(2)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center space-x-2">
                           <Button
@@ -481,26 +538,26 @@ export default function BusinessBookingsPage() {
                           >
                             {t("business.common.view") || "View"}
                           </Button>
-                          
-                          {(booking.status === "confirmed" || booking.status === "pending") && (
+
+                          {booking.status === "pending" && (
                             <>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 px-2"
-                                onClick={() => handleEditBooking(booking)}
+                                className="h-8 px-2 text-green-600 hover:bg-green-50"
+                                onClick={() => handleApproveBooking(booking.id)}
                               >
-                                <PencilLine className="mr-1.5 h-3.5 w-3.5" />
-                                {t("business.common.edit") || "Edit"}
+                                <Check className="mr-1 h-3 w-3" />
+                                {t("business.bookings.approve") || "Approve"}
                               </Button>
-                              
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 px-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                onClick={() => openCancelDialog(booking.id)}
+                                className="h-8 px-2 text-red-600 hover:bg-red-50"
+                                onClick={() => handleDeclineBooking(booking.id)}
                               >
-                                {t("business.common.cancel") || "Cancel"}
+                                <X className="mr-1 h-3 w-3" />
+                                {t("business.bookings.decline") || "Decline"}
                               </Button>
                             </>
                           )}
@@ -645,7 +702,7 @@ export default function BusinessBookingsPage() {
                                 : t("business.bookings.cancelled") || "Cancelled"}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3">${booking.total.toFixed(2)}</td>
+                      <td className="px-4 py-3">${Number.parseFloat(booking.totalAmount).toFixed(2)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center space-x-2">
                           <Button
@@ -656,7 +713,7 @@ export default function BusinessBookingsPage() {
                           >
                             {t("business.common.view") || "View"}
                           </Button>
-                          
+
                           {(booking.status === "confirmed" || booking.status === "pending") && (
                             <>
                               <Button
@@ -668,7 +725,7 @@ export default function BusinessBookingsPage() {
                                 <PencilLine className="mr-1.5 h-3.5 w-3.5" />
                                 {t("business.common.edit") || "Edit"}
                               </Button>
-                              
+
                               <Button
                                 variant="ghost"
                                 size="sm"

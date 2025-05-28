@@ -16,18 +16,18 @@ import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
 import { Textarea } from "../../components/ui/textarea"
 import { Check, X } from "lucide-react"
-import { BookingStatus } from "../../models/booking"
+import { Booking } from "../../models/booking"
 
 interface EditBookingModalProps {
-  booking: any
+  booking: Booking
   isOpen: boolean
   onClose: () => void
-  onSave: (updatedBooking: any) => void
+  onSave: (updatedBooking: Booking) => void
 }
 
 export function EditBookingModal({ booking, isOpen, onClose, onSave }: EditBookingModalProps) {
   const { t } = useLanguage()
-  const [editedBooking, setEditedBooking] = useState<any>(null)
+  const [editedBooking, setEditedBooking] = useState<Booking | null>(null)
   
   useEffect(() => {
     if (booking) {
@@ -37,26 +37,26 @@ export function EditBookingModal({ booking, isOpen, onClose, onSave }: EditBooki
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setEditedBooking({ ...editedBooking, [name]: value })
+    if (editedBooking) {
+      setEditedBooking({ ...editedBooking, [name]: value })
+    }
   }
 
   const handleGuestsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value) || 0
-    setEditedBooking({ ...editedBooking, guests: value })
+    if (editedBooking) {
+      setEditedBooking({ ...editedBooking, numberOfGuests: value })
+    }
   }
 
   const handleSave = () => {
-    onSave(editedBooking)
-    onClose()
+    if (editedBooking) {
+      onSave(editedBooking)
+      onClose()
+    }
   }
 
   if (!editedBooking) return null
-
-  // Format dates for input field
-  const formatDateForInput = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toISOString().split('T')[0]
-  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -73,26 +73,67 @@ export function EditBookingModal({ booking, isOpen, onClose, onSave }: EditBooki
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="startDateTime">{t("dashboard.date") || "Date"}</Label>
+              <Label htmlFor="startDate">{t("dashboard.startDate") || "Start Date"}</Label>
               <Input
                 type="date"
-                id="startDateTime"
-                name="startDateTime"
-                value={formatDateForInput(editedBooking.startDateTime)}
+                id="startDate"
+                name="startDate"
+                value={editedBooking.startDate}
                 onChange={handleChange}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="guests">{t("dashboard.guests") || "Guests"}</Label>
+              <Label htmlFor="endDate">{t("dashboard.endDate") || "End Date"}</Label>
               <Input
-                type="number"
-                id="guests"
-                name="guests"
-                value={editedBooking.guests}
-                min={1}
-                onChange={handleGuestsChange}
+                type="date"
+                id="endDate"
+                name="endDate"
+                value={editedBooking.endDate}
+                onChange={handleChange}
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="startTime">{t("dashboard.startTime") || "Start Time"}</Label>
+              <Input
+                type="time"
+                id="startTime"
+                name="startTime"
+                value={editedBooking.startTime}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="endTime">{t("dashboard.endTime") || "End Time"}</Label>
+              <Input
+                type="time"
+                id="endTime"
+                name="endTime"
+                value={editedBooking.endTime}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="numberOfGuests">{t("dashboard.guests") || "Number of Guests"}</Label>
+            <Input
+              type="number"
+              id="numberOfGuests"
+              name="numberOfGuests"
+              value={editedBooking.numberOfGuests}
+              min={editedBooking.venue.capacity.min}
+              max={editedBooking.venue.capacity.max}
+              onChange={handleGuestsChange}
+            />
+            <p className="text-xs text-muted-foreground">
+              {t("dashboard.guestCapacity", {
+                min: editedBooking.venue.capacity.min,
+                max: editedBooking.venue.capacity.max
+              })}
+            </p>
           </div>
 
           <div className="space-y-2">

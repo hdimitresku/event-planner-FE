@@ -56,6 +56,19 @@ export const getVenueById = async (id: string): Promise<Venue | null> => {
   }
 };
 
+export const getVenueByOwner = async (): Promise<Venue[]> => {
+  try {
+      // if (USE_MOCK_DATA) {
+      //   return mockDataService.getVenueById(id);
+      // }
+
+    return await apiRequest<Venue[]>(`/venues/owned`);
+  } catch (error) {
+    console.error(`Error fetching owned venues:`, error);
+    return [];
+  }
+};
+
 /**
  * Create a new venue
  */
@@ -221,7 +234,7 @@ export const getSimilarVenues = async (
       `/venues/${venueId}/similar?criteria=${criteriaParam}&limit=${limit}`
     );
     console.log(test)
-    return test
+    return test;
   } catch (error) {
     console.error('Error fetching similar venues:', error);
     return { venues: [] };

@@ -16,6 +16,8 @@ import type { Venue } from "../../models/venue"
 import type { User as UserModel } from "../../models/user"
 import { format } from "date-fns"
 import { toast } from "../../components/ui/use-toast"
+import { EditBookingModal } from "../../components/dashboard/edit-booking-modal"
+import { ViewBookingModal } from "../../components/dashboard/view-booking-modal"
 
 export default function Dashboard() {
   const { t, language } = useLanguage()
@@ -45,19 +47,16 @@ export default function Dashboard() {
     setLoadingBookings(true)
     try {
       // Fetch bookings for the current user
-      const result = await bookingService.getBookings({ userId: "user1" })
-      setBookings(result.bookings)
+      const result = await bookingService.getBookings()
+      setBookings(result)
 
-      // Fetch venue details for each booking
-      const venueIds = [...new Set(result.bookings.map((booking) => booking.venueId))]
+      // Create a map of venues from the bookings
       const venueDetails: Record<string, Venue | null> = {}
-
-      await Promise.all(
-        venueIds.map(async (venueId) => {
-          const venue = await venueService.getVenueById(venueId)
-          venueDetails[venueId] = venue
-        }),
-      )
+      result.forEach((booking) => {
+        if (booking.venue) {
+          venueDetails[booking.venue.id] = booking.venue
+        }
+      })
 
       setVenues(venueDetails)
     } catch (error) {
@@ -143,7 +142,7 @@ export default function Dashboard() {
   // Filter bookings based on active tab
   const filteredBookings = bookings.filter((booking) => {
     const now = new Date()
-    const bookingDate = new Date(booking.startDateTime)
+    const bookingDate = new Date(booking.startDate)
 
     if (activeTab === "upcoming") {
       return (
@@ -177,19 +176,28 @@ export default function Dashboard() {
     setIsViewModalOpen(true)
   }
 
-  const handleSaveBooking = (updatedBooking: Booking) => {
-    // In a real app, this would call an API to update the booking
-    console.log(`Updating booking ${updatedBooking.id}`, updatedBooking)
+  const handleSaveBooking = async (updatedBooking: Booking) => {
+    try {
+      // In a real app, this would call an API to update the booking
+      console.log(`Updating booking ${updatedBooking.id}`, updatedBooking)
 
-    // Update local state
-    setBookings((prev) => prev.map((booking) => (booking.id === updatedBooking.id ? updatedBooking : booking)))
+      // Update local state
+      setBookings((prev) => prev.map((booking) => (booking.id === updatedBooking.id ? updatedBooking : booking)))
 
-    toast({
-      title: t("dashboard.bookingUpdated") || "Booking Updated",
-      description: t("dashboard.bookingUpdatedDescription") || "Your booking has been updated.",
-    })
+      toast({
+        title: t("dashboard.bookingUpdated") || "Booking Updated",
+        description: t("dashboard.bookingUpdatedDescription") || "Your booking has been updated.",
+      })
 
-    setIsEditModalOpen(false)
+      setIsEditModalOpen(false)
+    } catch (error) {
+      console.error("Error updating booking:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update booking. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -213,7 +221,7 @@ export default function Dashboard() {
                 <p className="text-muted-foreground">{t("common.loading") || "Loading..."}</p>
               </CardContent>
             </Card>
-          ) : filteredBookings.length === 0 ? (
+          ) : bookings.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center p-8 text-center">
                 <Calendar className="mb-4 h-16 w-16 text-muted-foreground/50" />
@@ -233,8 +241,8 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           ) : (
-            filteredBookings.map((booking) => {
-              const venue = venues[booking.venueId]
+            bookings.map((booking) => {
+              const venue = booking.venue
 
               return (
                 <Card key={booking.id} className="overflow-hidden">
@@ -242,41 +250,46 @@ export default function Dashboard() {
                     <CardHeader className="grid grid-cols-[1fr_auto] items-start gap-4 p-4">
                       <div>
                         <CardTitle>{venue?.name?.[language] || "Venue"}</CardTitle>
-                        <CardDescription>{formatDateTime(booking.startDateTime)}</CardDescription>
+                        <CardDescription>
+                          {formatDateTime(`${booking.startDate}T${booking.startTime}`)}
+                        </CardDescription>
                       </div>
                       <div className="flex flex-col items-end gap-2">
-                        {getStatusBadge(booking.status)}
-                        {getPaymentStatusBadge(booking.paymentStatus)}
+                        {getStatusBadge(booking.status as BookingStatus)}
                       </div>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
                       <div className="grid gap-2">
                         <div className="flex items-center text-sm text-muted-foreground">
                           <Calendar className="mr-2 h-4 w-4" />
-                          <span>{formatDateTime(booking.startDateTime)}</span>
+                          <span>{formatDateTime(`${booking.startDate}T${booking.startTime}`)}</span>
                         </div>
                         <div className="flex items-center text-sm text-muted-foreground">
                           <Clock className="mr-2 h-4 w-4" />
                           <span>
-                            {booking.duration} {t("common.hours") || "hours"}
+                            {booking.numberOfGuests} {t("common.guests") || "guests"}
                           </span>
                         </div>
                         <div className="flex items-center text-sm text-muted-foreground">
                           <MapPin className="mr-2 h-4 w-4" />
-                          <span>{venue?.location?.[language] || "Unknown location"}</span>
+                          <span>
+                            {venue?.address?.city}, {venue?.address?.country}
+                          </span>
                         </div>
                         <div className="flex items-center text-sm">
                           <CreditCard className="mr-2 h-4 w-4" />
-                          <span className="mr-2 font-medium">${booking.costs.totalAmount}</span>
-                          {getPaymentStatusBadge(booking.paymentStatus)}
+                          <span className="mr-2 font-medium">${booking.totalAmount}</span>
+                          <span className="text-xs text-muted-foreground">
+                            (Service Fee: ${booking.serviceFee})
+                          </span>
                         </div>
                       </div>
                       <div className="mt-4 flex flex-wrap items-center gap-2 justify-between">
                         <div>
-                          {booking.confirmationCode && (
+                          {booking.id && (
                             <Badge variant="outline" className="mr-2">
                               <FileText className="mr-1 h-3 w-3" />
-                              {booking.confirmationCode}
+                              {booking.id.slice(0, 8)}
                             </Badge>
                           )}
                         </div>
@@ -284,12 +297,12 @@ export default function Dashboard() {
                           <Button size="sm" onClick={() => handleViewBooking(booking)}>
                             {t("dashboard.viewDetails") || "View Details"}
                           </Button>
-                          {(booking.status === BookingStatus.PENDING || booking.status === BookingStatus.CONFIRMED) && (
+                          {(booking.status === "pending" || booking.status === "confirmed") && (
                             <Button size="sm" variant="outline" onClick={() => handleEditBooking(booking)}>
                               {t("dashboard.modifyBooking") || "Modify Booking"}
                             </Button>
                           )}
-                          {booking.status === BookingStatus.PENDING && (
+                          {booking.status === "pending" && (
                             <Button size="sm" variant="outline" onClick={() => openCancelDialog(booking.id)}>
                               {t("dashboard.cancel") || "Cancel"}
                             </Button>
@@ -307,7 +320,24 @@ export default function Dashboard() {
         {/* Other tab contents remain the same */}
       </Tabs>
 
-      {/* Dialogs remain the same */}
+      {/* Edit Booking Modal */}
+      {selectedBooking && (
+        <EditBookingModal
+          booking={selectedBooking}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleSaveBooking}
+        />
+      )}
+
+      {/* View Booking Modal */}
+      {selectedBooking && (
+        <ViewBookingModal
+          booking={selectedBooking}
+          isOpen={isViewModalOpen}
+          onClose={() => setIsViewModalOpen(false)}
+        />
+      )}
     </div>
   )
 }

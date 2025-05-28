@@ -11,6 +11,18 @@ import * as mockDataService from '../data/mockDataService';
 // Flag to determine if we should use mock data (during development)
 const USE_MOCK_DATA = true;
 
+interface BookingRequestData {
+  venueId: string;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+  numberOfGuests: number;
+  serviceOptionIds: string[];
+  specialRequests?: string;
+  metadata?: Record<string, any>;
+}
+
 /**
  * Get all bookings with optional filtering
  */
@@ -24,28 +36,14 @@ export const getBookings = async (filters?: {
   endDate?: string;
   page?: number;
   limit?: number;
-}): Promise<{
-  bookings: Booking[];
-  total: number;
-  page: number;
-  limit: number;
-}> => {
+}): Promise<Booking[]> => {
   try {
-    if (USE_MOCK_DATA) {
-      return mockDataService.getBookings(filters);
-    }
-
     const queryString = buildQueryString(filters);
     const endpoint = `/bookings${queryString}`;
-    return await apiRequest<{
-      bookings: Booking[];
-      total: number;
-      page: number;
-      limit: number;
-    }>(endpoint);
+    return await apiRequest<Booking[]>(endpoint, 'GET');
   } catch (error) {
     console.error('Error fetching bookings:', error);
-    return { bookings: [], total: 0, page: 1, limit: 10 };
+    return [];
   }
 };
 
@@ -68,11 +66,11 @@ export const getBookingById = async (id: string): Promise<Booking | null> => {
 /**
  * Create a new booking
  */
-export const createBooking = async (bookingData: BookingCreateData): Promise<{ success: boolean; bookingId?: string; error?: string }> => {
+export const createBooking = async (bookingData: BookingRequestData): Promise<{ success: boolean; bookingId?: string; error?: string }> => {
   try {
-    if (USE_MOCK_DATA) {
-      return mockDataService.createBooking(bookingData);
-    }
+    // if (USE_MOCK_DATA) {
+    //   return mockDataService.createBooking(bookingData);
+    // }
 
     const response = await apiRequest<{ id: string }>('/bookings', 'POST', bookingData);
     return { success: true, bookingId: response.id };

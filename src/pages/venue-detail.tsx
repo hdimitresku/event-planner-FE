@@ -10,7 +10,7 @@ import { Calendar } from "../components/ui/calendar"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../components/ui/carousel"
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar"
 import { useLanguage } from "../context/language-context"
-import { cn } from "../lib/utils"
+import { cn } from "../components/ui/utils"
 import {
   MapPin,
   Star,
@@ -44,7 +44,7 @@ import {
   RefreshCw,
 } from "lucide-react"
 import { Input } from "../components/ui/input"
-import { format, parseISO } from "date-fns"
+import { format, isAfter, isBefore, parseISO, parse, set } from "date-fns"
 import { addHours } from "date-fns"
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover"
 import { useFavorites } from "../context/favorites-context"
@@ -126,6 +126,141 @@ export default function VenueDetailPage() {
   const [similarityCriteria, setSimilarityCriteria] = useState<string[]>(["type", "location"])
   const [refreshingSimilarVenues, setRefreshingSimilarVenues] = useState(false)
 
+  // Add validation state
+  const [validationErrors, setValidationErrors] = useState<{
+    startDate?: string
+    endDate?: string
+    startTime?: string
+    endTime?: string
+    guests?: string
+  }>({})
+
+  // Helper function to check if date is available
+  const isDateAvailable = (date: Date) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return (
+      date >= today &&
+      !blockedDates.some(
+        (blockedDate) =>
+          blockedDate.getDate() === date.getDate() &&
+          blockedDate.getMonth() === date.getMonth() &&
+          blockedDate.getFullYear() === date.getFullYear(),
+      )
+    )
+  }
+
+  // Helper function to check if time is within operating hours
+
+// Updated function to check if a given date/time is within operating hours
+const isTimeWithinOperatingHours = (date: Date) => {
+  if (!venue?.dayAvailability) return true;
+
+  // Get the day name in lowercase (e.g., "monday")
+  const dayName = date.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+  const operatingHours = venue.dayAvailability[dayName];
+  if (!operatingHours || operatingHours === "Closed") return false;
+
+  // Parse the operating hours (e.g., "9:00 AM - 10:00 PM")
+  const [openTimeStr, closeTimeStr] = operatingHours.split(" - ");
+
+  // Parse opening and closing times using date-fns
+  const baseDate = new Date(); // Use a dummy date for parsing
+  const openTime = parse(openTimeStr, "h:mm a", baseDate);    
+  let closeTime = parse(closeTimeStr, "h:mm a", baseDate);
+
+  // Handle cases where closing time is past midnight (e.g., "12:00 AM")
+  if (closeTimeStr === "12:00 AM") {
+    closeTime = set(closeTime, { hours: 0, minutes: 0 }); // Set to 00:00 of the same day
+    closeTime.setDate(closeTime.getDate() + 1); // Move to the next day
+  }
+
+  // Extract the hours and minutes from the input date
+  const selectedTime = set(baseDate, {
+    hours: date.getHours(),
+    minutes: date.getMinutes(),
+    seconds: 0,
+    milliseconds: 0,
+  });
+
+  // Compare the times
+  // If closing time is on the next day, adjust the comparison
+  if (isBefore(closeTime, openTime)) {
+    // Closing time is on the next day (e.g., 12:00 AM is after 9:00 AM)
+    return (
+      (isAfter(selectedTime, openTime) || selectedTime.getTime() === openTime.getTime()) ||
+      (isBefore(selectedTime, closeTime) || selectedTime.getTime() === closeTime.getTime())
+    );
+  } else {
+    // Same-day comparison
+    return (
+      (isAfter(selectedTime, openTime) || selectedTime.getTime() === openTime.getTime()) &&
+      (isBefore(selectedTime, closeTime) || selectedTime.getTime() === closeTime.getTime())
+    );
+  }
+};
+
+  // Validation function
+  const validateBookingInputs = () => {
+    const errors: typeof validationErrors = {}
+
+    // Validate start date
+    if (!selectedDate) {
+      errors.startDate = t("venueDetail.validation.startDateRequired")
+    } else if (!isDateAvailable(selectedDate)) {
+      errors.startDate = t("venueDetail.validation.dateNotAvailable")
+    } else if (!isTimeWithinOperatingHours(selectedDate)) {
+      errors.startTime = t("venueDetail.validation.timeOutsideOperatingHours")
+    }
+
+    // Validate end date
+    if (!endDate) {
+      errors.endDate = t("venueDetail.validation.endDateRequired")
+    } else if (!isDateAvailable(endDate)) {
+      errors.endDate = t("venueDetail.validation.dateNotAvailable")
+    } else if (!isTimeWithinOperatingHours(endDate)) {
+      errors.endTime = t("venueDetail.validation.timeOutsideOperatingHours")
+    } else if (selectedDate && endDate <= selectedDate) {
+      errors.endDate = t("venueDetail.validation.endDateAfterStart")
+    }
+
+    // Validate guests
+    const guestCount = guests || venue?.capacity.min || 0
+    if (venue) {
+      if (guestCount < venue.capacity.min) {
+        errors.guests = t("venueDetail.validation.guestsMinimum", { min: venue.capacity.min })
+      } else if (guestCount > venue.capacity.max) {
+        errors.guests = t("venueDetail.validation.guestsMaximum", { max: venue.capacity.max })
+      }
+    }
+
+    setValidationErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  // Update date selection handlers
+  const handleStartDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date)
+    if (date) {
+      // Clear validation errors for start date
+      setValidationErrors((prev) => ({ ...prev, startDate: undefined, startTime: undefined }))
+    }
+  }
+
+  const handleEndDateSelect = (date: Date | undefined) => {
+    setEndDate(date)
+    if (date) {
+      // Clear validation errors for end date
+      setValidationErrors((prev) => ({ ...prev, endDate: undefined, endTime: undefined }))
+    }
+  }
+
+  const handleGuestsChange = (value: number) => {
+    setGuests(value)
+    // Clear validation errors for guests
+    setValidationErrors((prev) => ({ ...prev, guests: undefined }))
+  }
+
   // Define available similarity criteria
   const availableCriteria: SimilarityCriterion[] = [
     {
@@ -165,6 +300,7 @@ export default function VenueDetailPage() {
       setLoading(true)
       try {
         if (id) {
+          console.log(id)
           const venueData = await venueService.getVenueById(id)
           const result = await serviceService.getServiceTypesByVenueType(venueData?.type)
           setAvailableServiceTypes(result)
@@ -984,11 +1120,18 @@ export default function VenueDetailPage() {
                 <div className="space-y-4 pt-4 border-t">
                   <h3 className="font-medium">{t("venueDetail.bookingDetails")}</h3>
 
+                  {/* Start Date/Time */}
                   <div className="space-y-3">
                     <label className="text-sm font-medium">{t("venueDetail.startDateTime")}</label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal border-dashed">
+                        <Button 
+                          variant="outline" 
+                          className={cn(
+                            "w-full justify-start text-left font-normal border-dashed",
+                            validationErrors.startDate || validationErrors.startTime ? "border-red-500 bg-red-50 dark:bg-red-950/20" : ""
+                          )}
+                        >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {selectedDate ? (
                             format(selectedDate, "PPP p")
@@ -998,7 +1141,21 @@ export default function VenueDetailPage() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} initialFocus />
+                        <Calendar 
+                          mode="single" 
+                          selected={selectedDate} 
+                          onSelect={handleStartDateSelect}
+                          initialFocus
+                          modifiers={{
+                            available: isDateAvailable,
+                            unavailable: (date) => !isDateAvailable(date),
+                          }}
+                          modifiersClassNames={{
+                            available: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50",
+                            unavailable: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
+                          }}
+                          disabled={(date) => !isDateAvailable(date)}
+                        />
                         <div className="p-3 border-t border-border">
                           <div className="space-y-2">
                             <label className="text-sm font-medium">{t("venueDetail.time")}</label>
@@ -1006,32 +1163,67 @@ export default function VenueDetailPage() {
                               type="time"
                               value={selectedDate ? format(selectedDate, "HH:mm") : "10:00"}
                               onChange={(e) => {
-                                if (e.target.value) {
+                                if (e.target.value && selectedDate) {
                                   const [hours, minutes] = e.target.value.split(":").map(Number)
-                                  const newDate = new Date(selectedDate || new Date())
+                                  const newDate = new Date(selectedDate)
                                   newDate.setHours(hours, minutes)
-                                  setSelectedDate(newDate)
+                                  handleStartDateSelect(newDate)
                                 }
                               }}
-                              className="w-full"
+                              className={cn(
+                                "w-full",
+                                validationErrors.startTime ? "border-red-500" : ""
+                              )}
                             />
+                            {venue?.dayAvailability && (
+                              <p className="text-xs text-muted-foreground">
+                                {t("venueDetail.operatingHours")}: {venue.dayAvailability[selectedDate?.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()] || 'Closed'}
+                              </p>
+                            )}
                           </div>
                         </div>
                       </PopoverContent>
                     </Popover>
+                    {(validationErrors.startDate || validationErrors.startTime) && (
+                      <div className="flex items-center text-red-600 dark:text-red-400 text-sm">
+                        <Info className="h-4 w-4 mr-1" />
+                        <span>{validationErrors.startDate || validationErrors.startTime}</span>
+                      </div>
+                    )}
                   </div>
 
+                  {/* End Date/Time */}
                   <div className="space-y-3">
                     <label className="text-sm font-medium">{t("venueDetail.endDateTime")}</label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal border-dashed">
+                        <Button 
+                          variant="outline" 
+                          className={cn(
+                            "w-full justify-start text-left font-normal border-dashed",
+                            validationErrors.endDate || validationErrors.endTime ? "border-red-500 bg-red-50 dark:bg-red-950/20" : ""
+                          )}
+                        >
                           <Clock className="mr-2 h-4 w-4" />
                           {endDate ? format(endDate, "PPP p") : <span>{t("venueDetail.pickEndDateTime")}</span>}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
+                        <Calendar 
+                          mode="single" 
+                          selected={endDate} 
+                          onSelect={handleEndDateSelect}
+                          initialFocus
+                          modifiers={{
+                            available: isDateAvailable,
+                            unavailable: (date) => !isDateAvailable(date),
+                          }}
+                          modifiersClassNames={{
+                            available: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50",
+                            unavailable: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
+                          }}
+                          disabled={(date) => !isDateAvailable(date)}
+                        />
                         <div className="p-3 border-t border-border">
                           <div className="space-y-2">
                             <label className="text-sm font-medium">{t("venueDetail.time")}</label>
@@ -1039,21 +1231,36 @@ export default function VenueDetailPage() {
                               type="time"
                               value={endDate ? format(endDate, "HH:mm") : "13:00"}
                               onChange={(e) => {
-                                if (e.target.value) {
+                                if (e.target.value && endDate) {
                                   const [hours, minutes] = e.target.value.split(":").map(Number)
-                                  const newDate = new Date(endDate || new Date())
+                                  const newDate = new Date(endDate)
                                   newDate.setHours(hours, minutes)
-                                  setEndDate(newDate)
+                                  handleEndDateSelect(newDate)
                                 }
                               }}
-                              className="w-full"
+                              className={cn(
+                                "w-full",
+                                validationErrors.endTime ? "border-red-500" : ""
+                              )}
                             />
+                            {venue?.dayAvailability && (
+                              <p className="text-xs text-muted-foreground">
+                                {t("venueDetail.operatingHours")}: {venue.dayAvailability[endDate?.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()] || 'Closed'}
+                              </p>
+                            )}
                           </div>
                         </div>
                       </PopoverContent>
                     </Popover>
+                    {(validationErrors.endDate || validationErrors.endTime) && (
+                      <div className="flex items-center text-red-600 dark:text-red-400 text-sm">
+                        <Info className="h-4 w-4 mr-1" />
+                        <span>{validationErrors.endDate || validationErrors.endTime}</span>
+                      </div>
+                    )}
                   </div>
 
+                  {/* Guests */}
                   <div className="space-y-3">
                     <label className="text-sm font-medium">{t("venueDetail.guests")}</label>
                     <div className="flex items-center border rounded-md overflow-hidden">
@@ -1063,13 +1270,22 @@ export default function VenueDetailPage() {
                         min={venue.capacity.min}
                         max={venue.capacity.max}
                         value={guests || venue.capacity.min}
-                        onChange={(e) => setGuests(Number(e.target.value))}
-                        className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        onChange={(e) => handleGuestsChange(Number(e.target.value))}
+                        className={cn(
+                          "border-0 focus-visible:ring-0 focus-visible:ring-offset-0",
+                          validationErrors.guests ? "bg-red-50 dark:bg-red-950/20" : ""
+                        )}
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {t("venueBook.guestCapacity", { min: venue.capacity.min, max: venue.capacity.max })}
                     </p>
+                    {validationErrors.guests && (
+                      <div className="flex items-center text-red-600 dark:text-red-400 text-sm">
+                        <Info className="h-4 w-4 mr-1" />
+                        <span>{validationErrors.guests}</span>
+                      </div>
+                    )}
                   </div>
 
                   {selectedDate && endDate && (
@@ -1091,24 +1307,37 @@ export default function VenueDetailPage() {
                   )}
                 </div>
 
-                <Link
-                  to={`/venues/${venue.id}/book`}
-                  state={{
-                    startDate: selectedDate,
-                    endDate: endDate,
-                    guests: guests || venue.capacity.min,
-                    eventType: eventType,
-                    selectedServices: selectedServices,
-                    duration: calculateDuration(),
+                <Button
+                  className="w-full cta-button mt-4 bg-sky-500 hover:bg-sky-600 hover:translate-y-[-2px] transition-all duration-200 shadow-md hover:shadow-lg"
+                  disabled={!selectedDate || !endDate || Object.keys(validationErrors).length > 0}
+                  onClick={(e) => {
+                    if (!validateBookingInputs()) {
+                      e.preventDefault()
+                      return
+                    }
+                    // Navigation will happen via Link wrapper
                   }}
+                  asChild
                 >
-                  <Button
-                    className="w-full cta-button mt-4 bg-sky-500 hover:bg-sky-600 hover:translate-y-[-2px] transition-all duration-200 shadow-md hover:shadow-lg"
-                    disabled={!selectedDate || !endDate}
+                  <Link
+                    to={`/venues/${venue.id}/book`}
+                    state={{
+                      startDate: selectedDate,
+                      endDate: endDate,
+                      guests: guests || venue.capacity.min,
+                      eventType: eventType,
+                      selectedServices: selectedServices,
+                      duration: calculateDuration(),
+                    }}
+                    onClick={(e) => {
+                      if (!validateBookingInputs()) {
+                        e.preventDefault()
+                      }
+                    }}
                   >
                     {t("venueDetail.bookNow")}
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
 
                 <div className="flex items-center justify-center text-sm text-muted-foreground mt-4">
                   <Info className="h-4 w-4 mr-2" />
