@@ -101,7 +101,7 @@ export default function ServicesManagementPage() {
       const result = await serviceService.getServices()
       // For each service summary, get the full service details
       const serviceDetails = await Promise.all(
-        result.services.map(async (service) => {
+        result.map(async (service) => {
           const details = await serviceService.getServiceById(service.id)
           return details
         })
@@ -132,12 +132,12 @@ export default function ServicesManagementPage() {
        selectedPriceTypes.includes(service.options[0].price.type.toLowerCase()))
 
     const matchesStatus = selectedStatuses.length === 0 || 
-      selectedStatuses.includes(service.active ? "active" : "inactive")
+      selectedStatuses.includes(service.isActive ? "active" : "inactive")
 
     const matchesTab =
       activeTab === "all" ||
-      (activeTab === "active" && service.active) ||
-      (activeTab === "inactive" && !service.active) ||
+      (activeTab === "active" && service.isActive) || 
+      (activeTab === "inactive" && !service.isActive) ||
       (activeTab === "featured" && service.featured) ||
       (activeTab === "popular" && service.options.some(option => option.popular))
 
@@ -215,7 +215,7 @@ export default function ServicesManagementPage() {
         popular: option.popular || false
       })),
       featured: service.featured || false,
-      active: service.active
+      active: service.isActive
     })
     setIsEditModalOpen(true)
   }
@@ -377,7 +377,7 @@ export default function ServicesManagementPage() {
                 <div>
                   <h3 className="font-medium mb-2">{t("business.services.serviceType")}</h3>
                   <Badge>
-                    {getServiceTypeIcon(selectedService.type)} {t(`services.types.${selectedService.type.toLowerCase()}`) || selectedService.type}
+                    {getServiceTypeIcon(selectedService.type)} {t(`business.serviceNew.${selectedService.type.toLowerCase()}`) || selectedService.type}
                   </Badge>
                 </div>
 
@@ -469,7 +469,7 @@ export default function ServicesManagementPage() {
                 <SelectContent>
                   {Object.values(ServiceType).map((type) => (
                     <SelectItem key={type} value={type}>
-                      {t(`services.types.${type.toLowerCase()}`) || type.replace('_', ' ')}
+                      {t(`business.serviceNew.${type.toLowerCase()}`) || type.replace('_', ' ')}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -491,7 +491,7 @@ export default function ServicesManagementPage() {
                 checked={editForm.active}
                 onCheckedChange={(checked) => setEditForm({ ...editForm, active: checked === true })}
               />
-              <Label htmlFor="active">{t("business.common.active")}</Label>
+              <Label htmlFor="active">{t("business.venues.active")}</Label>
             </div>
 
             <div className="mt-4">
@@ -773,9 +773,9 @@ export default function ServicesManagementPage() {
                           className="object-cover w-full h-full"
                         />
                         <Badge
-                          className={`absolute top-2 right-2 ${service.active ? "bg-emerald-500/90 dark:bg-emerald-600/90" : "bg-muted-foreground hover:bg-muted-foreground/80"}`}
+                          className={`absolute top-2 right-2 ${service.isActive ? "bg-emerald-500/90 dark:bg-emerald-600/90" : "bg-muted-foreground hover:bg-muted-foreground/80"}`}
                         >
-                          {service.active ? t("business.common.active") || "Active" : t("business.common.inactive") || "Inactive"}
+                          {service.isActive ? t("business.venues.active") || "Active" : t("business.venues.inactive") || "Inactive"}
                         </Badge>
                         {service.featured && (
                           <Badge
@@ -867,9 +867,9 @@ export default function ServicesManagementPage() {
                           className="object-cover w-full h-full"
                         />
                         <Badge
-                          className={`absolute top-2 right-2 ${service.active ? "bg-emerald-500/90 dark:bg-emerald-600/90" : "bg-muted-foreground hover:bg-muted-foreground/80"}`}
+                          className={`absolute top-2 right-2 ${service.isActive ? "bg-emerald-500/90 dark:bg-emerald-600/90" : "bg-muted-foreground hover:bg-muted-foreground/80"}`}
                         >
-                          {service.active ? t("business.common.active") || "Active" : t("business.common.inactive") || "Inactive"}
+                          {service.isActive ? t("business.venues.active") || "Active" : t("business.venues.inactive") || "Inactive"}
                         </Badge>
                       </div>
                       <CardHeader className="p-4">
@@ -954,9 +954,9 @@ export default function ServicesManagementPage() {
                           className="object-cover w-full h-full"
                         />
                         <Badge
-                          className={`absolute top-2 right-2 ${service.active ? "bg-emerald-500/90 dark:bg-emerald-600/90" : "bg-muted-foreground hover:bg-muted-foreground/80"}`}
+                          className={`absolute top-2 right-2 ${service.isActive ? "bg-emerald-500/90 dark:bg-emerald-600/90" : "bg-muted-foreground hover:bg-muted-foreground/80"}`}
                         >
-                          {service.active ? t("business.common.active") || "Active" : t("business.common.inactive") || "Inactive"}
+                          {service.isActive ? t("business.venues.active") || "Active" : t("business.venues.inactive") || "Inactive"}
                         </Badge>
                       </div>
                       <CardHeader className="p-4">

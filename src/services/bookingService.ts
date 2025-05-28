@@ -63,6 +63,19 @@ export const getBookingById = async (id: string): Promise<Booking | null> => {
   }
 };
 
+export const getServiceBookings = async (): Promise<Booking | null> => {
+  try {
+    // if (USE_MOCK_DATA) {
+    //   return mockDataService.getServiceBookings();
+    // }
+
+    return await apiRequest<Booking>(`/bookings/services`);
+  } catch (error) {
+    console.error(`Error fetching service bookings:`, error);
+    return null;
+  }
+};
+
 /**
  * Create a new booking
  */
@@ -82,16 +95,16 @@ export const createBooking = async (bookingData: BookingRequestData): Promise<{ 
 /**
  * Update booking status
  */
-export const updateBookingStatus = async (
+export const updateBookingVenueStatus = async (
   id: string,
   status: BookingStatus
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    if (USE_MOCK_DATA) {
-      return mockDataService.updateBookingStatus(id, status);
-    }
+    // if (USE_MOCK_DATA) {
+    //   return mockDataService.updateBookingStatus(id, status);
+    // }
 
-    await apiRequest<Booking>(`/bookings/${id}/status`, 'PATCH', { status });
+    await apiRequest<Booking>(`/bookings/${id}/venue-status`, 'PATCH', { status });
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to update booking status' };

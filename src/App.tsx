@@ -35,6 +35,7 @@ import ProfilePage from "./pages/dashboard/profile"
 import FavoritesPage from "./pages/dashboard/favorites"
 import DashboardMessagesPage from "./pages/dashboard/messages"
 import PaymentMethodsPage from "./pages/dashboard/payment-methods"
+import ServiceBookingsPage from "./pages/business/service-bookings"
 
 function App() {
   return (
@@ -116,10 +117,18 @@ function App() {
                       }
                     />
                     <Route
-                      path="/business/bookings"
+                      path="/business/venue-bookings"
                       element={
                         <ProtectedRoute requiredRole="host">
                           <BusinessBookingsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/business/service-bookings"
+                      element={
+                        <ProtectedRoute requiredRole="host">
+                          <ServiceBookingsPage />
                         </ProtectedRoute>
                       }
                     />
