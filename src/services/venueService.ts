@@ -4,12 +4,10 @@
  * This service handles all venue-related API calls.
  */
 
-import { apiRequest, buildQueryString } from './apiService';
+import { apiRequest, buildQueryString, USE_MOCK_DATA } from './apiService';
 import { Venue, VenueSummary, VenueCreateData, VenueType, VenueAmenity } from '../models/venue';
 import { PricingType } from '../models/common';
-
-// Flag to determine if we should use mock data (during development)
-const USE_MOCK_DATA = false;
+import { MockDataService } from './mockDataService';
 
 /**
  * Get all venues with optional filtering
@@ -27,40 +25,43 @@ export const getVenues = async (filters?: {
   limit?: number;
 }): Promise<VenueSummary[]> => {
   try {
-    // if (USE_MOCK_DATA) {
-    //   return mockDataService.getVenues(filters);
-    // }
+    if (USE_MOCK_DATA) {
+      return await MockDataService.getVenues(filters);
+    }
 
     const queryString = buildQueryString(filters);
-    const endpoint = `/venues`;
+    const endpoint = `/venues${queryString}`;
     return await apiRequest<VenueSummary[]>(endpoint);
   } catch (error) {
     console.error('Error fetching venues:', error);
-    return [];
+    // Fallback to mock data if API fails
+    return await MockDataService.getVenues(filters);
   }
 };
 
 /**
  * Get venue details by ID
  */
-export const getVenueById = async (id: string): Promise<Venue | null> => {
+export const getVenueById = async (id: string): Promise<VenueSummary | null> => {
   try {
-      // if (USE_MOCK_DATA) {
-      //   return mockDataService.getVenueById(id);
-      // }
+    if (USE_MOCK_DATA) {
+      return await MockDataService.getVenueById(id);
+    }
 
-    return await apiRequest<Venue>(`/venues/${id}`);
+    return await apiRequest<VenueSummary>(`/venues/${id}`);
   } catch (error) {
     console.error(`Error fetching venue ${id}:`, error);
-    return null;
+    // Fallback to mock data if API fails
+    return await MockDataService.getVenueById(id);
   }
 };
 
 export const getVenueByOwner = async (): Promise<Venue[]> => {
   try {
-      // if (USE_MOCK_DATA) {
-      //   return mockDataService.getVenueById(id);
-      // }
+    if (USE_MOCK_DATA) {
+      // Return empty array for mock data since we don't have owner functionality in demo
+      return [];
+    }
 
     return await apiRequest<Venue[]>(`/venues/owned`);
   } catch (error) {
@@ -74,9 +75,9 @@ export const getVenueByOwner = async (): Promise<Venue[]> => {
  */
 export const createVenue = async (venueData: VenueCreateData): Promise<{ success: boolean; venueId?: string; error?: string }> => {
   try {
-    // if (USE_MOCK_DATA) {
-    //   return mockDataService.createVenue(venueData);
-    // }
+    if (USE_MOCK_DATA) {
+      return await MockDataService.createVenue(venueData);
+    }
 
     const response = await apiRequest<{ id: string }>('/venues', 'POST', venueData);
     return { success: true, venueId: response.id };
@@ -93,9 +94,9 @@ export const updateVenue = async (
   venueData: Partial<Venue>
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    // if (USE_MOCK_DATA) {
-    //   return mockDataService.updateVenue(id, venueData);
-    // }
+    if (USE_MOCK_DATA) {
+      return await MockDataService.updateVenue(id, venueData);
+    }
 
     await apiRequest<Venue>(`/venues/${id}`, 'PUT', venueData);
     return { success: true };
@@ -109,9 +110,9 @@ export const updateVenue = async (
  */
 export const deleteVenue = async (id: string): Promise<{ success: boolean; error?: string }> => {
   try {
-    // if (USE_MOCK_DATA) {
-    //   return mockDataService.deleteVenue(id);
-    // }
+    if (USE_MOCK_DATA) {
+      return await MockDataService.deleteVenue(id);
+    }
 
     await apiRequest<void>(`/venues/${id}`, 'DELETE');
     return { success: true };
@@ -173,13 +174,13 @@ export const getSimilarVenues = async (
 ): Promise<{ venues: Venue[] }> => {
   try {
     if (USE_MOCK_DATA) {
-      const { venues } = await mockDataService.getVenues();
+      const venues = await MockDataService.getVenues();
       const currentVenue = venues.find(v => v.id === venueId);
       if (!currentVenue) throw new Error('Venue not found');
 
       let filteredVenues = venues.filter(v => v.id !== venueId);
 
-      const similarVenues = filteredVenues.map((venue: Venue, index: number) => {
+      const similarVenues = filteredVenues.map((venue: VenueSummary, index: number) => {
         const matchCriteria = {
           venueType: criteria.includes('type') && venue.type === currentVenue.type,
           location:
@@ -225,7 +226,7 @@ export const getSimilarVenues = async (
       return {
         venues: similarVenues
           .sort((a, b) => b.similarityScore - a.similarityScore)
-          .slice(0, limit),
+          .slice(0, limit) as Venue[],
       };
     }
 
