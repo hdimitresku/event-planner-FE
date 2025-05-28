@@ -7,16 +7,19 @@ export function SiteFooter() {
   const { t } = useLanguage()
 
   return (
-    <footer className="bg-background border-t">
-      <div className="container px-4 md:px-6 py-8 md:py-12">
+    <footer className="bg-card border-t border-border">
+      <div className="container px-4 md:px-6 py-12 md:py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          {/* About */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">{t("footer.about") || "About"}</h3>
-            <ul className="space-y-3">
+            <h3 className="text-lg font-semibold mb-6 text-card-foreground">
+              {t("footer.about") || "About"}
+            </h3>
+            <ul className="space-y-4">
               <li>
                 <Link
                   to="/about"
-                  className="text-muted-foreground hover:text-foreground transition-colors hover-underline"
+                  className="text-muted-foreground hover:text-primary transition-colors duration-200 nav-link"
                 >
                   {t("footer.aboutUs") || "About Us"}
                 </Link>
@@ -24,7 +27,7 @@ export function SiteFooter() {
               <li>
                 <Link
                   to="/careers"
-                  className="text-muted-foreground hover:text-foreground transition-colors hover-underline"
+                  className="text-muted-foreground hover:text-primary transition-colors duration-200 nav-link"
                 >
                   {t("footer.careers") || "Careers"}
                 </Link>
@@ -32,7 +35,7 @@ export function SiteFooter() {
               <li>
                 <Link
                   to="/press"
-                  className="text-muted-foreground hover:text-foreground transition-colors hover-underline"
+                  className="text-muted-foreground hover:text-primary transition-colors duration-200 nav-link"
                 >
                   {t("footer.press") || "Press"}
                 </Link>
@@ -40,20 +43,24 @@ export function SiteFooter() {
               <li>
                 <Link
                   to="/blog"
-                  className="text-muted-foreground hover:text-foreground transition-colors hover-underline"
+                  className="text-muted-foreground hover:text-primary transition-colors duration-200 nav-link"
                 >
                   {t("footer.blog") || "Blog"}
                 </Link>
               </li>
             </ul>
           </div>
+
+          {/* Support */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">{t("footer.support") || "Support"}</h3>
-            <ul className="space-y-3">
+            <h3 className="text-lg font-semibold mb-6 text-card-foreground">
+              {t("footer.support") || "Support"}
+            </h3>
+            <ul className="space-y-4">
               <li>
                 <Link
                   to="/help"
-                  className="text-muted-foreground hover:text-foreground transition-colors hover-underline"
+                  className="text-muted-foreground hover:text-primary transition-colors duration-200 nav-link"
                 >
                   {t("footer.helpCenter") || "Help Center"}
                 </Link>
@@ -61,7 +68,7 @@ export function SiteFooter() {
               <li>
                 <Link
                   to="/safety"
-                  className="text-muted-foreground hover:text-foreground transition-colors hover-underline"
+                  className="text-muted-foreground hover:text-primary transition-colors duration-200 nav-link"
                 >
                   {t("footer.safety") || "Safety"}
                 </Link>
@@ -69,7 +76,7 @@ export function SiteFooter() {
               <li>
                 <Link
                   to="/cancellation"
-                  className="text-muted-foreground hover:text-foreground transition-colors hover-underline"
+                  className="text-muted-foreground hover:text-primary transition-colors duration-200 nav-link"
                 >
                   {t("footer.cancellation") || "Cancellation Options"}
                 </Link>
@@ -77,20 +84,24 @@ export function SiteFooter() {
               <li>
                 <Link
                   to="/covid"
-                  className="text-muted-foreground hover:text-foreground transition-colors hover-underline"
+                  className="text-muted-foreground hover:text-primary transition-colors duration-200 nav-link"
                 >
                   {t("footer.covid") || "COVID-19 Resources"}
                 </Link>
               </li>
             </ul>
           </div>
+
+          {/* Hosting */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">{t("footer.hosting") || "Hosting"}</h3>
-            <ul className="space-y-3">
+            <h3 className="text-lg font-semibold mb-6 text-card-foreground">
+              {t("footer.hosting") || "Hosting"}
+            </h3>
+            <ul className="space-y-4">
               <li>
                 <Link
                   to="/host"
-                  className="text-muted-foreground hover:text-foreground transition-colors hover-underline"
+                  className="text-muted-foreground hover:text-primary transition-colors duration-200 nav-link"
                 >
                   {t("footer.hostVenue") || "Host Your Venue"}
                 </Link>
@@ -98,7 +109,7 @@ export function SiteFooter() {
               <li>
                 <Link
                   to="/responsible-hosting"
-                  className="text-muted-foreground hover:text-foreground transition-colors hover-underline"
+                  className="text-muted-foreground hover:text-primary transition-colors duration-200 nav-link"
                 >
                   {t("footer.responsibleHosting") || "Responsible Hosting"}
                 </Link>
@@ -106,7 +117,7 @@ export function SiteFooter() {
               <li>
                 <Link
                   to="/experiences"
-                  className="text-muted-foreground hover:text-foreground transition-colors hover-underline"
+                  className="text-muted-foreground hover:text-primary transition-colors duration-200 nav-link"
                 >
                   {t("footer.experiences") || "Experiences"}
                 </Link>
@@ -114,20 +125,24 @@ export function SiteFooter() {
               <li>
                 <Link
                   to="/resources"
-                  className="text-muted-foreground hover:text-foreground transition-colors hover-underline"
+                  className="text-muted-foreground hover:text-primary transition-colors duration-200 nav-link"
                 >
                   {t("footer.resources") || "Resources"}
                 </Link>
               </li>
             </ul>
           </div>
+
+          {/* Legal */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">{t("footer.legal") || "Legal"}</h3>
-            <ul className="space-y-3">
+            <h3 className="text-lg font-semibold mb-6 text-card-foreground">
+              {t("footer.legal") || "Legal"}
+            </h3>
+            <ul className="space-y-4">
               <li>
                 <Link
                   to="/terms"
-                  className="text-muted-foreground hover:text-foreground transition-colors hover-underline"
+                  className="text-muted-foreground hover:text-primary transition-colors duration-200 nav-link"
                 >
                   {t("footer.terms") || "Terms of Service"}
                 </Link>
@@ -135,7 +150,7 @@ export function SiteFooter() {
               <li>
                 <Link
                   to="/privacy"
-                  className="text-muted-foreground hover:text-foreground transition-colors hover-underline"
+                  className="text-muted-foreground hover:text-primary transition-colors duration-200 nav-link"
                 >
                   {t("footer.privacy") || "Privacy Policy"}
                 </Link>
@@ -143,7 +158,7 @@ export function SiteFooter() {
               <li>
                 <Link
                   to="/cookie"
-                  className="text-muted-foreground hover:text-foreground transition-colors hover-underline"
+                  className="text-muted-foreground hover:text-primary transition-colors duration-200 nav-link"
                 >
                   {t("footer.cookie") || "Cookie Policy"}
                 </Link>
@@ -151,8 +166,10 @@ export function SiteFooter() {
             </ul>
           </div>
         </div>
-        <div className="border-t mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <div className="flex items-center gap-2 font-bold text-xl mb-4 md:mb-0">
+
+        {/* Footer Bottom */}
+        <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <div className="flex items-center gap-2 font-bold text-2xl mb-4 md:mb-0">
             <span className="text-primary">Venue</span>
             <span className="text-secondary">Space</span>
           </div>
