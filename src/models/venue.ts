@@ -1,5 +1,4 @@
-import type { Address, BaseEntity, DayAvailability, MultilingualText, Price, Rating } from "./common"
-import type { User } from "./user"
+import type { Address, BaseEntity, MultilingualText, Price, Rating, Review, MediaItem, OperatingHours, Capacity } from "./common"
 
 /**
  * Venue type/category
@@ -26,13 +25,13 @@ export enum VenueAmenity {
   WIFI = "wifi",
   PARKING = "parking",
   KITCHEN = "kitchen",
-  SOUND_SYSTEM = "soundsystem",
+  SOUND_SYSTEM = "sound_system",
   PROJECTOR = "projector",
   CHAIRS = "chairs",
   TABLES = "tables",
   CATERING = "catering",
   BATHROOM = "bathroom",
-  AV_EQUIPMENT = "avequipment",
+  AV_EQUIPMENT = "av_equipment",
 }
 
 /**
@@ -49,40 +48,6 @@ export interface VenueAvailability {
     startTime?: string
     endTime?: string
   }[]
-}
-
-/**
- * Venue capacity information
- */
-export interface VenueCapacity {
-  min: number
-  max: number
-  recommended: number
-}
-
-/**
- * Media item for venue
- */
-export interface VenueMedia {
-  id: string
-  url: string
-  type: string
-  entityType: string
-  entityId: string
-  createdAt: string
-  updatedAt: string
-}
-
-/**
- * Venue review
- */
-export interface VenueReview {
-  id: string
-  rating: number
-  comment: string
-  isVerified: boolean
-  createdAt: string
-  updatedAt: string
 }
 
 /**
@@ -125,16 +90,15 @@ export interface Venue extends BaseEntity {
   description: MultilingualText
   type: VenueType
   address: Address
-  media: VenueMedia[]
+  media: MediaItem[]
   amenities: VenueAmenity[]
-  capacity: VenueCapacity
+  capacity: Capacity
   size?: number // in square feet/meters
   rating?: Rating
-  reviews?: VenueReview[]
+  reviews?: Review[]
   price: Price
   availability?: VenueAvailability
-  dayAvailability?: DayAvailability // For display purposes
-  owner: User // Owner information
+  operatingHours?: OperatingHours
   isActive: boolean // Is this venue active and bookable?
   metadata?: VenueMetadata
   bookings?: VenueBooking[]
@@ -147,16 +111,14 @@ export interface Venue extends BaseEntity {
 export interface VenueSummary {
   id: string
   name: MultilingualText
-  location?: MultilingualText
   address: Address
   type: VenueType
-  rating?: Rating
   price: Price
-  media: VenueMedia[]
+  media: MediaItem[]
   amenities: VenueAmenity[]
-  reviews?: VenueReview[]
-  dayAvailability?: DayAvailability
-  owner: User
+  capacity: Capacity
+  reviews?: Review[]
+  operatingHours?: OperatingHours
 }
 
 /**
@@ -167,7 +129,7 @@ export interface VenueCreateData {
   description: MultilingualText
   type: VenueType
   address: Address
-  capacity: VenueCapacity
+  capacity: Capacity
   size?: number
   price: Price
   amenities: VenueAmenity[]

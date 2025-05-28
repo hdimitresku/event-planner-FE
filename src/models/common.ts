@@ -16,10 +16,11 @@ export interface MultilingualText {
 export enum PricingType {
   FIXED = "fixed",
   HOURLY = "hourly",
-  DAILY = "daily",
+  PER_DAY = "per_day",
   WEEKLY = "weekly",
   MONTHLY = "monthly",
-  PER_PERSON = "perPerson"
+  PER_PERSON = "per_person",
+  CUSTOM = "custom"
 }
 
 /**
@@ -69,8 +70,8 @@ export interface MediaItem {
   id: string;
   url: string;
   type: "image" | "video";
-  title?: string;
-  description?: MultilingualText;
+  alt?: string;
+  isPrimary?: boolean;
 }
 
 /**
@@ -95,8 +96,10 @@ export interface Rating {
  */
 export interface Review extends BaseEntity {
   userId: string;
+  userName: string;
   rating: number;
   comment: string;
+  date: string;
   images?: string[];
 }
 
@@ -109,16 +112,25 @@ export interface TimeRange {
 }
 
 /**
- * Day availability
+ * Day availability for hours
  */
-export interface DayAvailability {
-  monday: string;
-  tuesday: string;
-  wednesday: string;
-  thursday: string;
-  friday: string;
-  saturday: string;
-  sunday: string;
+export interface DayHours {
+  open: string;
+  close: string;
+  isClosed: boolean;
+}
+
+/**
+ * Operating hours for each day of the week
+ */
+export interface OperatingHours {
+  monday: DayHours;
+  tuesday: DayHours;
+  wednesday: DayHours;
+  thursday: DayHours;
+  friday: DayHours;
+  saturday: DayHours;
+  sunday: DayHours;
 }
 
 /**
@@ -132,34 +144,11 @@ export interface Host {
   joined: string;
 }
 
-export enum VenueType {
-  BALLROOM = "ballroom",
-  GARDEN = "garden",
-  BEACH = "beach",
-  ROOFTOP = "rooftop",
-  RESTAURANT = "restaurant",
-  CONFERENCE = "conference",
-  WAREHOUSE = "warehouse",
-  THEATER = "theater",
-  MUSEUM = "museum",
-  GALLERY = "gallery",
-  OTHER = "other"
+/**
+ * Capacity information for venues
+ */
+export interface Capacity {
+  minimum: number;
+  maximum: number;
+  recommended: number;
 }
-
-export enum VenueAmenity {
-  WIFI = "wifi",
-  PARKING = "parking",
-  CATERING = "catering",
-  BAR = "bar",
-  STAGE = "stage",
-  SOUNDSYSTEM = "soundsystem",
-  LIGHTING = "lighting",
-  AV_EQUIPMENT = "avequipment",
-  WHEELCHAIR_ACCESS = "wheelchairaccess",
-  OUTDOOR_SPACE = "outdoorspace",
-  KITCHEN = "kitchen",
-  DRESSING_ROOM = "dressingroom",
-  SECURITY = "security",
-  CLEANING = "cleaning",
-  OTHER = "other"
-} 
