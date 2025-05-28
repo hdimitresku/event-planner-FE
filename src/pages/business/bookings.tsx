@@ -36,7 +36,6 @@ import { Separator } from "../../components/ui/separator"
 import { toast } from "../../components/ui/use-toast"
 import * as venueService from "../../services/venueService"
 import * as bookingService from "../../services/bookingService"
-import { ServiceOption } from "@/models/service"
 
 export default function BusinessBookingsPage() {
   const { t, language } = useLanguage()
@@ -51,6 +50,18 @@ export default function BusinessBookingsPage() {
   const [bookings, setBookings] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Helper function to calculate service options total
+  const calculateServiceOptionsTotal = (serviceOptions: any[]) => {
+    if (!serviceOptions || serviceOptions.length === 0) return 0
+
+    return serviceOptions.reduce((sum: number, service: any) => {
+      if (service.price && typeof service.price === "object") {
+        return sum + (service.price.amount || 0)
+      }
+      return sum + (service.price || 0)
+    }, 0)
+  }
 
   // Fetch venues and their bookings
   useEffect(() => {
@@ -157,7 +168,7 @@ export default function BusinessBookingsPage() {
 
   const handleApproveBooking = async (bookingId: string) => {
     try {
-      await bookingService.updateBookingStatus(bookingId, "confirmed")
+      await bookingService.updateBookingVenueStatus(bookingId, "confirmed")
       // Refresh venues data
       const venueDetails = await venueService.getVenueByOwner()
       setVenues(venueDetails)
@@ -178,7 +189,7 @@ export default function BusinessBookingsPage() {
 
   const handleDeclineBooking = async (bookingId: string) => {
     try {
-      await bookingService.updateBookingStatus(bookingId, "cancelled")
+      await bookingService.updateBookingVenueStatus(bookingId, "cancelled")
       // Refresh venues data
       const venueDetails = await venueService.getVenueByOwner()
       setVenues(venueDetails)
@@ -215,7 +226,7 @@ export default function BusinessBookingsPage() {
   return (
     <BusinessLayout>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">{t("business.bookings.title") || "Bookings"}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("business.bookings.title") || "Venue Bookings"}</h1>
         <p className="text-muted-foreground">{t("business.bookings.subtitle") || "Manage your venue bookings"}</p>
       </div>
 
@@ -282,16 +293,17 @@ export default function BusinessBookingsPage() {
 
       {/* View Booking Modal */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">{t("business.bookings.bookingDetails")}</DialogTitle>
-            <DialogDescription>{t("business.bookings.viewBookingDetails")}</DialogDescription>
           </DialogHeader>
 
           {selectedBooking && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">{selectedBooking.venue}</h3>
+                <h3 className="text-lg font-medium">
+                  {selectedBooking.venueName[language] || selectedBooking.venueName.en}
+                </h3>
                 <Badge className={getStatusBadgeClass(selectedBooking.status)}>
                   {selectedBooking.status === "confirmed"
                     ? t("business.bookings.confirmed") || "Confirmed"
@@ -316,10 +328,12 @@ export default function BusinessBookingsPage() {
                         <Mail className="h-3.5 w-3.5" />
                         {selectedBooking.customer.email}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <Phone className="h-3.5 w-3.5" />
-                        {selectedBooking.customer.phone}
-                      </span>
+                      {selectedBooking.customer?.phone && (
+                        <span className="flex items-center gap-1">
+                          <Phone className="h-3.5 w-3.5" />
+                          {selectedBooking.customer.phone}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -337,7 +351,10 @@ export default function BusinessBookingsPage() {
                     <CalendarDays className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <h4 className="font-medium">{t("business.bookings.date")}</h4>
-                      <p>{selectedBooking.startDate} - {selectedBooking.endDate}</p>
+                      <p>
+                        {selectedBooking.startDate}{" "}
+                        {selectedBooking.endDate !== selectedBooking.startDate && `- ${selectedBooking.endDate}`}
+                      </p>
                     </div>
                   </div>
 
@@ -345,7 +362,9 @@ export default function BusinessBookingsPage() {
                     <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <h4 className="font-medium">{t("business.bookings.time")}</h4>
-                      <p>{selectedBooking.startTime} - {selectedBooking.endTime}</p>
+                      <p>
+                        {selectedBooking.startTime} - {selectedBooking.endTime}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -356,7 +375,7 @@ export default function BusinessBookingsPage() {
                     <div>
                       <h4 className="font-medium">{t("business.bookings.guests")}</h4>
                       <p>
-                        {selectedBooking.guests} {t("business.bookings.people")}
+                        {selectedBooking.numberOfGuests} {t("business.bookings.guests")}
                       </p>
                     </div>
                   </div>
@@ -370,16 +389,27 @@ export default function BusinessBookingsPage() {
                   </div>
                 </div>
 
-                <div>
-                  <h4 className="font-medium mb-2">{t("business.bookings.services")}</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedBooking.serviceOptions.map((service: ServiceOption) => (
-                      <Badge key={service.id} variant="success">
-                        {service.name[language] || service.name.en}
-                      </Badge>
-                    ))}
+                {/* Additional Services */}
+                {selectedBooking.serviceOptions && selectedBooking.serviceOptions.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-2">
+                      {t("business.bookings.additionalServices") || "Additional Services"}
+                    </h4>
+                    <div className="space-y-2">
+                      {selectedBooking.serviceOptions.map((service: any, index: number) => {
+                        const servicePrice = service.price?.amount || service.price || 0
+                        return (
+                          <div key={index} className="flex justify-between items-center bg-secondary/20 p-2 rounded-md">
+                            <span className="font-medium">
+                              {service.name?.[language] || service.name?.en || `Service ${index + 1}`}
+                            </span>
+                            <Badge variant="secondary">${servicePrice}</Badge>
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {selectedBooking.notes && (
                   <div>
@@ -387,45 +417,77 @@ export default function BusinessBookingsPage() {
                     <p className="text-muted-foreground">{selectedBooking.notes}</p>
                   </div>
                 )}
-              </div>
 
-              <DialogFooter>
-                {selectedBooking.status === "pending" ? (
-                  <div className="flex w-full gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 border-destructive text-destructive hover:bg-destructive/10"
-                      onClick={() => handleDeclineBooking(selectedBooking.id)}
-                    >
-                      <X className="mr-2 h-4 w-4" />
-                      {t("business.bookings.decline") || "Decline"}
-                    </Button>
-                    <Button
-                      className="flex-1 bg-emerald-500/90 dark:bg-emerald-600/90 hover:bg-emerald-500/70 dark:hover:bg-emerald-600/70"
-                      onClick={() => handleApproveBooking(selectedBooking.id)}
-                    >
-                      <Check className="mr-2 h-4 w-4" />
-                      {t("business.bookings.approve") || "Approve"}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    {selectedBooking.status !== "completed" && selectedBooking.status !== "cancelled" ? (
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setIsViewModalOpen(false)
-                          handleEditBooking(selectedBooking)
-                        }}
-                      >
-                        <PencilLine className="mr-2 h-4 w-4" />
-                        {t("business.common.edit") || "Edit"}
-                      </Button>
-                    ) : null}
-                    <Button onClick={() => setIsViewModalOpen(false)}>{t("business.common.close") || "Close"}</Button>
+                {selectedBooking.specialRequests && (
+                  <div>
+                    <h4 className="font-medium">{t("business.bookings.specialRequests") || "Special Requests"}</h4>
+                    <p className="text-muted-foreground">{selectedBooking.specialRequests}</p>
                   </div>
                 )}
-              </DialogFooter>
+
+                {/* Payment Summary */}
+                <div>
+                  <h4 className="font-medium mb-2">{t("business.bookings.paymentSummary") || "Payment Summary"}</h4>
+                  <div className="bg-secondary/20 p-3 rounded-md space-y-2">
+                    <div className="flex justify-between">
+                      <span>{t("business.bookings.venueRental") || "Venue Rental"}</span>
+                      <span>${(Number.parseFloat(selectedBooking.totalAmount) * 0.85).toFixed(2)}</span>
+                    </div>
+                    {selectedBooking.serviceOptions && selectedBooking.serviceOptions.length > 0 && (
+                      <div className="flex justify-between">
+                        <span>{t("business.bookings.additionalServices") || "Additional Services"}</span>
+                        <span>${calculateServiceOptionsTotal(selectedBooking.serviceOptions).toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span>{t("business.bookings.serviceFee") || "Service Fee"}</span>
+                      <span>${(Number.parseFloat(selectedBooking.totalAmount) * 0.05).toFixed(2)}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between font-bold">
+                      <span>{t("business.bookings.total") || "Total"}</span>
+                      <span>${Number.parseFloat(selectedBooking.totalAmount).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap justify-end gap-2 pt-4">
+                {selectedBooking.status === "pending" && (
+                  <>
+                    <Button
+                      variant="outline"
+                      className="border-green-600 text-green-600 hover:bg-green-50"
+                      onClick={() => handleApproveBooking(selectedBooking.id)}
+                    >
+                      <Check className="mr-1 h-4 w-4" />
+                      {t("business.bookings.approve") || "Approve"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="border-red-600 text-red-600 hover:bg-red-50"
+                      onClick={() => handleDeclineBooking(selectedBooking.id)}
+                    >
+                      <X className="mr-1 h-4 w-4" />
+                      {t("business.bookings.decline") || "Decline"}
+                    </Button>
+                  </>
+                )}
+                {(selectedBooking.status === "confirmed" || selectedBooking.status === "pending") && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsViewModalOpen(false)
+                      handleEditBooking(selectedBooking)
+                    }}
+                  >
+                    <PencilLine className="mr-1 h-4 w-4" />
+                    {t("business.common.edit") || "Edit"}
+                  </Button>
+                )}
+                <Button onClick={() => setIsViewModalOpen(false)}>{t("business.common.close") || "Close"}</Button>
+              </div>
             </div>
           )}
         </DialogContent>
@@ -476,47 +538,69 @@ export default function BusinessBookingsPage() {
         </TabsList>
 
         <TabsContent value="upcoming" className="space-y-4">
-          <div className="rounded-md border">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b bg-muted text-left dark:bg-slate-700">
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.customer") || "Customer"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.venue") || "Venue"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.date") || "Date"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.time") || "Time"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.guests") || "Guests"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.status") || "Status"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.total") || "Total"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.actions") || "Actions"}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading && (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    </div>
-                  )}
+          <div className="space-y-4">
+            {loading && (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            )}
 
-                  {error && (
-                    <div className="text-center py-8 text-destructive">
-                      <p>{error}</p>
-                      <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-                        Retry
-                      </Button>
+            {!loading && filteredBookings.length === 0 && (
+              <div className="text-center py-12 bg-secondary/30 rounded-lg">
+                <h3 className="text-lg font-medium">No bookings found</h3>
+                <p className="text-muted-foreground mt-2">
+                  {activeTab === "upcoming"
+                    ? "No upcoming bookings at the moment"
+                    : activeTab === "completed"
+                      ? "No completed bookings yet"
+                      : activeTab === "cancelled"
+                        ? "No cancelled bookings"
+                        : "No bookings available"}
+                </p>
+              </div>
+            )}
+            {filteredBookings.map((booking) => (
+              <div key={booking.id} className="bg-background border rounded-lg shadow-sm">
+                <div className="p-4">
+                  <div className="grid gap-4 md:grid-cols-[1fr_auto]">
+                    <div className="flex items-start gap-4">
+                      <div className="relative w-20 h-20 rounded-md overflow-hidden">
+                        <img
+                          src={`/placeholder.svg?height=80&width=80&text=Venue ${booking.venueId}`}
+                          alt={booking.venueName[language] || booking.venueName.en}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="grid gap-1">
+                        <h3 className="font-semibold">{booking.eventType || "Event"}</h3>
+                        <div className="text-sm text-muted-foreground">
+                          {booking.venueName[language] || booking.venueName.en}
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          <div className="flex items-center text-xs">
+                            <Calendar className="mr-1 h-3.5 w-3.5" />
+                            <span>{new Date(booking.startDate).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex items-center text-xs">
+                            <Clock className="mr-1 h-3.5 w-3.5" />
+                            <span>
+                              {booking.startTime} - {booking.endTime}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-xs">
+                            <User className="mr-1 h-3.5 w-3.5" />
+                            <span>{booking.customer.name}</span>
+                          </div>
+                          <div className="flex items-center text-xs">
+                            <Users className="mr-1 h-3.5 w-3.5" />
+                            <span>{booking.numberOfGuests} guests</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  )}
-
-                  {bookings.map((booking) => (
-                    <tr key={booking.id} className="border-b hover:bg-muted/50">
-                      <td className="px-4 py-3">{booking.customer.name}</td>
-                      <td className="px-4 py-3">{booking.venueName[language] || booking.venueName.en}</td>
-                      <td className="px-4 py-3">{booking.startDate}</td>
-                      <td className="px-4 py-3">
-                        {booking.startTime} - {booking.endTime}
-                      </td>
-                      <td className="px-4 py-3">{booking.numberOfGuests}</td>
-                      <td className="px-4 py-3">
+                    <div className="flex flex-col gap-2 items-end justify-between">
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="font-semibold">${Number.parseFloat(booking.totalAmount).toFixed(2)}</div>
                         <Badge className={getStatusBadgeClass(booking.status)}>
                           {booking.status === "confirmed"
                             ? t("business.bookings.confirmed") || "Confirmed"
@@ -526,172 +610,112 @@ export default function BusinessBookingsPage() {
                                 ? t("business.bookings.completed") || "Completed"
                                 : t("business.bookings.cancelled") || "Cancelled"}
                         </Badge>
-                      </td>
-                      <td className="px-4 py-3">${Number.parseFloat(booking.totalAmount).toFixed(2)}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-2"
-                            onClick={() => handleViewBooking(booking)}
-                          >
-                            {t("business.common.view") || "View"}
+                      </div>
+                      <div className="flex gap-2">
+                        {booking.status === "pending" && (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-green-600 hover:bg-green-50"
+                              onClick={() => handleApproveBooking(booking.id)}
+                            >
+                              <Check className="mr-1 h-3 w-3" />
+                              {t("business.bookings.approve") || "Approve"}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:bg-red-50"
+                              onClick={() => handleDeclineBooking(booking.id)}
+                            >
+                              <X className="mr-1 h-3 w-3" />
+                              {t("business.bookings.decline") || "Decline"}
+                            </Button>
+                          </>
+                        )}
+                        <Button variant="outline" size="sm" onClick={() => handleViewBooking(booking)}>
+                          {t("business.common.view") || "View"}
+                        </Button>
+                        {(booking.status === "confirmed" || booking.status === "pending") && (
+                          <Button variant="outline" size="sm" onClick={() => handleEditBooking(booking)}>
+                            <PencilLine className="mr-1 h-3 w-3" />
+                            {t("business.common.edit") || "Edit"}
                           </Button>
-
-                          {booking.status === "pending" && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 px-2 text-green-600 hover:bg-green-50"
-                                onClick={() => handleApproveBooking(booking.id)}
-                              >
-                                <Check className="mr-1 h-3 w-3" />
-                                {t("business.bookings.approve") || "Approve"}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 px-2 text-red-600 hover:bg-red-50"
-                                onClick={() => handleDeclineBooking(booking.id)}
-                              >
-                                <X className="mr-1 h-3 w-3" />
-                                {t("business.bookings.decline") || "Decline"}
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </TabsContent>
 
         <TabsContent value="completed" className="space-y-4">
-          <div className="rounded-md border">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b bg-muted text-left dark:bg-slate-700">
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.customer") || "Customer"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.venue") || "Venue"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.date") || "Date"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.time") || "Time"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.guests") || "Guests"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.status") || "Status"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.total") || "Total"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.actions") || "Actions"}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredBookings.map((booking) => (
-                    <tr key={booking.id} className="border-b">
-                      <td className="px-4 py-3">{booking.customer.name}</td>
-                      <td className="px-4 py-3">{booking.venue}</td>
-                      <td className="px-4 py-3">{booking.date}</td>
-                      <td className="px-4 py-3">{booking.time}</td>
-                      <td className="px-4 py-3">{booking.guests}</td>
-                      <td className="px-4 py-3">
-                        <Badge className={getStatusBadgeClass(booking.status)}>
-                          {t("business.bookings.completed") || "Completed"}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3">${booking.total.toFixed(2)}</td>
-                      <td className="px-4 py-3">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="transition-all hover:bg-primary/10 hover:text-primary"
-                          onClick={() => handleViewBooking(booking)}
-                        >
-                          {t("business.bookings.view") || "View"}
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </TabsContent>
+          <div className="space-y-4">
+            {loading && (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            )}
 
-        <TabsContent value="cancelled" className="space-y-4">
-          <div className="rounded-md border">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b bg-muted text-left dark:bg-slate-700">
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.customer") || "Customer"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.venue") || "Venue"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.date") || "Date"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.time") || "Time"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.guests") || "Guests"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.status") || "Status"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.total") || "Total"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.actions") || "Actions"}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredBookings.map((booking) => (
-                    <tr key={booking.id} className="border-b">
-                      <td className="px-4 py-3">{booking.customer.name}</td>
-                      <td className="px-4 py-3">{booking.venue}</td>
-                      <td className="px-4 py-3">{booking.date}</td>
-                      <td className="px-4 py-3">{booking.time}</td>
-                      <td className="px-4 py-3">{booking.guests}</td>
-                      <td className="px-4 py-3">
-                        <Badge className={getStatusBadgeClass(booking.status)}>
-                          {t("business.bookings.cancelled") || "Cancelled"}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3">${booking.total.toFixed(2)}</td>
-                      <td className="px-4 py-3">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="transition-all hover:bg-primary/10 hover:text-primary"
-                          onClick={() => handleViewBooking(booking)}
-                        >
-                          {t("business.bookings.view") || "View"}
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="all" className="space-y-4">
-          <div className="rounded-md border">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b bg-muted text-left dark:bg-slate-700">
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.customer") || "Customer"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.venue") || "Venue"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.date") || "Date"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.time") || "Time"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.guests") || "Guests"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.status") || "Status"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.total") || "Total"}</th>
-                    <th className="px-4 py-3 font-medium">{t("business.bookings.actions") || "Actions"}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bookings.map((booking) => (
-                    <tr key={booking.id} className="border-b">
-                      <td className="px-4 py-3">{booking.customer.name}</td>
-                      <td className="px-4 py-3">{booking.venue}</td>
-                      <td className="px-4 py-3">{booking.date}</td>
-                      <td className="px-4 py-3">{booking.time}</td>
-                      <td className="px-4 py-3">{booking.guests}</td>
-                      <td className="px-4 py-3">
+            {!loading && filteredBookings.length === 0 && (
+              <div className="text-center py-12 bg-secondary/30 rounded-lg">
+                <h3 className="text-lg font-medium">No bookings found</h3>
+                <p className="text-muted-foreground mt-2">
+                  {activeTab === "upcoming"
+                    ? "No upcoming bookings at the moment"
+                    : activeTab === "completed"
+                      ? "No completed bookings yet"
+                      : activeTab === "cancelled"
+                        ? "No cancelled bookings"
+                        : "No bookings available"}
+                </p>
+              </div>
+            )}
+            {filteredBookings.map((booking) => (
+              <div key={booking.id} className="bg-background border rounded-lg shadow-sm">
+                <div className="p-4">
+                  <div className="grid gap-4 md:grid-cols-[1fr_auto]">
+                    <div className="flex items-start gap-4">
+                      <div className="relative w-20 h-20 rounded-md overflow-hidden">
+                        <img
+                          src={`/placeholder.svg?height=80&width=80&text=Venue ${booking.venueId}`}
+                          alt={booking.venueName[language] || booking.venueName.en}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="grid gap-1">
+                        <h3 className="font-semibold">{booking.eventType || "Event"}</h3>
+                        <div className="text-sm text-muted-foreground">
+                          {booking.venueName[language] || booking.venueName.en}
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          <div className="flex items-center text-xs">
+                            <Calendar className="mr-1 h-3.5 w-3.5" />
+                            <span>{new Date(booking.startDate).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex items-center text-xs">
+                            <Clock className="mr-1 h-3.5 w-3.5" />
+                            <span>
+                              {booking.startTime} - {booking.endTime}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-xs">
+                            <User className="mr-1 h-3.5 w-3.5" />
+                            <span>{booking.customer.name}</span>
+                          </div>
+                          <div className="flex items-center text-xs">
+                            <Users className="mr-1 h-3.5 w-3.5" />
+                            <span>{booking.numberOfGuests} guests</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 items-end justify-between">
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="font-semibold">${Number.parseFloat(booking.totalAmount).toFixed(2)}</div>
                         <Badge className={getStatusBadgeClass(booking.status)}>
                           {booking.status === "confirmed"
                             ? t("business.bookings.confirmed") || "Confirmed"
@@ -701,48 +725,287 @@ export default function BusinessBookingsPage() {
                                 ? t("business.bookings.completed") || "Completed"
                                 : t("business.bookings.cancelled") || "Cancelled"}
                         </Badge>
-                      </td>
-                      <td className="px-4 py-3">${Number.parseFloat(booking.totalAmount).toFixed(2)}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="transition-all hover:bg-primary/10 hover:text-primary"
-                            onClick={() => handleViewBooking(booking)}
-                          >
-                            {t("business.common.view") || "View"}
+                      </div>
+                      <div className="flex gap-2">
+                        {booking.status === "pending" && (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-green-600 hover:bg-green-50"
+                              onClick={() => handleApproveBooking(booking.id)}
+                            >
+                              <Check className="mr-1 h-3 w-3" />
+                              {t("business.bookings.approve") || "Approve"}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:bg-red-50"
+                              onClick={() => handleDeclineBooking(booking.id)}
+                            >
+                              <X className="mr-1 h-3 w-3" />
+                              {t("business.bookings.decline") || "Decline"}
+                            </Button>
+                          </>
+                        )}
+                        <Button variant="outline" size="sm" onClick={() => handleViewBooking(booking)}>
+                          {t("business.common.view") || "View"}
+                        </Button>
+                        {(booking.status === "confirmed" || booking.status === "pending") && (
+                          <Button variant="outline" size="sm" onClick={() => handleEditBooking(booking)}>
+                            <PencilLine className="mr-1 h-3 w-3" />
+                            {t("business.common.edit") || "Edit"}
                           </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </TabsContent>
 
-                          {(booking.status === "confirmed" || booking.status === "pending") && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 px-2"
-                                onClick={() => handleEditBooking(booking)}
-                              >
-                                <PencilLine className="mr-1.5 h-3.5 w-3.5" />
-                                {t("business.common.edit") || "Edit"}
-                              </Button>
+        <TabsContent value="cancelled" className="space-y-4">
+          <div className="space-y-4">
+            {loading && (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            )}
 
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 px-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                onClick={() => openCancelDialog(booking.id)}
-                              >
-                                {t("business.common.cancel") || "Cancel"}
-                              </Button>
-                            </>
-                          )}
+            {!loading && filteredBookings.length === 0 && (
+              <div className="text-center py-12 bg-secondary/30 rounded-lg">
+                <h3 className="text-lg font-medium">No bookings found</h3>
+                <p className="text-muted-foreground mt-2">
+                  {activeTab === "upcoming"
+                    ? "No upcoming bookings at the moment"
+                    : activeTab === "completed"
+                      ? "No completed bookings yet"
+                      : activeTab === "cancelled"
+                        ? "No cancelled bookings"
+                        : "No bookings available"}
+                </p>
+              </div>
+            )}
+            {filteredBookings.map((booking) => (
+              <div key={booking.id} className="bg-background border rounded-lg shadow-sm">
+                <div className="p-4">
+                  <div className="grid gap-4 md:grid-cols-[1fr_auto]">
+                    <div className="flex items-start gap-4">
+                      <div className="relative w-20 h-20 rounded-md overflow-hidden">
+                        <img
+                          src={`/placeholder.svg?height=80&width=80&text=Venue ${booking.venueId}`}
+                          alt={booking.venueName[language] || booking.venueName.en}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="grid gap-1">
+                        <h3 className="font-semibold">{booking.eventType || "Event"}</h3>
+                        <div className="text-sm text-muted-foreground">
+                          {booking.venueName[language] || booking.venueName.en}
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          <div className="flex items-center text-xs">
+                            <Calendar className="mr-1 h-3.5 w-3.5" />
+                            <span>{new Date(booking.startDate).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex items-center text-xs">
+                            <Clock className="mr-1 h-3.5 w-3.5" />
+                            <span>
+                              {booking.startTime} - {booking.endTime}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-xs">
+                            <User className="mr-1 h-3.5 w-3.5" />
+                            <span>{booking.customer.name}</span>
+                          </div>
+                          <div className="flex items-center text-xs">
+                            <Users className="mr-1 h-3.5 w-3.5" />
+                            <span>{booking.numberOfGuests} guests</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 items-end justify-between">
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="font-semibold">${Number.parseFloat(booking.totalAmount).toFixed(2)}</div>
+                        <Badge className={getStatusBadgeClass(booking.status)}>
+                          {booking.status === "confirmed"
+                            ? t("business.bookings.confirmed") || "Confirmed"
+                            : booking.status === "pending"
+                              ? t("business.bookings.pending") || "Pending"
+                              : booking.status === "completed"
+                                ? t("business.bookings.completed") || "Completed"
+                                : t("business.bookings.cancelled") || "Cancelled"}
+                        </Badge>
+                      </div>
+                      <div className="flex gap-2">
+                        {booking.status === "pending" && (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-green-600 hover:bg-green-50"
+                              onClick={() => handleApproveBooking(booking.id)}
+                            >
+                              <Check className="mr-1 h-3 w-3" />
+                              {t("business.bookings.approve") || "Approve"}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:bg-red-50"
+                              onClick={() => handleDeclineBooking(booking.id)}
+                            >
+                              <X className="mr-1 h-3 w-3" />
+                              {t("business.bookings.decline") || "Decline"}
+                            </Button>
+                          </>
+                        )}
+                        <Button variant="outline" size="sm" onClick={() => handleViewBooking(booking)}>
+                          {t("business.common.view") || "View"}
+                        </Button>
+                        {(booking.status === "confirmed" || booking.status === "pending") && (
+                          <Button variant="outline" size="sm" onClick={() => handleEditBooking(booking)}>
+                            <PencilLine className="mr-1 h-3 w-3" />
+                            {t("business.common.edit") || "Edit"}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="all" className="space-y-4">
+          <div className="space-y-4">
+            {loading && (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            )}
+
+            {!loading && filteredBookings.length === 0 && (
+              <div className="text-center py-12 bg-secondary/30 rounded-lg">
+                <h3 className="text-lg font-medium">No bookings found</h3>
+                <p className="text-muted-foreground mt-2">
+                  {activeTab === "upcoming"
+                    ? "No upcoming bookings at the moment"
+                    : activeTab === "completed"
+                      ? "No completed bookings yet"
+                      : activeTab === "cancelled"
+                        ? "No cancelled bookings"
+                        : "No bookings available"}
+                </p>
+              </div>
+            )}
+            {bookings.map((booking) => (
+              <div key={booking.id} className="bg-background border rounded-lg shadow-sm">
+                <div className="p-4">
+                  <div className="grid gap-4 md:grid-cols-[1fr_auto]">
+                    <div className="flex items-start gap-4">
+                      <div className="relative w-20 h-20 rounded-md overflow-hidden">
+                        <img
+                          src={`/placeholder.svg?height=80&width=80&text=Venue ${booking.venueId}`}
+                          alt={booking.venueName[language] || booking.venueName.en}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="grid gap-1">
+                        <h3 className="font-semibold">{booking.eventType || "Event"}</h3>
+                        <div className="text-sm text-muted-foreground">
+                          {booking.venueName[language] || booking.venueName.en}
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          <div className="flex items-center text-xs">
+                            <Calendar className="mr-1 h-3.5 w-3.5" />
+                            <span>{new Date(booking.startDate).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex items-center text-xs">
+                            <Clock className="mr-1 h-3.5 w-3.5" />
+                            <span>
+                              {booking.startTime} - {booking.endTime}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-xs">
+                            <User className="mr-1 h-3.5 w-3.5" />
+                            <span>{booking.customer.name}</span>
+                          </div>
+                          <div className="flex items-center text-xs">
+                            <Users className="mr-1 h-3.5 w-3.5" />
+                            <span>{booking.numberOfGuests} guests</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 items-end justify-between">
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="font-semibold">${Number.parseFloat(booking.totalAmount).toFixed(2)}</div>
+                        <Badge className={getStatusBadgeClass(booking.status)}>
+                          {booking.status === "confirmed"
+                            ? t("business.bookings.confirmed") || "Confirmed"
+                            : booking.status === "pending"
+                              ? t("business.bookings.pending") || "Pending"
+                              : booking.status === "completed"
+                                ? t("business.bookings.completed") || "Completed"
+                                : t("business.bookings.cancelled") || "Cancelled"}
+                        </Badge>
+                      </div>
+                      <div className="flex gap-2">
+                        {booking.status === "pending" && (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-green-600 hover:bg-green-50"
+                              onClick={() => handleApproveBooking(booking.id)}
+                            >
+                              <Check className="mr-1 h-3 w-3" />
+                              {t("business.bookings.approve") || "Approve"}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:bg-red-50"
+                              onClick={() => handleDeclineBooking(booking.id)}
+                            >
+                              <X className="mr-1 h-3 w-3" />
+                              {t("business.bookings.decline") || "Decline"}
+                            </Button>
+                          </>
+                        )}
+                        <Button variant="outline" size="sm" onClick={() => handleViewBooking(booking)}>
+                          {t("business.common.view") || "View"}
+                        </Button>
+
+                        {(booking.status === "confirmed" || booking.status === "pending") && (
+                          <>
+                            <Button variant="outline" size="sm" onClick={() => handleEditBooking(booking)}>
+                              <PencilLine className="mr-1 h-3 w-3" />
+                              {t("business.common.edit") || "Edit"}
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                              onClick={() => openCancelDialog(booking.id)}
+                            >
+                              {t("business.common.cancel") || "Cancel"}
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </TabsContent>
       </Tabs>

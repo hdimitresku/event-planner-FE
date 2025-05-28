@@ -18,7 +18,7 @@ const defaultHeaders = {
 let authToken: string | null = localStorage.getItem('accessToken');
 
 // Flag to determine if we should use mock data (during development)
-export const USE_MOCK_DATA = true;
+export const USE_MOCK_DATA = false;
 
 export const setAuthToken = (token: string | null) => {
   authToken = token;

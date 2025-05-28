@@ -48,10 +48,16 @@ export function BusinessSidebar({ className }: SidebarProps) {
         location.pathname === "/business/service-management" || location.pathname.startsWith("/business/services/"),
     },
     {
-      label: t("business.sidebar.bookings") || "Bookings",
+      label: t("business.sidebar.venue-bookings") || "Venue Bookings",
       icon: Calendar,
-      href: "/business/bookings",
-      active: location.pathname === "/business/bookings",
+      href: "/business/venue-bookings",
+      active: location.pathname === "/business/venue-bookings",
+    },
+    {
+      label: t("business.sidebar.service-bookings") || "Service Bookings",
+      icon: Calendar,
+      href: "/business/service-bookings",
+      active: location.pathname === "/business/service-bookings",
     },
     {
       label: t("business.sidebar.analytics") || "Analytics",

@@ -784,7 +784,7 @@ export default function VenueBookPage() {
                         <div className="service-providers p-4 space-y-4 border-t border-gray-100 dark:border-gray-700">
                           {servicesOfType.length > 0 ? (
                             servicesOfType.map((service) => {
-                              const isProviderExpanded = expandedProviders.includes(service.provider.id)
+                              const isProviderExpanded = expandedProviders.includes(service?.provider?.id)
                               const selectedOptionsCount = selectedServices[service.id]?.length || 0
 
                               return (
@@ -795,28 +795,28 @@ export default function VenueBookPage() {
                                   {/* Provider Header */}
                                   <div
                                     className="provider-header p-3 bg-gray-50/50 dark:bg-gray-800/30 flex items-center justify-between cursor-pointer"
-                                    onClick={() => toggleProviderExpansion(service.provider.id)}
+                                    onClick={() => toggleProviderExpansion(service?.provider?.id)}
                                   >
                                     <div className="flex items-center">
                                       <Avatar className="h-8 w-8 mr-2">
                                         <AvatarImage
                                           src={
-                                            service.provider.profilePicture
-                                              ? formatImageUrl(service.provider.profilePicture)
+                                            service?.provider?.profilePicture
+                                              ? formatImageUrl(service?.provider?.profilePicture)
                                               : "/placeholder.svg?height=32&width=32"
                                           }
-                                          alt={`${service.provider.firstName} ${service.provider.lastName}`}
+                                          alt={`${service?.provider?.firstName} ${service?.provider?.lastName}`}
                                         />
                                         <AvatarFallback>
-                                          {service.provider.firstName.charAt(0)}
-                                          {service.provider.lastName.charAt(0)}
+                                          {service?.provider?.firstName?.charAt(0)}
+                                          {service?.provider?.lastName?.charAt(0)}
                                         </AvatarFallback>
                                       </Avatar>
                                       <div>
                                         <h4 className="font-medium text-sm">
-                                          {service.provider.firstName} {service.provider.lastName}
+                                          {service?.provider?.firstName} {service?.provider?.lastName}
                                         </h4>
-                                        <p className="text-xs text-muted-foreground">{service.name[language]}</p>
+                                        <p className="text-xs text-muted-foreground">{service?.name[language]}</p>
                                       </div>
                                     </div>
                                     <div className="flex items-center">
