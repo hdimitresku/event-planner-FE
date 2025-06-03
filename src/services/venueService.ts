@@ -73,13 +73,13 @@ export const getVenueByOwner = async (): Promise<Venue[]> => {
 /**
  * Create a new venue
  */
-export const createVenue = async (venueData: VenueCreateData): Promise<{ success: boolean; venueId?: string; error?: string }> => {
+export const createVenue = async (venueData: FormData): Promise<{ success: boolean; venueId?: string; error?: string }> => {
   try {
-    if (USE_MOCK_DATA) {
-      return await MockDataService.createVenue(venueData);
-    }
+    // if (USE_MOCK_DATA) {
+    //   return await MockDataService.createVenue(venueData);
+    // }
 
-    const response = await apiRequest<{ id: string }>('/venues', 'POST', venueData);
+    const response = await apiRequest<{ id: string }>('/venues', 'POST', venueData, undefined, true);
     return { success: true, venueId: response.id };
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to create venue' };

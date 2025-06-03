@@ -146,37 +146,44 @@ export default function ServiceBookingsPage() {
     fetchServiceBookings()
   }, [])
 
-  const filteredBookings = bookings.filter((booking) => {
-    // First apply search filter if any
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase()
-      const customerName = booking.customer?.name?.toLowerCase() || ""
-      const serviceName = (booking.serviceName?.[language] || booking.serviceName?.en || "").toLowerCase()
-      const bookingId = booking.id?.toLowerCase() || ""
+  // Helper function to filter bookings for a specific tab
+  const getBookingsForTab = (tabValue: string) => {
+    return bookings.filter((booking) => {
+      // First apply search filter if any
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase()
+        const customerName = booking.customer?.name?.toLowerCase() || ""
+        const serviceName = (booking.serviceName?.[language] || booking.serviceName?.en || "").toLowerCase()
+        const bookingId = booking.id?.toLowerCase() || ""
 
-      if (
-        !customerName.includes(searchLower) &&
-        !serviceName.includes(searchLower) &&
-        !bookingId.includes(searchLower)
-      ) {
-        return false
+        if (
+          !customerName.includes(searchLower) &&
+          !serviceName.includes(searchLower) &&
+          !bookingId.includes(searchLower)
+        ) {
+          return false
+        }
       }
-    }
 
-    // Then apply tab filter
-    const bookingDate = new Date(booking.startDate)
-    const today = new Date()
+      // Then apply tab filter based on status and date
+      const bookingDate = new Date(booking.startDate)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
 
-    if (activeTab === "upcoming") {
-      return bookingDate >= today && (booking.status === "confirmed" || booking.status === "pending")
-    } else if (activeTab === "completed") {
-      return booking.status === "completed"
-    } else if (activeTab === "cancelled") {
-      return booking.status === "cancelled"
-    }
-
-    return true
-  })
+      switch (tabValue) {
+        case "upcoming":
+          return (booking.status === "confirmed" || booking.status === "pending") && bookingDate >= today
+        case "completed":
+          return booking.status === "completed"
+        case "cancelled":
+          return booking.status === "cancelled"
+        case "all":
+          return true
+        default:
+          return true
+      }
+    })
+  }
 
   const handleViewBooking = (booking: any) => {
     setSelectedBooking(booking)
@@ -500,6 +507,50 @@ export default function ServiceBookingsPage() {
                   </div>
                 )}
 
+                {/* Price Information */}
+                <div>
+                  <h4 className="font-medium mb-2">{t("business.bookings.pricing") || "Pricing"}</h4>
+                  <div className="bg-secondary/20 p-3 rounded-md">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-sm text-muted-foreground">Service Price</div>
+                        <div className="font-medium">${calculateServicePrice(selectedBooking).toFixed(2)}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-muted-foreground">Total Amount</div>
+                        <div className="font-medium">${Number.parseFloat(selectedBooking.totalAmount).toFixed(2)}</div>
+                      </div>
+                    </div>
+                    {selectedBooking.serviceOptions && selectedBooking.serviceOptions.length > 0 && (
+                      <div className="mt-3">
+                        <div className="text-sm text-muted-foreground mb-2">Selected Options:</div>
+                        <div className="space-y-2">
+                          {selectedBooking.serviceOptions
+                            .filter((option: any) => option.service?.id === selectedBooking.serviceId)
+                            .map((option: any, index: number) => (
+                              <div key={index} className="flex justify-between items-center text-sm">
+                                <span>{option.name?.[language] || option.name?.en || "Option"}</span>
+                                <span className="font-medium">
+                                  ${option.price?.amount || 0}
+                                  {option.price?.type === "perPerson" && ` × ${selectedBooking.numberOfGuests} guests`}
+                                  <span className="text-muted-foreground ml-1">
+                                    (
+                                    {option.price?.type === "perPerson"
+                                      ? "per person"
+                                      : option.price?.type === "hourly"
+                                        ? "per hour"
+                                        : "fixed"}
+                                    )
+                                  </span>
+                                </span>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {selectedBooking.specialRequests && (
                   <div>
                     <h4 className="font-medium">{t("business.bookings.specialRequests") || "Special Requests"}</h4>
@@ -601,21 +652,13 @@ export default function ServiceBookingsPage() {
               </div>
             )}
 
-            {!loading && filteredBookings.length === 0 && (
+            {!loading && getBookingsForTab("upcoming").length === 0 && (
               <div className="text-center py-12 bg-secondary/30 rounded-lg">
                 <h3 className="text-lg font-medium">No service bookings found</h3>
-                <p className="text-muted-foreground mt-2">
-                  {activeTab === "upcoming"
-                    ? "No upcoming service bookings at the moment"
-                    : activeTab === "completed"
-                      ? "No completed service bookings yet"
-                      : activeTab === "cancelled"
-                        ? "No cancelled service bookings"
-                        : "No service bookings available"}
-                </p>
+                <p className="text-muted-foreground mt-2">No upcoming service bookings at the moment</p>
               </div>
             )}
-            {filteredBookings.map((booking) => {
+            {getBookingsForTab("upcoming").map((booking) => {
               const servicePrice = calculateServicePrice(booking)
               return (
                 <div key={booking.id} className="bg-background border rounded-lg shadow-sm">
@@ -713,13 +756,13 @@ export default function ServiceBookingsPage() {
               </div>
             )}
 
-            {!loading && filteredBookings.length === 0 && (
+            {!loading && getBookingsForTab("completed").length === 0 && (
               <div className="text-center py-12 bg-secondary/30 rounded-lg">
                 <h3 className="text-lg font-medium">No service bookings found</h3>
                 <p className="text-muted-foreground mt-2">No completed service bookings yet</p>
               </div>
             )}
-            {filteredBookings.map((booking) => {
+            {getBookingsForTab("completed").map((booking) => {
               const servicePrice = calculateServicePrice(booking)
               return (
                 <div key={booking.id} className="bg-background border rounded-lg shadow-sm">
@@ -783,13 +826,13 @@ export default function ServiceBookingsPage() {
               </div>
             )}
 
-            {!loading && filteredBookings.length === 0 && (
+            {!loading && getBookingsForTab("cancelled").length === 0 && (
               <div className="text-center py-12 bg-secondary/30 rounded-lg">
                 <h3 className="text-lg font-medium">No service bookings found</h3>
                 <p className="text-muted-foreground mt-2">No cancelled service bookings</p>
               </div>
             )}
-            {filteredBookings.map((booking) => {
+            {getBookingsForTab("cancelled").map((booking) => {
               const servicePrice = calculateServicePrice(booking)
               return (
                 <div key={booking.id} className="bg-background border rounded-lg shadow-sm">
@@ -853,13 +896,13 @@ export default function ServiceBookingsPage() {
               </div>
             )}
 
-            {!loading && filteredBookings.length === 0 && (
+            {!loading && getBookingsForTab("all").length === 0 && (
               <div className="text-center py-12 bg-secondary/30 rounded-lg">
                 <h3 className="text-lg font-medium">No service bookings found</h3>
                 <p className="text-muted-foreground mt-2">No service bookings available</p>
               </div>
             )}
-            {filteredBookings.map((booking) => {
+            {getBookingsForTab("all").map((booking) => {
               const servicePrice = calculateServicePrice(booking)
               return (
                 <div key={booking.id} className="bg-background border rounded-lg shadow-sm">

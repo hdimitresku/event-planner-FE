@@ -68,14 +68,14 @@ export const getServiceById = async (id: string): Promise<Service | null> => {
 /**
  * Create a new service
  */
-export const createService = async (serviceData: ServiceCreateData): Promise<{ success: boolean; serviceId?: string; error?: string }> => {
+export const createService = async (serviceData: FormData): Promise<{ success: boolean; serviceId?: string; error?: string }> => {
   try {
-    if (USE_MOCK_DATA) {
-      return mockDataService.createService(serviceData);
-    }
+    // if (USE_MOCK_DATA) {
+    //   return mockDataService.createService(serviceData);
+    // }
 
-    const response = await apiRequest<{ id: string }>('/services', 'POST', serviceData);
-    return { success: true, serviceId: response.id };
+    const response = await apiRequest<FormData>('/services', 'POST', serviceData, undefined, true);
+    return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to create service' };
   }

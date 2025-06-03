@@ -19,7 +19,7 @@ export enum PricingType {
   PER_DAY = "per_day",
   WEEKLY = "weekly",
   MONTHLY = "monthly",
-  PER_PERSON = "per_person",
+  PER_PERSON = "perPerson",
   CUSTOM = "custom"
 }
 

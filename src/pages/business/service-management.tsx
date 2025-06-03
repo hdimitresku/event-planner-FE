@@ -18,33 +18,14 @@ import {
 import { Label } from "../../components/ui/label"
 import { Textarea } from "../../components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
-import {
-  Search,
-  Plus,
-  Filter,
-  Edit,
-  Eye,
-  Utensils,
-  Music,
-  Palette,
-  Camera,
-  Video,
-  Car,
-  Shield,
-  Users,
-  Upload,
-  X,
-  DollarSign,
-  Trash,
-} from "lucide-react"
+import { Search, Plus, Filter, Edit, Eye, DollarSign, Trash } from "lucide-react"
 import { useLanguage } from "../../context/language-context"
 import { BusinessLayout } from "../../components/business/layout"
 import { ServiceNewModal } from "./service-new"
 import * as serviceService from "../../services/serviceService"
-import { Service, ServiceType } from "../../models/service"
+import { type Service, ServiceType } from "../../models/service"
 import { PricingType } from "../../models/common"
 import { toast } from "../../components/ui/use-toast"
-import { Link } from "react-router-dom"
 
 interface ServiceOption {
   id: string
@@ -81,13 +62,13 @@ export default function ServicesManagementPage() {
         price: {
           amount: 0,
           currency: "USD",
-          type: PricingType.FIXED
+          type: PricingType.FIXED,
         },
-        popular: false
-      }
+        popular: false,
+      },
     ],
     featured: false,
-    active: true
+    active: true,
   })
 
   useEffect(() => {
@@ -104,7 +85,7 @@ export default function ServicesManagementPage() {
         result.map(async (service) => {
           const details = await serviceService.getServiceById(service.id)
           return details
-        })
+        }),
       )
       setServices(serviceDetails.filter((s): s is Service => s !== null))
     } catch (error) {
@@ -112,11 +93,23 @@ export default function ServicesManagementPage() {
       toast({
         title: "Error",
         description: "Failed to load services. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       })
     } finally {
       setLoading(false)
     }
+  }
+
+  // Format image URL to handle relative paths
+  const formatImageUrl = (url: string) => {
+    if (!url) return "/placeholder.svg"
+
+    // If it's already an absolute URL, return it as is
+    if (url.startsWith("http")) return url
+
+    // If it's a relative path, prepend the API URL
+    const apiUrl = import.meta.env.VITE_API_IMAGE_URL || process.env.REACT_APP_API_IMAGE_URL || ""
+    return `${apiUrl}/${url.replace(/\\/g, "/")}`
   }
 
   // Filter services based on search query, categories, price types, and statuses
@@ -127,19 +120,28 @@ export default function ServicesManagementPage() {
 
     const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(service.type.toLowerCase())
 
-    const matchesPriceType = selectedPriceTypes.length === 0 || 
-      (service.options.length > 0 && 
-       selectedPriceTypes.includes(service.options[0].price.type.toLowerCase()))
+    const matchesPriceType =
+      selectedPriceTypes.length === 0 ||
+      (service.options &&
+        service.options.some((option) => {
+          const priceType = option.price.type.toLowerCase()
+          // Handle the different variations of "per person"
+          const normalizedPriceType = priceType === "perperson" ? "perperson" : priceType
+          return selectedPriceTypes.some((selectedType) => {
+            const normalizedSelectedType = selectedType === "perperson" ? "perperson" : selectedType
+            return normalizedSelectedType === normalizedPriceType
+          })
+        }))
 
-    const matchesStatus = selectedStatuses.length === 0 || 
-      selectedStatuses.includes(service.isActive ? "active" : "inactive")
+    const matchesStatus =
+      selectedStatuses.length === 0 || selectedStatuses.includes(service.isActive ? "active" : "inactive")
 
     const matchesTab =
       activeTab === "all" ||
-      (activeTab === "active" && service.isActive) || 
+      (activeTab === "active" && service.isActive) ||
       (activeTab === "inactive" && !service.isActive) ||
       (activeTab === "featured" && service.featured) ||
-      (activeTab === "popular" && service.options.some(option => option.popular))
+      (activeTab === "popular" && service.options.some((option) => option.popular))
 
     return matchesSearch && matchesCategory && matchesPriceType && matchesStatus && matchesTab
   })
@@ -162,15 +164,62 @@ export default function ServicesManagementPage() {
     }
   }
 
-  // Get price display based on price type
-  const getPriceDisplay = (priceType: string, price: number) => {
-    switch (priceType) {
+  // Get price display based on price type and show lowest price
+  const getPriceDisplay = (service: Service) => {
+    if (!service.options || service.options.length === 0) {
+      return "$0"
+    }
+
+    // Find the lowest price option
+    const lowestPriceOption = service.options.reduce((lowest, current) =>
+      current.price.amount < lowest.price.amount ? current : lowest,
+    )
+
+    const price = lowestPriceOption.price.amount
+    const type = lowestPriceOption.price.type.toLowerCase()
+
+    switch (type) {
       case "hourly":
-        return `$${price}/${t("business.pricing.hourly")}`
-      case "perPerson":
-        return `$${price}/${t("business.pricing.perPerson")}`
+        return `$${price}/${t("business.pricing.hourly") || "hr"}`
+      case "perperson":
+        return `$${price}/${t("business.pricing.perPerson") || "person"}`
       case "fixed":
-        return `$${price} ${t("business.pricing.fixed")}`
+        return `$${price} ${t("business.pricing.fixed") || "fixed"}`
+      default:
+        return `$${price}`
+    }
+  }
+
+  // Get filtered price display for selected price types
+  const getFilteredPriceDisplay = (service: Service, selectedPriceTypes: string[]) => {
+    if (!service.options || service.options.length === 0 || selectedPriceTypes.length === 0) {
+      return getPriceDisplay(service)
+    }
+
+    // Filter options by selected price types
+    const filteredOptions = service.options.filter((option) =>
+      selectedPriceTypes.includes(option.price.type.toLowerCase()),
+    )
+
+    if (filteredOptions.length === 0) {
+      return getPriceDisplay(service)
+    }
+
+    // Find the lowest price among filtered options
+    const lowestPriceOption = filteredOptions.reduce((lowest, current) =>
+      current.price.amount < lowest.price.amount ? current : lowest,
+    )
+
+    const price = lowestPriceOption.price.amount
+    const type = lowestPriceOption.price.type.toLowerCase()
+
+    switch (type) {
+      case "hourly":
+        return `$${price}/${t("business.pricing.hourly") || "hr"}`
+      case "perperson":
+        return `$${price}/${t("business.pricing.perPerson") || "person"}`
+      case "fixed":
+        return `$${price} ${t("business.pricing.fixed") || "fixed"}`
       default:
         return `$${price}`
     }
@@ -180,6 +229,8 @@ export default function ServicesManagementPage() {
     setSelectedService(service)
     setIsViewModalOpen(true)
   }
+
+  console.log(services)
 
   const addOption = () => {
     const newOption: ServiceOption = {
@@ -207,15 +258,15 @@ export default function ServicesManagementPage() {
       name: { ...service.name },
       description: { ...service.description },
       type: service.type,
-      options: service.options.map(option => ({
+      options: service.options.map((option) => ({
         id: option.id,
         name: { ...option.name },
         description: { ...option.description },
         price: { ...option.price },
-        popular: option.popular || false
+        popular: option.popular || false,
       })),
       featured: service.featured || false,
-      active: service.isActive
+      active: service.isActive,
     })
     setIsEditModalOpen(true)
   }
@@ -234,7 +285,7 @@ export default function ServicesManagementPage() {
           toast({
             title: "Error",
             description: result.error || "Failed to delete service",
-            variant: "destructive"
+            variant: "destructive",
           })
         }
       } catch (error) {
@@ -242,7 +293,7 @@ export default function ServicesManagementPage() {
         toast({
           title: "Error",
           description: "Failed to delete service. Please try again.",
-          variant: "destructive"
+          variant: "destructive",
         })
       }
     }
@@ -250,7 +301,7 @@ export default function ServicesManagementPage() {
 
   const handleSaveEdit = async () => {
     if (!selectedService) return
-    
+
     try {
       const result = await serviceService.updateService(selectedService.id, editForm)
       if (result.success) {
@@ -264,7 +315,7 @@ export default function ServicesManagementPage() {
         toast({
           title: "Error",
           description: result.error || "Failed to update service",
-          variant: "destructive"
+          variant: "destructive",
         })
       }
     } catch (error) {
@@ -272,13 +323,13 @@ export default function ServicesManagementPage() {
       toast({
         title: "Error",
         description: "Failed to update service. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       })
     }
   }
 
   const addOptionToForm = () => {
-    setEditForm(prev => ({
+    setEditForm((prev) => ({
       ...prev,
       options: [
         ...prev.options,
@@ -289,37 +340,37 @@ export default function ServicesManagementPage() {
           price: {
             amount: 0,
             currency: "USD",
-            type: PricingType.FIXED
+            type: PricingType.FIXED,
           },
-          popular: false
-        }
-      ]
+          popular: false,
+        },
+      ],
     }))
   }
 
   const removeOptionFromForm = (index: number) => {
-    setEditForm(prev => ({
+    setEditForm((prev) => ({
       ...prev,
-      options: prev.options.filter((_, i) => i !== index)
+      options: prev.options.filter((_, i) => i !== index),
     }))
   }
 
   const updateOptionField = (index: number, field: string, value: any) => {
-    setEditForm(prev => {
+    setEditForm((prev) => {
       const newOptions = [...prev.options]
-      if (field.includes('.')) {
-        const [parent, child] = field.split('.')
+      if (field.includes(".")) {
+        const [parent, child] = field.split(".")
         newOptions[index] = {
           ...newOptions[index],
           [parent]: {
-            ...newOptions[index][parent as keyof typeof newOptions[typeof index]] as any,
-            [child]: value
-          }
+            ...(newOptions[index][parent as keyof (typeof newOptions)[typeof index]] as any),
+            [child]: value,
+          },
         }
       } else {
         newOptions[index] = {
           ...newOptions[index],
-          [field]: value
+          [field]: value,
         }
       }
       return { ...prev, options: newOptions }
@@ -338,17 +389,19 @@ export default function ServicesManagementPage() {
         <Button
           size="sm"
           className="bg-primary hover:bg-primary/90 text-white"
-          asChild
+          onClick={() => setIsAddServiceModalOpen(true)}
         >
-          <Link to="/business/service-new">
-            <Plus className="mr-2 h-4 w-4" />
-            {t("business.services.addService") || "Add Service"}
-          </Link>
+          <Plus className="mr-2 h-4 w-4" />
+          {t("business.services.addService") || "Add Service"}
         </Button>
       </div>
 
       {/* Service New Modal */}
-      <ServiceNewModal isOpen={isAddServiceModalOpen} onClose={() => setIsAddServiceModalOpen(false)} />
+      <ServiceNewModal
+        isOpen={isAddServiceModalOpen}
+        onClose={() => setIsAddServiceModalOpen(false)}
+        onServiceCreated={fetchServices}
+      />
 
       {/* View Service Modal */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
@@ -362,7 +415,7 @@ export default function ServicesManagementPage() {
             <div className="space-y-6">
               <div className="aspect-video overflow-hidden rounded-lg">
                 <img
-                  src={selectedService.media?.[0]?.url || "/placeholder.svg"}
+                  src={formatImageUrl(selectedService.media?.[0]?.url || "")}
                   alt={selectedService.name[language]}
                   className="h-full w-full object-cover"
                 />
@@ -377,7 +430,8 @@ export default function ServicesManagementPage() {
                 <div>
                   <h3 className="font-medium mb-2">{t("business.services.serviceType")}</h3>
                   <Badge>
-                    {getServiceTypeIcon(selectedService.type)} {t(`business.serviceNew.${selectedService.type.toLowerCase()}`) || selectedService.type}
+                    {getServiceTypeIcon(selectedService.type)}{" "}
+                    {t(`business.serviceNew.${selectedService.type.toLowerCase()}`) || selectedService.type}
                   </Badge>
                 </div>
 
@@ -388,9 +442,7 @@ export default function ServicesManagementPage() {
                       <Card key={option.id} className="p-4">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-semibold">{option.name[language]}</h4>
-                          {option.popular && (
-                            <Badge className="bg-amber-500">{t("business.services.popular")}</Badge>
-                          )}
+                          {option.popular && <Badge className="bg-amber-500">{t("business.services.popular")}</Badge>}
                         </div>
                         <p className="text-sm text-muted-foreground mb-2">{option.description[language]}</p>
                         <div className="flex items-center">
@@ -442,7 +494,9 @@ export default function ServicesManagementPage() {
               <Textarea
                 id="description-en"
                 value={editForm.description.en}
-                onChange={(e) => setEditForm({ ...editForm, description: { ...editForm.description, en: e.target.value } })}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, description: { ...editForm.description, en: e.target.value } })
+                }
                 rows={3}
               />
             </div>
@@ -452,7 +506,9 @@ export default function ServicesManagementPage() {
               <Textarea
                 id="description-sq"
                 value={editForm.description.sq}
-                onChange={(e) => setEditForm({ ...editForm, description: { ...editForm.description, sq: e.target.value } })}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, description: { ...editForm.description, sq: e.target.value } })
+                }
                 rows={3}
               />
             </div>
@@ -469,7 +525,7 @@ export default function ServicesManagementPage() {
                 <SelectContent>
                   {Object.values(ServiceType).map((type) => (
                     <SelectItem key={type} value={type}>
-                      {t(`business.serviceNew.${type.toLowerCase()}`) || type.replace('_', ' ')}
+                      {t(`business.serviceNew.${type.toLowerCase()}`) || type.replace("_", " ")}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -496,7 +552,7 @@ export default function ServicesManagementPage() {
 
             <div className="mt-4">
               <Label className="mb-2 block">{t("business.services.pricingOptions")}</Label>
-              
+
               {editForm.options.map((option, index) => (
                 <Card key={index} className="mb-4 p-4">
                   <div className="flex justify-between mb-4">
@@ -510,7 +566,7 @@ export default function ServicesManagementPage() {
                       <Trash className="h-4 w-4 text-destructive" />
                     </Button>
                   </div>
-                  
+
                   <div className="grid gap-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
@@ -518,7 +574,7 @@ export default function ServicesManagementPage() {
                         <Input
                           id={`option-name-en-${index}`}
                           value={option.name.en}
-                          onChange={(e) => updateOptionField(index, 'name.en', e.target.value)}
+                          onChange={(e) => updateOptionField(index, "name.en", e.target.value)}
                         />
                       </div>
                       <div>
@@ -526,41 +582,45 @@ export default function ServicesManagementPage() {
                         <Input
                           id={`option-name-sq-${index}`}
                           value={option.name.sq}
-                          onChange={(e) => updateOptionField(index, 'name.sq', e.target.value)}
+                          onChange={(e) => updateOptionField(index, "name.sq", e.target.value)}
                         />
                       </div>
                     </div>
-                    
+
                     <div>
                       <Label htmlFor={`option-desc-en-${index}`}>{t("business.services.optionDescription")} (EN)</Label>
                       <Textarea
                         id={`option-desc-en-${index}`}
                         value={option.description.en}
-                        onChange={(e) => updateOptionField(index, 'description.en', e.target.value)}
+                        onChange={(e) => updateOptionField(index, "description.en", e.target.value)}
                         rows={2}
                       />
                     </div>
-                    
+
                     <div>
                       <Label htmlFor={`option-desc-sq-${index}`}>{t("business.services.optionDescription")} (SQ)</Label>
                       <Textarea
                         id={`option-desc-sq-${index}`}
                         value={option.description.sq}
-                        onChange={(e) => updateOptionField(index, 'description.sq', e.target.value)}
+                        onChange={(e) => updateOptionField(index, "description.sq", e.target.value)}
                         rows={2}
                       />
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label htmlFor={`option-price-${index}`}>{t("business.services.price")}</Label>
                         <div className="relative">
-                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">$</span>
+                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+                            $
+                          </span>
                           <Input
                             id={`option-price-${index}`}
                             type="number"
                             value={option.price.amount}
-                            onChange={(e) => updateOptionField(index, 'price.amount', parseFloat(e.target.value))}
+                            onChange={(e) =>
+                              updateOptionField(index, "price.amount", Number.parseFloat(e.target.value))
+                            }
                             className="pl-7"
                           />
                         </div>
@@ -569,7 +629,7 @@ export default function ServicesManagementPage() {
                         <Label htmlFor={`option-price-type-${index}`}>{t("business.services.priceType")}</Label>
                         <Select
                           value={option.price.type}
-                          onValueChange={(value) => updateOptionField(index, 'price.type', value)}
+                          onValueChange={(value) => updateOptionField(index, "price.type", value)}
                         >
                           <SelectTrigger id={`option-price-type-${index}`}>
                             <SelectValue placeholder={t("business.services.selectPriceType")} />
@@ -577,32 +637,27 @@ export default function ServicesManagementPage() {
                           <SelectContent>
                             {Object.values(PricingType).map((type) => (
                               <SelectItem key={type} value={type}>
-                                {t(`common.${type.toLowerCase()}`) || type.replace('_', ' ')}
+                                {t(`common.${type.toLowerCase()}`) || type.replace("_", " ")}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id={`option-popular-${index}`}
                         checked={option.popular}
-                        onCheckedChange={(checked) => updateOptionField(index, 'popular', checked === true)}
+                        onCheckedChange={(checked) => updateOptionField(index, "popular", checked === true)}
                       />
                       <Label htmlFor={`option-popular-${index}`}>{t("business.services.markAsPopular")}</Label>
                     </div>
                   </div>
                 </Card>
               ))}
-              
-              <Button
-                type="button"
-                variant="outline"
-                onClick={addOptionToForm}
-                className="w-full"
-              >
+
+              <Button type="button" variant="outline" onClick={addOptionToForm} className="w-full">
                 <Plus className="h-4 w-4 mr-2" />
                 {t("business.services.addOption")}
               </Button>
@@ -680,7 +735,7 @@ export default function ServicesManagementPage() {
               <div>
                 <h3 className="font-medium mb-2">{t("business.common.price")}</h3>
                 <div className="space-y-2">
-                  {["fixed", "hourly", "perPerson"].map((priceType) => (
+                  {["fixed", "hourly", "perperson"].map((priceType) => (
                     <div key={priceType} className="flex items-center space-x-2 group">
                       <Checkbox
                         id={`price-${priceType}`}
@@ -698,7 +753,7 @@ export default function ServicesManagementPage() {
                         htmlFor={`price-${priceType}`}
                         className="text-sm cursor-pointer transition-colors group-hover:text-primary"
                       >
-                        {t(`business.pricing.${priceType}`)}
+                        {priceType === "perperson" ? "Per Person" : t(`business.pricing.${priceType}`)}
                       </label>
                     </div>
                   ))}
@@ -768,19 +823,19 @@ export default function ServicesManagementPage() {
                     >
                       <div className="aspect-video relative">
                         <img
-                          src={service.media?.[0]?.url || "/placeholder.svg"}
+                          src={formatImageUrl(service.media?.[0]?.url || "")}
                           alt={service.name[language]}
                           className="object-cover w-full h-full"
                         />
                         <Badge
                           className={`absolute top-2 right-2 ${service.isActive ? "bg-emerald-500/90 dark:bg-emerald-600/90" : "bg-muted-foreground hover:bg-muted-foreground/80"}`}
                         >
-                          {service.isActive ? t("business.venues.active") || "Active" : t("business.venues.inactive") || "Inactive"}
+                          {service.isActive
+                            ? t("business.venues.active") || "Active"
+                            : t("business.venues.inactive") || "Inactive"}
                         </Badge>
                         {service.featured && (
-                          <Badge
-                            className="absolute left-2 top-2 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-400"
-                          >
+                          <Badge className="absolute left-2 top-2 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-400">
                             {t("business.services.featured") || "Featured"}
                           </Badge>
                         )}
@@ -795,15 +850,42 @@ export default function ServicesManagementPage() {
                         <CardDescription className="line-clamp-2 mt-2">{service.description[language]}</CardDescription>
                       </CardHeader>
                       <CardContent className="p-4 pt-0">
-                        <div className="flex items-center justify-between">
-                          <Badge variant="outline">{t(`business.categories.${service.type.toLowerCase()}`)}</Badge>
+                        <div className="flex items-center justify-between mb-3">
+                          <Badge variant="outline">{t(`business.categories.${service.type}`)}</Badge>
                           <span className="font-medium">
-                            {getPriceDisplay(
-                              service.options.length > 0 ? service.options[0].price.type.toLowerCase() : 'fixed',
-                              service.options.length > 0 ? service.options[0].price.amount : 0
-                            )}
+                            {selectedPriceTypes.length > 0
+                              ? getFilteredPriceDisplay(service, selectedPriceTypes)
+                              : getPriceDisplay(service)}
                           </span>
                         </div>
+
+                        {/* Show service options count and types */}
+                        {service.options && service.options.length > 0 && (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm text-muted-foreground">
+                              <span>
+                                {service.options.length} option{service.options.length > 1 ? "s" : ""} available
+                              </span>
+                            </div>
+
+                            {/* Show price types available */}
+                            <div className="flex flex-wrap gap-1">
+                              {[...new Set(service.options.map((opt) => opt.price.type))].map((priceType) => (
+                                <Badge key={priceType} variant="secondary" className="text-xs">
+                                  {t(`common.${priceType.toLowerCase()}`) || priceType}
+                                </Badge>
+                              ))}
+                            </div>
+
+                            {/* Show price range if multiple options */}
+                            {service.options.length > 1 && (
+                              <div className="text-xs text-muted-foreground">
+                                Range: ${Math.min(...service.options.map((opt) => opt.price.amount))} - $
+                                {Math.max(...service.options.map((opt) => opt.price.amount))}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </CardContent>
                       <CardFooter className="p-4 pt-0 flex gap-2">
                         <Button
@@ -862,14 +944,16 @@ export default function ServicesManagementPage() {
                     >
                       <div className="aspect-video relative">
                         <img
-                          src={service.media?.[0]?.url || "/placeholder.svg"}
+                          src={formatImageUrl(service.media?.[0]?.url || "")}
                           alt={service.name[language]}
                           className="object-cover w-full h-full"
                         />
                         <Badge
                           className={`absolute top-2 right-2 ${service.isActive ? "bg-emerald-500/90 dark:bg-emerald-600/90" : "bg-muted-foreground hover:bg-muted-foreground/80"}`}
                         >
-                          {service.isActive ? t("business.venues.active") || "Active" : t("business.venues.inactive") || "Inactive"}
+                          {service.isActive
+                            ? t("business.venues.active") || "Active"
+                            : t("business.venues.inactive") || "Inactive"}
                         </Badge>
                       </div>
                       <CardHeader className="p-4">
@@ -882,15 +966,42 @@ export default function ServicesManagementPage() {
                         <CardDescription className="line-clamp-2 mt-2">{service.description[language]}</CardDescription>
                       </CardHeader>
                       <CardContent className="p-4 pt-0">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between mb-3">
                           <Badge variant="outline">{t(`business.categories.${service.type.toLowerCase()}`)}</Badge>
                           <span className="font-medium">
-                            {getPriceDisplay(
-                              service.options.length > 0 ? service.options[0].price.type.toLowerCase() : 'fixed',
-                              service.options.length > 0 ? service.options[0].price.amount : 0
-                            )}
+                            {selectedPriceTypes.length > 0
+                              ? getFilteredPriceDisplay(service, selectedPriceTypes)
+                              : getPriceDisplay(service)}
                           </span>
                         </div>
+
+                        {/* Show service options count and types */}
+                        {service.options && service.options.length > 0 && (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm text-muted-foreground">
+                              <span>
+                                {service.options.length} option{service.options.length > 1 ? "s" : ""} available
+                              </span>
+                            </div>
+
+                            {/* Show price types available */}
+                            <div className="flex flex-wrap gap-1">
+                              {[...new Set(service.options.map((opt) => opt.price.type))].map((priceType) => (
+                                <Badge key={priceType} variant="secondary" className="text-xs">
+                                  {t(`common.${priceType.toLowerCase()}`) || priceType}
+                                </Badge>
+                              ))}
+                            </div>
+
+                            {/* Show price range if multiple options */}
+                            {service.options.length > 1 && (
+                              <div className="text-xs text-muted-foreground">
+                                Range: ${Math.min(...service.options.map((opt) => opt.price.amount))} - $
+                                {Math.max(...service.options.map((opt) => opt.price.amount))}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </CardContent>
                       <CardFooter className="p-4 pt-0 flex gap-2">
                         <Button
@@ -949,14 +1060,16 @@ export default function ServicesManagementPage() {
                     >
                       <div className="aspect-video relative">
                         <img
-                          src={service.media?.[0]?.url || "/placeholder.svg"}
+                          src={formatImageUrl(service.media?.[0]?.url || "")}
                           alt={service.name[language]}
                           className="object-cover w-full h-full"
                         />
                         <Badge
                           className={`absolute top-2 right-2 ${service.isActive ? "bg-emerald-500/90 dark:bg-emerald-600/90" : "bg-muted-foreground hover:bg-muted-foreground/80"}`}
                         >
-                          {service.isActive ? t("business.venues.active") || "Active" : t("business.venues.inactive") || "Inactive"}
+                          {service.isActive
+                            ? t("business.venues.active") || "Active"
+                            : t("business.venues.inactive") || "Inactive"}
                         </Badge>
                       </div>
                       <CardHeader className="p-4">
@@ -969,15 +1082,42 @@ export default function ServicesManagementPage() {
                         <CardDescription className="line-clamp-2 mt-2">{service.description[language]}</CardDescription>
                       </CardHeader>
                       <CardContent className="p-4 pt-0">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between mb-3">
                           <Badge variant="outline">{t(`business.categories.${service.type.toLowerCase()}`)}</Badge>
                           <span className="font-medium">
-                            {getPriceDisplay(
-                              service.options.length > 0 ? service.options[0].price.type.toLowerCase() : 'fixed',
-                              service.options.length > 0 ? service.options[0].price.amount : 0
-                            )}
+                            {selectedPriceTypes.length > 0
+                              ? getFilteredPriceDisplay(service, selectedPriceTypes)
+                              : getPriceDisplay(service)}
                           </span>
                         </div>
+
+                        {/* Show service options count and types */}
+                        {service.options && service.options.length > 0 && (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm text-muted-foreground">
+                              <span>
+                                {service.options.length} option{service.options.length > 1 ? "s" : ""} available
+                              </span>
+                            </div>
+
+                            {/* Show price types available */}
+                            <div className="flex flex-wrap gap-1">
+                              {[...new Set(service.options.map((opt) => opt.price.type))].map((priceType) => (
+                                <Badge key={priceType} variant="secondary" className="text-xs">
+                                  {t(`common.${priceType.toLowerCase()}`) || priceType}
+                                </Badge>
+                              ))}
+                            </div>
+
+                            {/* Show price range if multiple options */}
+                            {service.options.length > 1 && (
+                              <div className="text-xs text-muted-foreground">
+                                Range: ${Math.min(...service.options.map((opt) => opt.price.amount))} - $
+                                {Math.max(...service.options.map((opt) => opt.price.amount))}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </CardContent>
                       <CardFooter className="p-4 pt-0 flex gap-2">
                         <Button

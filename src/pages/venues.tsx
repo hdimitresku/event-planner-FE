@@ -2,7 +2,7 @@
 
 import React from "react"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Slider } from "../components/ui/slider"
@@ -27,14 +27,20 @@ import {
   ChevronLeft,
   ChevronRight,
   CalendarIcon,
+  Building2,
+  Home,
+  Warehouse,
+  Trees,
+  Mountain,
+  Bath,
 } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams, useNavigate } from "react-router-dom"
 import { useLanguage } from "../context/language-context"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
-import { type VenueSummary, VenueType, VenueAmenity } from "../models/venue"
+import type { VenueSummary } from "../models/venue"
 import { PricingType } from "../models/common"
 import * as venueService from "../services/venueService"
 import { useFavorites } from "../context/favorites-context"
@@ -44,23 +50,23 @@ import type { CarouselApi } from "@/components/ui/carousel"
 // Define price type interface
 type PriceType = "hourly" | "perPerson" | "fixed" | "custom"
 
-// Define venue interface with price type
-interface Venue {
-  id: number
-  name: {
-    en: string
-    sq: string
-  }
-  location: {
-    en: string
-    sq: string
-  }
-  rating: number
-  reviews: number
-  price: number
-  priceType: PriceType
-  type: string
-  amenities: string[]
+// Updated venue types to match API data
+const VENUE_TYPES = {
+  meetingRoom: "Meeting Room",
+  ballroom: "Ballroom",
+  loft: "Loft",
+  garden: "Garden",
+  rooftop: "Rooftop",
+}
+
+// Updated amenities to match API data
+const VENUE_AMENITIES = {
+  wifi: { label: "WiFi", icon: Wifi },
+  parking: { label: "Parking", icon: Parking },
+  sound_system: { label: "Sound System", icon: Music },
+  kitchen: { label: "Kitchen", icon: Utensils },
+  av_equipment: { label: "AV Equipment", icon: Tv },
+  bathroom: { label: "Bathroom", icon: Bath },
 }
 
 // Format image URL to handle relative paths
@@ -87,6 +93,47 @@ const getVenueRating = (venue: VenueSummary) => {
   return {
     average: Number.parseFloat(average.toFixed(1)),
     count: venue.reviews.length,
+  }
+}
+
+// Check if a date is blocked for a venue
+const isDateBlocked = (venue: VenueSummary, dateStr: string) => {
+  if (!venue.metadata?.blockedDates || !dateStr) return false
+
+  // Convert the date string to a Date object for comparison
+  const selectedDate = new Date(dateStr)
+  selectedDate.setHours(0, 0, 0, 0) // Normalize to start of day
+
+  return venue.metadata.blockedDates.some((blockedDate) => {
+    // Handle different date formats in the API
+    const startDate =
+      typeof blockedDate.startDate === "string" ? new Date(blockedDate.startDate) : new Date(blockedDate.startDate)
+
+    const endDate =
+      typeof blockedDate.endDate === "string" ? new Date(blockedDate.endDate) : new Date(blockedDate.endDate)
+
+    startDate.setHours(0, 0, 0, 0)
+    endDate.setHours(23, 59, 59, 999)
+
+    return selectedDate >= startDate && selectedDate <= endDate
+  })
+}
+
+// Get venue type icon
+const getVenueTypeIcon = (type: string) => {
+  switch (type) {
+    case "meetingRoom":
+      return Building2
+    case "ballroom":
+      return Warehouse
+    case "loft":
+      return Home
+    case "garden":
+      return Trees
+    case "rooftop":
+      return Mountain
+    default:
+      return Building2
   }
 }
 
@@ -124,20 +171,7 @@ const VenueCard = ({ venue, language, t }) => {
 
   // Function to get venue type display name
   const getVenueTypeDisplay = (type: string) => {
-    switch (type) {
-      case VenueType.MEETING_ROOM:
-        return t("business.venueTypes.meetingRoom")
-      case VenueType.PARTY_VENUE:
-        return t("business.venueTypes.ballroom")
-      case VenueType.PHOTOGRAPHY_STUDIO:
-        return t("business.venueTypes.loft")
-      case VenueType.WEDDING_VENUE:
-        return t("business.venueTypes.ballroom")
-      case VenueType.OUTDOOR_SPACE:
-        return t("business.venueTypes.garden")
-      default:
-        return type
-    }
+    return VENUE_TYPES[type] || type
   }
 
   // Get price display based on price type and language
@@ -172,8 +206,22 @@ const VenueCard = ({ venue, language, t }) => {
     }
   }
 
+  // Get guest capacity display
+  const getGuestCapacity = (venue: VenueSummary) => {
+    if (!venue.capacity) return null
+
+    if (venue.capacity.min === venue.capacity.max) {
+      return `${venue.capacity.min} guests`
+    }
+
+    return `${venue.capacity.min}-${venue.capacity.max} guests`
+  }
+
+  // Get venue type icon component
+  const VenueTypeIcon = getVenueTypeIcon(venue.type)
+
   return (
-    <div className="flex flex-col h-[380px] bg-card rounded-xl overflow-hidden venue-card group transition-all duration-300">
+    <div className="flex flex-col h-[400px] bg-card rounded-xl overflow-hidden venue-card group transition-all duration-300">
       {/* Image Carousel - Top Half */}
       <div className="relative h-[190px] w-full overflow-hidden">
         {venue.media && venue.media.length > 0 ? (
@@ -200,7 +248,7 @@ const VenueCard = ({ venue, language, t }) => {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            
+
             {/* Custom navigation buttons */}
             <div className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <CarouselPrevious className="h-8 w-8 bg-white/90 hover:bg-white border-none shadow-soft" />
@@ -211,34 +259,38 @@ const VenueCard = ({ venue, language, t }) => {
           </Carousel>
         ) : (
           <div className="h-full w-full relative">
-            <img 
-              src="/placeholder.svg" 
-              alt={venue.name[language]} 
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" 
+            <img
+              src="/placeholder.svg"
+              alt={venue.name[language]}
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
           </div>
         )}
-        
-        {/* Price type badge */}
+
+        {/* Price type badge - More visible */}
         <div className="absolute top-3 left-3 z-10">
-          <Badge className="bg-white/95 text-foreground font-medium shadow-soft border-0">
+          <Badge className="bg-primary text-primary-foreground font-medium shadow-lg border-0 px-3 py-1">
             {getPriceTypeBadge(venue.price.type)}
           </Badge>
         </div>
-        
-        {/* Venue type badge */}
+
+        {/* Venue type badge - Updated for better visibility */}
         <div className="absolute bottom-3 left-3 z-10">
-          <Badge variant="outline" className="bg-black/70 text-white border-none font-medium shadow-soft">
+          <Badge
+            variant="secondary"
+            className="bg-secondary text-secondary-foreground border-none font-medium shadow-lg px-3 py-1 hover:bg-secondary/80 transition-colors flex items-center gap-1.5"
+          >
+            <VenueTypeIcon className="h-3.5 w-3.5" />
             {getVenueTypeDisplay(venue.type)}
           </Badge>
         </div>
-        
+
         {/* Favorite button */}
         <Button
           variant="ghost"
           size="icon"
-          className={`absolute right-3 top-3 h-8 w-8 rounded-full z-10 shadow-soft transition-all duration-200 ${
+          className={`absolute right-3 top-3 h-8 w-8 rounded-full z-10 shadow-lg transition-all duration-200 ${
             isFavorite(venue.id)
               ? "bg-white text-red-500 hover:text-red-600 hover:bg-white"
               : "bg-white/90 text-muted-foreground hover:text-red-500 hover:bg-white"
@@ -259,12 +311,20 @@ const VenueCard = ({ venue, language, t }) => {
         <h3 className="font-semibold text-lg text-card-foreground group-hover:text-primary transition-colors line-clamp-1">
           {venue.name[language]}
         </h3>
-        
+
         <div className="flex items-center text-sm text-muted-foreground">
           <MapPin className="flex-shrink-0 mr-1 h-3.5 w-3.5" />
           <span className="truncate">{venue.address ? `${venue.address.city}, ${venue.address.country}` : ""}</span>
         </div>
-        
+
+        {/* Guest capacity */}
+        {getGuestCapacity(venue) && (
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Users className="flex-shrink-0 mr-1 h-3.5 w-3.5" />
+            <span>{getGuestCapacity(venue)}</span>
+          </div>
+        )}
+
         <div className="flex items-center">
           <div className="flex items-center">
             <Star className="flex-shrink-0 h-4 w-4 text-amber-500 mr-1 fill-current" />
@@ -274,7 +334,7 @@ const VenueCard = ({ venue, language, t }) => {
             ({rating.count} {t("business.bookings.reviews")})
           </span>
         </div>
-        
+
         <div className="mt-auto">
           <p className="font-semibold text-primary text-lg">{getPriceDisplay(venue)}</p>
         </div>
@@ -285,13 +345,18 @@ const VenueCard = ({ venue, language, t }) => {
 
 export default function VenuesPage() {
   const { t, language } = useLanguage()
-  const [priceRange, setPriceRange] = useState<number[]>([250])
+  const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
+
+  // Initialize state from URL parameters
+  const [priceRange, setPriceRange] = useState<number[]>([1000])
+  const [usePriceFilter, setUsePriceFilter] = useState(false)
   const [venueTypes, setVenueTypes] = useState<Record<string, boolean>>({
-    [VenueType.MEETING_ROOM]: false,
-    [VenueType.PARTY_VENUE]: false,
-    [VenueType.PHOTOGRAPHY_STUDIO]: false,
-    [VenueType.WEDDING_VENUE]: false,
-    [VenueType.OUTDOOR_SPACE]: false,
+    meetingRoom: false,
+    ballroom: false,
+    loft: false,
+    garden: false,
+    rooftop: false,
   })
   const [priceTypes, setPriceTypes] = useState<Record<PricingType, boolean>>({
     [PricingType.HOURLY]: false,
@@ -301,35 +366,52 @@ export default function VenuesPage() {
     [PricingType.PER_DAY]: false,
   })
   const [amenities, setAmenities] = useState<Record<string, boolean>>({
-    [VenueAmenity.WIFI]: false,
-    [VenueAmenity.PARKING]: false,
-    [VenueAmenity.SOUND_SYSTEM]: false,
-    [VenueAmenity.KITCHEN]: false,
-    [VenueAmenity.AV_EQUIPMENT]: false,
+    wifi: false,
+    parking: false,
+    sound_system: false,
+    kitchen: false,
+    av_equipment: false,
+    bathroom: false,
   })
-  const [searchParams, setSearchParams] = useState({
+  const [searchFilters, setSearchFilters] = useState({
     location: "",
     date: "",
     guests: "",
   })
   const [venues, setVenues] = useState<VenueSummary[]>([])
   const [loading, setLoading] = useState(true)
-  const [pagination, setPagination] = useState({
-    total: 0,
-    page: 1,
-    limit: 10,
-  })
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalVenues, setTotalVenues] = useState(0)
+  const venuesPerPage = 9
 
+  const [date, setDate] = React.useState<Date>()
+
+  // Initialize filters from URL parameters on component mount
   useEffect(() => {
-    fetchVenues()
-  }, [])
+    const location = searchParams.get("location") || ""
+    const dateParam = searchParams.get("date") || ""
+    const guests = searchParams.get("guests") || ""
 
-  const fetchVenues = async () => {
+    setSearchFilters({
+      location,
+      date: dateParam,
+      guests,
+    })
+
+    if (dateParam) {
+      setDate(new Date(dateParam))
+    }
+
+    fetchVenues()
+  }, [searchParams])
+
+  const fetchVenues = async (page = 1) => {
     setLoading(true)
     try {
       const selectedVenueTypes = Object.entries(venueTypes)
         .filter(([_, selected]) => selected)
-        .map(([type]) => type as VenueType)
+        .map(([type]) => type)
 
       const selectedPriceTypes = Object.entries(priceTypes)
         .filter(([_, selected]) => selected)
@@ -337,26 +419,25 @@ export default function VenuesPage() {
 
       const selectedAmenities = Object.entries(amenities)
         .filter(([_, selected]) => selected)
-        .map(([amenity]) => amenity as VenueAmenity)
+        .map(([amenity]) => amenity)
 
       const filters = {
-        priceMax: priceRange[0],
+        priceMax: usePriceFilter ? priceRange[0] : undefined,
         venueTypes: selectedVenueTypes.length > 0 ? selectedVenueTypes : undefined,
-        priceTypes: selectedPriceTypes.length > 0.0 ? selectedPriceTypes : undefined,
+        priceTypes: selectedPriceTypes.length > 0 ? selectedPriceTypes : undefined,
         amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
-        location: searchParams.location || undefined,
-        guests: searchParams.guests ? Number.parseInt(searchParams.guests) : undefined,
-        page: pagination.page,
-        limit: pagination.limit,
+        location: searchFilters.location || undefined,
+        guests: searchFilters.guests ? Number.parseInt(searchFilters.guests) : undefined,
+        date: searchFilters.date || undefined,
+        page: page,
+        limit: venuesPerPage,
       }
 
       const result = await venueService.getVenues(filters)
-      setVenues(result)
-      setPagination({
-        total: result.total,
-        page: result.page,
-        limit: result.limit,
-      })
+      setVenues(result.data || result)
+      setTotalVenues(result.total || result.length)
+      setTotalPages(Math.ceil((result.total || result.length) / venuesPerPage))
+      setCurrentPage(page)
     } catch (error) {
       console.error("Error fetching venues:", error)
     } finally {
@@ -364,17 +445,15 @@ export default function VenuesPage() {
     }
   }
 
-  const [date, setDate] = React.useState<Date>()
-
-  // Filter venues based on selected filters
+  // Filter venues based on selected filters (client-side filtering for immediate feedback)
   const filteredVenues = venues.filter((venue) => {
-    // Price filter
-    if (venue.price.amount > priceRange[0]) return false
+    // Price filter - only apply if user has enabled it
+    if (usePriceFilter && venue.price.amount > priceRange[0]) return false
 
     // Venue type filter
     const selectedTypes = Object.entries(venueTypes)
       .filter(([_, selected]) => selected)
-      .map(([type]) => type as VenueType)
+      .map(([type]) => type)
     if (selectedTypes.length > 0 && !selectedTypes.includes(venue.type)) return false
 
     // Price type filter
@@ -386,18 +465,31 @@ export default function VenuesPage() {
     // Amenities filter
     const selectedAmenities = Object.entries(amenities)
       .filter(([_, selected]) => selected)
-      .map(([amenity]) => amenity as VenueAmenity)
+      .map(([amenity]) => amenity)
     if (selectedAmenities.length > 0 && !selectedAmenities.every((amenity) => venue.amenities.includes(amenity)))
       return false
 
     // Search filters
     if (
-      searchParams.location &&
+      searchFilters.location &&
       venue.address &&
-      !venue.address.city.toLowerCase().includes(searchParams.location.toLowerCase()) &&
-      !venue.address.country.toLowerCase().includes(searchParams.location.toLowerCase())
+      !venue.address.city.toLowerCase().includes(searchFilters.location.toLowerCase()) &&
+      !venue.address.country.toLowerCase().includes(searchFilters.location.toLowerCase())
     )
       return false
+
+    // Guest capacity filter
+    if (searchFilters.guests) {
+      const guestCount = Number.parseInt(searchFilters.guests)
+      if (venue.capacity && (guestCount < venue.capacity.min || guestCount > venue.capacity.max)) {
+        return false
+      }
+    }
+
+    // Date filter - check if the date is blocked
+    if (searchFilters.date && isDateBlocked(venue, searchFilters.date)) {
+      return false
+    }
 
     return true
   })
@@ -416,34 +508,45 @@ export default function VenuesPage() {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setSearchParams((prev) => ({ ...prev, [name]: value }))
+    setSearchFilters((prev) => ({ ...prev, [name]: value }))
   }
-
-  const selectedDate = searchParams.date ? new Date(searchParams.date) : ""
 
   const handleDateChange = (date: Date | undefined) => {
     setDate(date)
-    handleSearchChange({
-      target: {
-        name: "date",
-        value: date ? format(date, "yyyy-MM-dd") : "",
-      },
-    } as React.ChangeEvent<HTMLInputElement>)
+    setSearchFilters((prev) => ({
+      ...prev,
+      date: date ? format(date, "yyyy-MM-dd") : "",
+    }))
   }
 
   const handleSearch = () => {
-    pagination.page = 1
-    fetchVenues()
+    setCurrentPage(1)
+    fetchVenues(1)
+
+    // Update URL parameters
+    const params = new URLSearchParams()
+    if (searchFilters.location) params.set("location", searchFilters.location)
+    if (searchFilters.date) params.set("date", searchFilters.date)
+    if (searchFilters.guests) params.set("guests", searchFilters.guests)
+    setSearchParams(params)
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    fetchVenues(page)
+    // Scroll to top when changing pages
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   const clearAllFilters = () => {
-    setPriceRange([250])
+    setPriceRange([1000])
+    setUsePriceFilter(false)
     setVenueTypes({
-      [VenueType.MEETING_ROOM]: false,
-      [VenueType.PARTY_VENUE]: false,
-      [VenueType.PHOTOGRAPHY_STUDIO]: false,
-      [VenueType.WEDDING_VENUE]: false,
-      [VenueType.OUTDOOR_SPACE]: false,
+      meetingRoom: false,
+      ballroom: false,
+      loft: false,
+      garden: false,
+      rooftop: false,
     })
     setPriceTypes({
       [PricingType.HOURLY]: false,
@@ -453,17 +556,52 @@ export default function VenuesPage() {
       [PricingType.PER_DAY]: false,
     })
     setAmenities({
-      [VenueAmenity.WIFI]: false,
-      [VenueAmenity.PARKING]: false,
-      [VenueAmenity.SOUND_SYSTEM]: false,
-      [VenueAmenity.KITCHEN]: false,
-      [VenueAmenity.AV_EQUIPMENT]: false,
+      wifi: false,
+      parking: false,
+      sound_system: false,
+      kitchen: false,
+      av_equipment: false,
+      bathroom: false,
     })
-    setSearchParams({
+    setSearchFilters({
       location: "",
       date: "",
       guests: "",
     })
+    setDate(undefined)
+    setCurrentPage(1)
+    // Clear URL parameters
+    setSearchParams({})
+  }
+
+  // Generate pagination buttons
+  const generatePaginationButtons = () => {
+    const buttons = []
+    const maxVisiblePages = 5
+
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+
+    // Adjust start page if we're near the end
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1)
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      buttons.push(
+        <Button
+          key={i}
+          variant={currentPage === i ? "default" : "outline"}
+          size="sm"
+          className={`h-8 w-8 ${currentPage === i ? "btn-primary" : "border-primary text-primary hover:bg-primary/10"}`}
+          onClick={() => handlePageChange(i)}
+        >
+          {i}
+        </Button>,
+      )
+    }
+
+    return buttons
   }
 
   return (
@@ -498,14 +636,14 @@ export default function VenuesPage() {
                   <Input
                     id="location"
                     name="location"
-                    value={searchParams.location}
+                    value={searchFilters.location}
                     onChange={handleSearchChange}
                     className="border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
                     placeholder={t("venues.searchBar.locationPlaceholder") || "City, neighborhood, or address"}
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium text-card-foreground" htmlFor="date">
                   {t("venues.searchBar.date") || "Date"}
@@ -537,7 +675,7 @@ export default function VenuesPage() {
                   </Popover>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium text-card-foreground" htmlFor="guests">
                   {t("venues.searchBar.guests") || "Guests"}
@@ -547,7 +685,7 @@ export default function VenuesPage() {
                   <Input
                     id="guests"
                     name="guests"
-                    value={searchParams.guests}
+                    value={searchFilters.guests}
                     onChange={handleSearchChange}
                     className="border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     type="number"
@@ -555,7 +693,7 @@ export default function VenuesPage() {
                   />
                 </div>
               </div>
-              
+
               <Button className="w-full btn-primary" onClick={handleSearch}>
                 <Search className="mr-2 h-4 w-4" /> {t("venues.searchBar.button") || "Search"}
               </Button>
@@ -578,18 +716,35 @@ export default function VenuesPage() {
                 {t("venues.filters.clearAll") || "Clear All"}
               </Button>
             </div>
-            
+
             <div className="space-y-6">
               {/* Price Range */}
               <div className="space-y-3">
-                <h3 className="text-sm font-medium text-card-foreground">
-                  {t("venues.filters.priceRange") || "Price Range"}
-                </h3>
-                <Slider value={priceRange} onValueChange={setPriceRange} max={500} step={10} className="py-2" />
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-card-foreground">
+                    {t("venues.filters.priceRange") || "Price Range"}
+                  </h3>
+                  <Checkbox
+                    id="use-price-filter"
+                    checked={usePriceFilter}
+                    onCheckedChange={setUsePriceFilter}
+                    className="checkbox-modern"
+                  />
+                </div>
+                <Slider
+                  value={priceRange}
+                  onValueChange={setPriceRange}
+                  max={1000}
+                  step={10}
+                  className="py-2"
+                  disabled={!usePriceFilter}
+                />
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <div className="font-medium">$0</div>
-                  <div className="font-medium text-primary">${priceRange[0]}</div>
-                  <div className="font-medium">$500</div>
+                  <div className={`font-medium ${usePriceFilter ? "text-primary" : "text-muted-foreground"}`}>
+                    ${priceRange[0]}
+                  </div>
+                  <div className="font-medium">$1000</div>
                 </div>
               </div>
 
@@ -649,24 +804,10 @@ export default function VenuesPage() {
 
               {/* Venue Types */}
               <div className="space-y-3">
-                <h3 className="text-sm font-medium text-card-foreground">
-                  {t("venues.venueType") || "Venue Type"}
-                </h3>
+                <h3 className="text-sm font-medium text-card-foreground">{t("venues.venueType") || "Venue Type"}</h3>
                 <div className="space-y-3">
-                  {Object.keys(venueTypes).map((type) => {
-                    const typeKey =
-                      type === VenueType.MEETING_ROOM
-                        ? "meetingRoom"
-                        : type === VenueType.PARTY_VENUE
-                          ? "ballroom"
-                          : type === VenueType.PHOTOGRAPHY_STUDIO
-                            ? "loft"
-                            : type === VenueType.WEDDING_VENUE
-                              ? "ballroom"
-                              : type === VenueType.OUTDOOR_SPACE
-                                ? "garden"
-                                : "other"
-
+                  {Object.entries(VENUE_TYPES).map(([type, label]) => {
+                    const TypeIcon = getVenueTypeIcon(type)
                     return (
                       <div key={type} className="flex items-center space-x-3">
                         <Checkbox
@@ -677,9 +818,10 @@ export default function VenuesPage() {
                         />
                         <label
                           htmlFor={`type-${type}`}
-                          className="text-sm font-medium text-card-foreground hover:text-primary transition-colors cursor-pointer"
+                          className="flex items-center text-sm font-medium text-card-foreground hover:text-primary transition-colors cursor-pointer"
                         >
-                          {t(`business.venueTypes.${typeKey}`)}
+                          <TypeIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                          {label}
                         </label>
                       </div>
                     )
@@ -689,45 +831,29 @@ export default function VenuesPage() {
 
               {/* Amenities */}
               <div className="space-y-3">
-                <h3 className="text-sm font-medium text-card-foreground">
-                  {t("venues.amenities") || "Amenities"}
-                </h3>
+                <h3 className="text-sm font-medium text-card-foreground">{t("venues.amenities") || "Amenities"}</h3>
                 <div className="space-y-3">
-                  {[
-                    { label: t("venues.amenities.wifi") || "WiFi", icon: Wifi, key: VenueAmenity.WIFI },
-                    { label: t("venues.amenities.parking") || "Parking", icon: Parking, key: VenueAmenity.PARKING },
-                    {
-                      label: t("venues.amenities.soundSystem") || "Sound System",
-                      icon: Music,
-                      key: VenueAmenity.SOUND_SYSTEM,
-                    },
-                    { label: t("venues.amenities.kitchen") || "Kitchen", icon: Utensils, key: VenueAmenity.KITCHEN },
-                    {
-                      label: t("venues.amenities.avEquipment") || "AV Equipment",
-                      icon: Tv,
-                      key: VenueAmenity.AV_EQUIPMENT,
-                    },
-                  ].map((amenity) => (
-                    <div key={amenity.key} className="flex items-center space-x-3">
+                  {Object.entries(VENUE_AMENITIES).map(([key, { label, icon: Icon }]) => (
+                    <div key={key} className="flex items-center space-x-3">
                       <Checkbox
-                        id={`amenity-${amenity.key}`}
-                        checked={amenities[amenity.key]}
-                        onCheckedChange={(checked) => handleAmenityChange(amenity.key, checked === true)}
+                        id={`amenity-${key}`}
+                        checked={amenities[key]}
+                        onCheckedChange={(checked) => handleAmenityChange(key, checked === true)}
                         className="checkbox-modern"
                       />
                       <label
-                        htmlFor={`amenity-${amenity.key}`}
+                        htmlFor={`amenity-${key}`}
                         className="flex items-center text-sm font-medium text-card-foreground hover:text-primary transition-colors cursor-pointer"
                       >
-                        <amenity.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-                        {amenity.label}
+                        <Icon className="mr-2 h-4 w-4 text-muted-foreground" />
+                        {label}
                       </label>
                     </div>
                   ))}
                 </div>
               </div>
-              
-              <Button className="w-full btn-primary">
+
+              <Button className="w-full btn-primary" onClick={handleSearch}>
                 <Filter className="mr-2 h-4 w-4" /> {t("venues.filters.applyFilters") || "Apply Filters"}
               </Button>
             </div>
@@ -738,9 +864,13 @@ export default function VenuesPage() {
         <div className="space-y-6">
           {/* Results Header */}
           <div className="flex items-center justify-between bg-card rounded-xl border shadow-soft p-6">
-            <h1 className="text-2xl font-bold text-card-foreground">
-              {t("venues.title") || "Venues in New York"}
-            </h1>
+            <div>
+              <h1 className="text-2xl font-bold text-card-foreground">{t("venues.title") || "Venues"}</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Showing {venues.length > 0 ? (currentPage - 1) * venuesPerPage + 1 : 0}-
+                {Math.min(currentPage * venuesPerPage, totalVenues)} of {totalVenues} venues
+              </p>
+            </div>
             <div>
               <Select defaultValue="recommended">
                 <SelectTrigger className="w-[180px] form-input">
@@ -756,24 +886,37 @@ export default function VenuesPage() {
             </div>
           </div>
 
+          {/* Loading State */}
+          {loading && (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {[...Array(9)].map((_, i) => (
+                <div key={i} className="bg-card rounded-xl border shadow-soft p-6 animate-pulse">
+                  <div className="h-48 bg-muted rounded-lg mb-4"></div>
+                  <div className="h-4 bg-muted rounded mb-2"></div>
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Venue Grid */}
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredVenues.map((venue) => (
-              <Link to={`/venues/${venue.id}`} key={venue.id} className="group">
-                <VenueCard venue={venue} language={language} t={t} />
-              </Link>
-            ))}
-          </div>
+          {!loading && (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredVenues.map((venue) => (
+                <Link to={`/venues/${venue.id}`} key={venue.id} className="group">
+                  <VenueCard venue={venue} language={language} t={t} />
+                </Link>
+              ))}
+            </div>
+          )}
 
           {/* No Results */}
-          {filteredVenues.length === 0 && (
+          {!loading && filteredVenues.length === 0 && (
             <div className="text-center py-16 bg-muted/30 rounded-xl border border-dashed">
               <div className="h-16 w-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <Search className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-lg font-medium text-foreground mb-2">
-                {t("venues.noResults") || "No venues found"}
-              </h3>
+              <h3 className="text-lg font-medium text-foreground mb-2">{t("venues.noResults") || "No venues found"}</h3>
               <p className="text-muted-foreground mb-6">
                 {t("venues.tryAdjusting") || "Try adjusting your filters or search criteria"}
               </p>
@@ -788,37 +931,26 @@ export default function VenuesPage() {
           )}
 
           {/* Pagination */}
-          {filteredVenues.length > 0 && (
+          {!loading && filteredVenues.length > 0 && totalPages > 1 && (
             <div className="flex items-center justify-center space-x-2 mt-8">
               <Button
                 variant="outline"
                 size="icon"
-                disabled
-                className="border-primary/20 text-muted-foreground"
+                disabled={currentPage === 1}
+                className="border-primary/20 text-muted-foreground disabled:opacity-50"
+                onClick={() => handlePageChange(currentPage - 1)}
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button variant="default" size="sm" className="h-8 w-8 btn-primary" disabled>
-                1
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 w-8 border-primary text-primary hover:bg-primary/10"
-              >
-                2
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 w-8 border-primary text-primary hover:bg-primary/10"
-              >
-                3
-              </Button>
+
+              {generatePaginationButtons()}
+
               <Button
                 variant="outline"
                 size="icon"
-                className="border-primary text-primary hover:bg-primary/10"
+                disabled={currentPage === totalPages}
+                className="border-primary text-primary hover:bg-primary/10 disabled:opacity-50"
+                onClick={() => handlePageChange(currentPage + 1)}
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>

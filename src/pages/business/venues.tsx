@@ -27,7 +27,7 @@ import { PricingType } from "../../models/common"
 import { toast } from "../../components/ui/use-toast"
 
 export default function BusinessVenuesPage() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [isAddVenueModalOpen, setIsAddVenueModalOpen] = useState(false)
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
@@ -65,13 +65,25 @@ export default function BusinessVenuesPage() {
     fetchVenues()
   }, [])
 
+  // Format image URL to handle relative paths
+  const formatImageUrl = (url: string) => {
+    if (!url) return "/placeholder.svg"
+
+    // If it's already an absolute URL, return it as is
+    if (url.startsWith("http")) return url
+
+    // If it's a relative path, prepend the API URL
+    const apiUrl = import.meta.env.VITE_API_IMAGE_URL || process.env.REACT_APP_API_IMAGE_URL || ""
+    return `${apiUrl}/${url.replace(/\\/g, "/")}`
+  }
+
   const fetchVenues = async () => {
     setLoading(true)
     try {
       // Get all venues
       // For each venue summary, get the full venue details
       const venueDetails = await venueService.getVenueByOwner()
-      
+
       setVenues(venueDetails.filter((v): v is Venue => v !== null))
     } catch (error) {
       console.error("Error fetching venues:", error)
@@ -88,10 +100,12 @@ export default function BusinessVenuesPage() {
   // Filter venues based on search query and status
   const filteredVenues = venues.filter((venue) => {
     const matchesSearch =
+      venue.name[language]?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       venue.name.en.toLowerCase().includes(searchQuery.toLowerCase()) ||
       venue.name.sq.toLowerCase().includes(searchQuery.toLowerCase()) ||
       venue.address.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
       venue.address.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      venue.description[language]?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       venue.description.en.toLowerCase().includes(searchQuery.toLowerCase()) ||
       venue.description.sq.toLowerCase().includes(searchQuery.toLowerCase())
 
@@ -231,7 +245,7 @@ export default function BusinessVenuesPage() {
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
         <DialogContent className="sm:max-w-[600px] custom-scrollbar">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">{selectedVenue?.name.en}</DialogTitle>
+            <DialogTitle className="text-xl font-bold">{selectedVenue?.name[language] || selectedVenue?.name.en}</DialogTitle>
           </DialogHeader>
 
           {selectedVenue && (
@@ -246,7 +260,7 @@ export default function BusinessVenuesPage() {
 
               <div>
                 <h3 className="font-medium">{t("business.common.description")}</h3>
-                <p className="text-muted-foreground">{selectedVenue.description.en}</p>
+                <p className="text-muted-foreground">{selectedVenue.description[language] || selectedVenue.description.en}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -324,9 +338,8 @@ export default function BusinessVenuesPage() {
                             {[...Array(5)].map((_, i) => (
                               <Star
                                 key={i}
-                                className={`h-3 w-3 ${
-                                  i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-                                }`}
+                                className={`h-3 w-3 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                                  }`}
                               />
                             ))}
                           </div>
@@ -568,16 +581,15 @@ export default function BusinessVenuesPage() {
               <Card key={venue.id} className="overflow-hidden">
                 <div className="relative aspect-video">
                   <img
-                    src={venue.media?.[0]?.url || "/placeholder.svg?height=200&width=300&text=Venue"}
-                    alt={venue.name.en}
+                    src={formatImageUrl(venue.media?.[0]?.url || "/placeholder.svg?height=200&width=300&text=Venue")}
+                    alt={venue.name[language] || venue.name.en}
                     className="h-full w-full object-cover"
                   />
                   <Badge
-                    className={`absolute right-2 top-2 ${
-                      venue.isActive
+                    className={`absolute right-2 top-2 ${venue.isActive
                         ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400"
                         : "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400"
-                    }`}
+                      }`}
                   >
                     {venue.isActive
                       ? t("business.venues.active") || "Active"
@@ -585,8 +597,8 @@ export default function BusinessVenuesPage() {
                   </Badge>
                 </div>
                 <div className="p-4">
-                  <h3 className="text-lg font-semibold tracking-tight">{venue.name.en}</h3>
-                  <p className="text-muted-foreground line-clamp-2 mt-1">{venue.description.en}</p>
+                  <h3 className="text-lg font-semibold tracking-tight">{venue.name[language] || venue.name.en}</h3>
+                  <p className="text-muted-foreground line-clamp-2 mt-1">{venue.description[language] || venue.description.en}</p>
                   <div className="flex items-center text-sm text-muted-foreground mt-2">
                     <MapPin className="mr-1 h-4 w-4" />
                     <span>

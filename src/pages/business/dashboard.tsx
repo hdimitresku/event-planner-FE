@@ -24,6 +24,7 @@ export default function BusinessDashboardPage() {
         const allBookings = venueDetails.flatMap((venue: any) =>
           venue.bookings.map((booking: any) => ({
             ...booking,
+            image: formatImageUrl(venue.media?.[0]?.url || "/placeholder.svg?height=80&width=80&text=Venue"),
             venueName: venue.name,
             venueId: venue.id,
             customer: {
@@ -43,6 +44,17 @@ export default function BusinessDashboardPage() {
 
     fetchVenuesAndBookings()
   }, [])
+  // Format image URL to handle relative paths
+  const formatImageUrl = (url: string) => {
+    if (!url) return "/placeholder.svg"
+
+    // If it's already an absolute URL, return it as is
+    if (url.startsWith("http")) return url
+
+    // If it's a relative path, prepend the API URL
+    const apiUrl = import.meta.env.VITE_API_IMAGE_URL || process.env.REACT_APP_API_IMAGE_URL || ""
+    return `${apiUrl}/${url.replace(/\\/g, "/")}`
+  }
 
   return (
     <BusinessLayout>
@@ -60,7 +72,7 @@ export default function BusinessDashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
+            <div className="text-2xl font-bold">${Number.parseFloat(bookings.reduce((total, booking) => total + Number(booking.totalAmount), 0).toFixed(2))}</div>
             <p className="text-xs text-muted-foreground">
               +20.1% {t("business.dashboard.fromLastMonth") || "from last month"}
             </p>
@@ -72,7 +84,7 @@ export default function BusinessDashboardPage() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+2350</div>
+            <div className="text-2xl font-bold">{bookings.length}</div>
             <p className="text-xs text-muted-foreground">
               +180.1% {t("business.dashboard.fromLastMonth") || "from last month"}
             </p>
@@ -84,7 +96,7 @@ export default function BusinessDashboardPage() {
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
+            <div className="text-2xl font-bold">{venues.length}</div>
             <p className="text-xs text-muted-foreground">
               +2 {t("business.dashboard.fromLastMonth") || "from last month"}
             </p>
@@ -96,7 +108,7 @@ export default function BusinessDashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+573</div>
+            <div className="text-2xl font-bold">{bookings.map((booking) => booking.customer.name).filter((name, index, self) => self.indexOf(name) === index).length}</div>
             <p className="text-xs text-muted-foreground">
               +201 {t("business.dashboard.fromLastMonth") || "from last month"}
             </p>
@@ -121,30 +133,32 @@ export default function BusinessDashboardPage() {
                 <div className="space-y-4">
                   {loading
                     ? [1, 2, 3].map((i) => (
-                        <div key={i} className="animate-pulse flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-md bg-gray-200"></div>
-                          <div className="flex-1 space-y-2">
-                            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                          </div>
-                          <div className="h-4 bg-gray-200 rounded w-16"></div>
+                      <div key={i} className="animate-pulse flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-md bg-gray-200"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                         </div>
-                      ))
+                        <div className="h-4 bg-gray-200 rounded w-16"></div>
+                      </div>
+                    ))
                     : bookings.slice(0, 3).map((booking) => (
-                        <div key={booking.id} className="flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-md bg-gray-200"></div>
-                          <div>
-                            <p className="font-medium">{booking.eventType || "Event"}</p>
-                            <p className="text-sm text-gray-500">
-                              {new Date(booking.startDate).toLocaleDateString()} • {booking.startTime}
-                            </p>
-                          </div>
-                          <div className="ml-auto text-right">
-                            <p className="font-medium">${Number.parseFloat(booking.totalAmount).toFixed(2)}</p>
-                            <p className="text-sm text-gray-500">{booking.status}</p>
-                          </div>
+                      <div key={booking.id} className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-md bg-gray-200">
+                          <img src={booking.image} alt={booking.venue?.name || "Venue"} className="w-full h-full object-cover" />
                         </div>
-                      ))}
+                        <div>
+                          <p className="font-medium">{booking.eventType || "Event"}</p>
+                          <p className="text-sm text-gray-500">
+                            {new Date(booking.startDate).toLocaleDateString()} • {booking.startTime}
+                          </p>
+                        </div>
+                        <div className="ml-auto text-right">
+                          <p className="font-medium">${Number.parseFloat(booking.totalAmount).toFixed(2)}</p>
+                          <p className="text-sm text-gray-500">{booking.status}</p>
+                        </div>
+                      </div>
+                    ))}
                 </div>
               </CardContent>
             </Card>

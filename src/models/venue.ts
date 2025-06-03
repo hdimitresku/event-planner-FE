@@ -10,11 +10,11 @@ export enum VenueType {
   LOFT = "loft",
   HOTEL = "hotel",
   RESTAURANT = "restaurant",
-  MEETING_ROOM = "meeting_room",
-  WEDDING_VENUE = "wedding_venue",
-  OUTDOOR_SPACE = "outdoor_space",
-  PHOTOGRAPHY_STUDIO = "photography_studio",
-  PARTY_VENUE = "party_venue",
+  MEETING_ROOM = "meetingRoom",
+  WEDDING_VENUE = "weddingVenue",
+  OUTDOOR_SPACE = "outdoorSpace",
+  PHOTOGRAPHY_STUDIO = "photographyStudio",
+  PARTY_VENUE = "partyVenue",
   OTHER = "other",
 }
 

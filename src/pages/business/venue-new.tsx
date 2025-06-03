@@ -1,3 +1,5 @@
+// Replace the entire file with this implementation that uses your existing React/Vite setup
+
 "use client"
 
 import type React from "react"
@@ -8,23 +10,15 @@ import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 import { Upload } from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../../components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import * as venueService from "../../services/venueService"
-import { Venue } from "../../models/venue"
-import { PricingType } from "../../models/common"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { VenueAmenity, VenueType } from "../../models/venue"
+import { PricingType } from "../../models/common"
 import { toast } from "../../components/ui/use-toast"
+import { createVenue } from "../../services/venueService"
 
 interface VenueNewModalProps {
   isOpen: boolean
@@ -39,11 +33,11 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
   const [venueForm, setVenueForm] = useState({
     name: {
       en: "",
-      sq: ""
+      sq: "",
     },
     description: {
       en: "",
-      sq: ""
+      sq: "",
     },
     type: VenueType.OTHER,
     address: {
@@ -51,73 +45,80 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
       city: "",
       state: "",
       zipCode: "",
-      country: "USA"
-    },
-    location: {
-      en: "",
-      sq: ""
+      country: "USA",
+      location: {},
     },
     amenities: [] as VenueAmenity[],
     capacity: {
       min: 10,
       max: 100,
-      recommended: 50
+      recommended: 50,
     },
     price: {
       amount: 0,
       currency: "USD",
-      type: PricingType.HOURLY
+      type: PricingType.HOURLY,
     },
-    size: 0
+    dayAvailability: {
+      monday: "9:00 AM - 10:00 PM",
+      tuesday: "9:00 AM - 10:00 PM",
+      wednesday: "9:00 AM - 10:00 PM",
+      thursday: "9:00 AM - 10:00 PM",
+      friday: "9:00 AM - 12:00 AM",
+      saturday: "10:00 AM - 12:00 AM",
+      sunday: "10:00 AM - 10:00 PM",
+    },
   })
+
+  // State for image uploads
+  const [selectedImages, setSelectedImages] = useState<File[]>([])
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
 
     try {
-      // Create a venue data object
+      // Create FormData for multipart/form-data submission
+      const formData = new FormData()
+
+      // Prepare venue data
       const venueData = {
-        ...venueForm,
-        active: true,
-        media: [
-          {
-            id: "img1",
-            url: "/placeholder.svg?height=600&width=800&text=New+Venue",
-            type: "image"
-          }
-        ],
-        rating: {
-          average: 0,
-          count: 0
+        name: venueForm.name,
+        description: venueForm.description,
+        type: venueForm.type,
+        amenities: venueForm.amenities,
+        address: {
+          street: venueForm.address.street,
+          city: venueForm.address.city,
+          state: venueForm.address.state,
+          zipCode: venueForm.address.zipCode,
+          country: venueForm.address.country,
+          location: {},
         },
-        availability: {
-          daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
-          startTime: "09:00",
-          endTime: "22:00",
-          exceptions: []
-        },
-        dayAvailability: {
-          monday: "9:00 AM - 10:00 PM",
-          tuesday: "9:00 AM - 10:00 PM",
-          wednesday: "9:00 AM - 10:00 PM",
-          thursday: "9:00 AM - 10:00 PM",
-          friday: "9:00 AM - 12:00 AM",
-          saturday: "10:00 AM - 12:00 AM",
-          sunday: "10:00 AM - 10:00 PM"
-        },
-        reviews: [],
-        ownerId: "owner1" // In a real app, this would be the current user's ID
+        capacity: venueForm.capacity,
+        price: venueForm.price,
+        dayAvailability: venueForm.dayAvailability,
       }
 
-      const result = await venueService.createVenue(venueData)
-      
-      if (result.success) {
+
+      // Add JSON data
+      formData.append("data", JSON.stringify(venueData))
+
+      // Add images
+      selectedImages.forEach((image) => {
+        formData.append("images", image)
+      })
+
+      // Make API request
+      const response = await createVenue(formData)
+
+      if (response.success) {
         toast({
           title: "Success",
           description: "Venue created successfully",
         })
-        
+
         // Reset form
         setVenueForm({
           name: { en: "", sq: "" },
@@ -128,33 +129,46 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
             city: "",
             state: "",
             zipCode: "",
-            country: "USA"
+            country: "USA",
+            location: {},
           },
-          location: { en: "", sq: "" },
           amenities: [],
           capacity: {
             min: 10,
             max: 100,
-            recommended: 50
+            recommended: 50,
           },
           price: {
             amount: 0,
             currency: "USD",
-            type: PricingType.HOURLY
+            type: PricingType.HOURLY,
           },
-          size: 0
+          dayAvailability: {
+            monday: "9:00 AM - 10:00 PM",
+            tuesday: "9:00 AM - 10:00 PM",
+            wednesday: "9:00 AM - 10:00 PM",
+            thursday: "9:00 AM - 10:00 PM",
+            friday: "9:00 AM - 12:00 AM",
+            saturday: "10:00 AM - 12:00 AM",
+            sunday: "10:00 AM - 10:00 PM",
+          },
         })
-        
+
+        // Reset images
+        setSelectedImages([])
+        setImagePreviews([])
+
         if (onSuccess) {
           onSuccess()
         } else {
           onClose()
         }
       } else {
+        const errorData = await response.json()
         toast({
           title: "Error",
-          description: result.error || "Failed to create venue",
-          variant: "destructive"
+          description: errorData.message || "Failed to create venue",
+          variant: "destructive",
         })
       }
     } catch (error) {
@@ -162,7 +176,7 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
       toast({
         title: "Error",
         description: "Failed to create venue. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       })
     } finally {
       setIsSubmitting(false)
@@ -170,12 +184,33 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
   }
 
   const handleToggleAmenity = (amenity: VenueAmenity) => {
-    setVenueForm(prev => {
+    setVenueForm((prev) => {
       const amenities = prev.amenities.includes(amenity)
-        ? prev.amenities.filter(a => a !== amenity)
+        ? prev.amenities.filter((a) => a !== amenity)
         : [...prev.amenities, amenity]
       return { ...prev, amenities }
     })
+  }
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+
+    setSelectedImages((prev) => [...prev, ...files])
+
+    // Create image previews
+    files.forEach((file) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setImagePreviews((prev) => [...prev, e.target?.result as string])
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const removeImage = (index: number) => {
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index))
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index))
   }
 
   const goToNextTab = () => {
@@ -190,9 +225,9 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
     else if (activeTab === "photos") setActiveTab("details")
   }
 
-  const amenityOptions = Object.values(VenueAmenity).map(amenity => ({
+  const amenityOptions = Object.values(VenueAmenity).map((amenity) => ({
     value: amenity,
-    label: t(`venues.amenities.${amenity.toLowerCase()}`) || amenity.replace('_', ' ')
+    label: t(`venues.amenities.${amenity.toLowerCase()}`) || amenity.replace("_", " "),
   }))
 
   return (
@@ -216,9 +251,7 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
               <div className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="name-en">
-                      {t("business.common.name")}* (English)
-                    </Label>
+                    <Label htmlFor="name-en">{t("business.common.name")}* (English)</Label>
                     <Input
                       id="name-en"
                       value={venueForm.name.en}
@@ -228,9 +261,7 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="name-sq">
-                      {t("business.common.name")}* (Albanian)
-                    </Label>
+                    <Label htmlFor="name-sq">{t("business.common.name")}* (Albanian)</Label>
                     <Input
                       id="name-sq"
                       value={venueForm.name.sq}
@@ -242,9 +273,7 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="type">
-                    {t("business.common.type")}*
-                  </Label>
+                  <Label htmlFor="type">{t("business.common.type")}*</Label>
                   <Select
                     value={venueForm.type}
                     onValueChange={(value) => setVenueForm({ ...venueForm, type: value as VenueType })}
@@ -255,7 +284,7 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
                     <SelectContent>
                       {Object.values(VenueType).map((type) => (
                         <SelectItem key={type} value={type}>
-                          {t(`venues.types.${type.toLowerCase()}`) || type.replace('_', ' ')}
+                          {t(`venues.types.${type.toLowerCase()}`) || type.replace("_", " ")}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -264,26 +293,26 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="description-en">
-                      {t("business.common.description")}* (English)
-                    </Label>
+                    <Label htmlFor="description-en">{t("business.common.description")}* (English)</Label>
                     <Textarea
                       id="description-en"
                       value={venueForm.description.en}
-                      onChange={(e) => setVenueForm({ ...venueForm, description: { ...venueForm.description, en: e.target.value } })}
+                      onChange={(e) =>
+                        setVenueForm({ ...venueForm, description: { ...venueForm.description, en: e.target.value } })
+                      }
                       placeholder={t("business.venueNew.descriptionPlaceholder")}
                       rows={5}
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="description-sq">
-                      {t("business.common.description")}* (Albanian)
-                    </Label>
+                    <Label htmlFor="description-sq">{t("business.common.description")}* (Albanian)</Label>
                     <Textarea
                       id="description-sq"
                       value={venueForm.description.sq}
-                      onChange={(e) => setVenueForm({ ...venueForm, description: { ...venueForm.description, sq: e.target.value } })}
+                      onChange={(e) =>
+                        setVenueForm({ ...venueForm, description: { ...venueForm.description, sq: e.target.value } })
+                      }
                       placeholder={t("business.venueNew.descriptionPlaceholder")}
                       rows={5}
                       required
@@ -292,13 +321,13 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="street">
-                    {t("business.common.address")}*
-                  </Label>
+                  <Label htmlFor="street">{t("business.common.address")}*</Label>
                   <Input
                     id="street"
                     value={venueForm.address.street}
-                    onChange={(e) => setVenueForm({ ...venueForm, address: { ...venueForm.address, street: e.target.value } })}
+                    onChange={(e) =>
+                      setVenueForm({ ...venueForm, address: { ...venueForm.address, street: e.target.value } })
+                    }
                     placeholder={t("business.venueNew.addressPlaceholder")}
                     required
                   />
@@ -306,124 +335,112 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
 
                 <div className="grid gap-4 sm:grid-cols-3">
                   <div className="space-y-2">
-                    <Label htmlFor="city">
-                      {t("business.common.city")}*
-                    </Label>
+                    <Label htmlFor="city">{t("business.common.city")}*</Label>
                     <Input
                       id="city"
                       value={venueForm.address.city}
-                      onChange={(e) => setVenueForm({ ...venueForm, address: { ...venueForm.address, city: e.target.value } })}
+                      onChange={(e) =>
+                        setVenueForm({ ...venueForm, address: { ...venueForm.address, city: e.target.value } })
+                      }
                       placeholder={t("business.venueNew.cityPlaceholder")}
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="state">
-                      {t("business.common.state")}*
-                    </Label>
+                    <Label htmlFor="state">{t("business.common.state")}*</Label>
                     <Input
                       id="state"
                       value={venueForm.address.state}
-                      onChange={(e) => setVenueForm({ ...venueForm, address: { ...venueForm.address, state: e.target.value } })}
+                      onChange={(e) =>
+                        setVenueForm({ ...venueForm, address: { ...venueForm.address, state: e.target.value } })
+                      }
                       placeholder={t("business.venueNew.statePlaceholder")}
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="zip">
-                      {t("business.common.zip")}*
-                    </Label>
+                    <Label htmlFor="zip">{t("business.common.zip")}*</Label>
                     <Input
                       id="zip"
                       value={venueForm.address.zipCode}
-                      onChange={(e) => setVenueForm({ ...venueForm, address: { ...venueForm.address, zipCode: e.target.value } })}
+                      onChange={(e) =>
+                        setVenueForm({ ...venueForm, address: { ...venueForm.address, zipCode: e.target.value } })
+                      }
                       placeholder={t("business.venueNew.zipPlaceholder")}
                       required
                     />
                   </div>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="location-en">
-                      {t("business.venueNew.location")}* (English)
-                    </Label>
-                    <Input
-                      id="location-en"
-                      value={venueForm.location.en}
-                      onChange={(e) => setVenueForm({ ...venueForm, location: { ...venueForm.location, en: e.target.value } })}
-                      placeholder="e.g. Manhattan, NY"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="location-sq">
-                      {t("business.venueNew.location")}* (Albanian)
-                    </Label>
-                    <Input
-                      id="location-sq"
-                      value={venueForm.location.sq}
-                      onChange={(e) => setVenueForm({ ...venueForm, location: { ...venueForm.location, sq: e.target.value } })}
-                      placeholder="e.g. Manhattan, NY"
-                      required
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="location">{t("business.venueNew.location")}*</Label>
+                  <Input
+                    id="location"
+                    placeholder="e.g. Manhattan, NY"
+                    onChange={(e) => {
+                      // Just store the location as a string, we'll handle it in the API call
+                      const location = e.target.value
+                      setVenueForm({
+                        ...venueForm,
+                        address: {
+                          ...venueForm.address,
+                          location: { location },
+                        },
+                      })
+                    }}
+                    required
+                  />
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-3">
                   <div className="space-y-2">
-                    <Label htmlFor="capacity-min">
-                      {t("business.venueNew.minCapacity")}*
-                    </Label>
+                    <Label htmlFor="capacity-min">{t("business.venueNew.minCapacity")}*</Label>
                     <Input
                       id="capacity-min"
                       type="number"
                       min="1"
                       value={venueForm.capacity.min}
-                      onChange={(e) => setVenueForm({ ...venueForm, capacity: { ...venueForm.capacity, min: parseInt(e.target.value) } })}
+                      onChange={(e) =>
+                        setVenueForm({
+                          ...venueForm,
+                          capacity: { ...venueForm.capacity, min: Number.parseInt(e.target.value) },
+                        })
+                      }
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="capacity-max">
-                      {t("business.venueNew.maxCapacity")}*
-                    </Label>
+                    <Label htmlFor="capacity-max">{t("business.venueNew.maxCapacity")}*</Label>
                     <Input
                       id="capacity-max"
                       type="number"
                       min="1"
                       value={venueForm.capacity.max}
-                      onChange={(e) => setVenueForm({ ...venueForm, capacity: { ...venueForm.capacity, max: parseInt(e.target.value) } })}
+                      onChange={(e) =>
+                        setVenueForm({
+                          ...venueForm,
+                          capacity: { ...venueForm.capacity, max: Number.parseInt(e.target.value) },
+                        })
+                      }
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="capacity-recommended">
-                      {t("business.venueNew.recommendedCapacity")}*
-                    </Label>
+                    <Label htmlFor="capacity-recommended">{t("business.venueNew.recommendedCapacity")}*</Label>
                     <Input
                       id="capacity-recommended"
                       type="number"
                       min="1"
                       value={venueForm.capacity.recommended}
-                      onChange={(e) => setVenueForm({ ...venueForm, capacity: { ...venueForm.capacity, recommended: parseInt(e.target.value) } })}
+                      onChange={(e) =>
+                        setVenueForm({
+                          ...venueForm,
+                          capacity: { ...venueForm.capacity, recommended: Number.parseInt(e.target.value) },
+                        })
+                      }
                       required
                     />
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="size">
-                    {t("business.venueNew.size")} (sq ft)
-                  </Label>
-                  <Input
-                    id="size"
-                    type="number"
-                    min="1"
-                    value={venueForm.size}
-                    onChange={(e) => setVenueForm({ ...venueForm, size: parseInt(e.target.value) })}
-                    placeholder={t("business.venueNew.sizePlaceholder")}
-                  />
                 </div>
               </div>
 
@@ -437,24 +454,47 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
             <TabsContent value="photos" className="space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>
-                    {t("business.venueNew.mainPhoto")}
-                  </Label>
-                  <div className="flex h-64 cursor-pointer items-center justify-center rounded-md border border-dashed border-gray-300 hover:border-gray-400 dark:border-gray-700 dark:hover:border-gray-600">
+                  <Label>{t("business.venueNew.mainPhoto")}</Label>
+                  <div
+                    className="flex h-64 cursor-pointer items-center justify-center rounded-md border border-dashed border-gray-300 hover:border-gray-400 dark:border-gray-700 dark:hover:border-gray-600"
+                    onClick={() => document.getElementById("image-upload")?.click()}
+                  >
                     <div className="flex flex-col items-center space-y-2 p-4 text-center">
                       <Upload className="h-8 w-8 text-gray-400" />
-                      <div className="text-sm font-medium">
-                        {t("business.common.dragPhotos")}
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        {t("business.common.photoRequirements")}
-                      </p>
-                      <input type="file" className="hidden" accept="image/*" multiple />
+                      <div className="text-sm font-medium">{t("business.common.dragPhotos")}</div>
+                      <p className="text-xs text-gray-500">{t("business.common.photoRequirements")}</p>
+                      <input
+                        id="image-upload"
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageUpload}
+                      />
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Note: In the demo mode, a placeholder image will be used instead of uploaded photos.
-                  </p>
+
+                  {/* Image Previews */}
+                  {imagePreviews.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+                      {imagePreviews.map((preview, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={preview || "/placeholder.svg"}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-32 object-cover rounded-md"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -472,9 +512,7 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
               <div className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="basePrice">
-                      {t("business.common.price")}*
-                    </Label>
+                    <Label htmlFor="basePrice">{t("business.common.price")}*</Label>
                     <div className="relative">
                       <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
                       <Input
@@ -485,18 +523,23 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
                         className="pl-7"
                         placeholder="0.00"
                         value={venueForm.price.amount}
-                        onChange={(e) => setVenueForm({ ...venueForm, price: { ...venueForm.price, amount: parseFloat(e.target.value) } })}
+                        onChange={(e) =>
+                          setVenueForm({
+                            ...venueForm,
+                            price: { ...venueForm.price, amount: Number.parseFloat(e.target.value) },
+                          })
+                        }
                         required
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="pricingType">
-                      {t("business.serviceNew.pricingType")}*
-                    </Label>
+                    <Label htmlFor="pricingType">{t("business.serviceNew.pricingType")}*</Label>
                     <Select
                       value={venueForm.price.type}
-                      onValueChange={(value) => setVenueForm({ ...venueForm, price: { ...venueForm.price, type: value as PricingType } })}
+                      onValueChange={(value) =>
+                        setVenueForm({ ...venueForm, price: { ...venueForm.price, type: value as PricingType } })
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={t("business.common.selectPriceType")} />
@@ -504,7 +547,7 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
                       <SelectContent>
                         {Object.values(PricingType).map((type) => (
                           <SelectItem key={type} value={type}>
-                            {t(`common.${type.toLowerCase()}`) || type.replace('_', ' ')}
+                            {t(`common.${type.toLowerCase()}`) || type.replace("_", " ")}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -533,10 +576,7 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
                         checked={venueForm.amenities.includes(amenity.value)}
                         onCheckedChange={() => handleToggleAmenity(amenity.value)}
                       />
-                      <Label
-                        htmlFor={`amenity-${amenity.value}`}
-                        className="text-sm"
-                      >
+                      <Label htmlFor={`amenity-${amenity.value}`} className="text-sm">
                         {amenity.label}
                       </Label>
                     </div>
@@ -557,7 +597,7 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
         </Tabs>
       </DialogContent>
     </Dialog>
-  );
+  )
 }
 
 export default function BusinessVenueNewPage() {
@@ -566,7 +606,7 @@ export default function BusinessVenueNewPage() {
 
   const handleClose = () => {
     setIsOpen(false)
-    navigate('/business/venues')
+    navigate("/business/venues")
   }
 
   return <VenueNewModal isOpen={isOpen} onClose={handleClose} />

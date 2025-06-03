@@ -51,16 +51,38 @@ export default function BusinessBookingsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Helper function to calculate service options total
-  const calculateServiceOptionsTotal = (serviceOptions: any[]) => {
-    if (!serviceOptions || serviceOptions.length === 0) return 0
+  // Calculate venue price based on pricing type
+  const calculateVenuePrice = (booking: any) => {
+    if (!booking.venuePrice) return 0
 
-    return serviceOptions.reduce((sum: number, service: any) => {
-      if (service.price && typeof service.price === "object") {
-        return sum + (service.price.amount || 0)
-      }
-      return sum + (service.price || 0)
-    }, 0)
+    const basePrice = booking.venuePrice.amount || 0
+    const priceType = booking.venuePrice.type || "FIXED"
+
+    let calculatedPrice = basePrice
+    if (priceType === "PER_PERSON" || priceType === "PERPERSON") {
+      calculatedPrice = basePrice * booking.numberOfGuests
+    } else if (priceType === "PER_HOUR" || priceType === "PERHOUR") {
+      // Calculate hours between start and end time
+      const startTime = new Date(`2000-01-01 ${booking.startTime}`)
+      const endTime = new Date(`2000-01-01 ${booking.endTime}`)
+      const hours = Math.ceil((endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60))
+      calculatedPrice = basePrice * hours
+    }
+
+    return calculatedPrice
+  }
+
+  // Get price type display text
+  const getPriceTypeDisplay = (priceType: string) => {
+    if (!priceType) return "Fixed Rate"
+
+    const type = priceType.toUpperCase()
+    if (type === "PER_PERSON" || type === "PERPERSON") {
+      return "Per Person"
+    } else if (type === "PER_HOUR" || type === "PERHOUR") {
+      return "Per Hour"
+    }
+    return "Fixed Rate"
   }
 
   // Fetch venues and their bookings
@@ -70,18 +92,32 @@ export default function BusinessBookingsPage() {
         setLoading(true)
         const venueDetails = await venueService.getVenueByOwner()
         setVenues(venueDetails)
-        const allBookings = venueDetails.flatMap((venue: any) =>
-          venue.bookings.map((booking: any) => ({
-            ...booking,
-            venueName: venue.name,
-            venueId: venue.id,
-            customer: {
-              name: `${booking.metadata?.contactDetails?.firstName || ""} ${booking.metadata?.contactDetails?.lastName || ""}`.trim(),
-              email: booking.metadata?.contactDetails?.email || "",
-              phone: booking.metadata?.contactDetails?.phone || "",
-            },
-          })),
-        )
+        const allBookings = venueDetails.flatMap((venue: any) => {
+          return venue.bookings.map((booking: any) => {
+            // Extract venue price information
+            const venuePrice = venue.pricing || { amount: 0, type: "FIXED" }
+
+            // Create booking with venue information
+            const enhancedBooking = {
+              ...booking,
+              venueName: venue.name,
+              image: formatImageUrl(venue.media?.[0]?.url || "/placeholder.svg?height=80&width=80&text=Venue"),
+              venueId: venue.id,
+              venuePrice: venuePrice,
+              customer: {
+                name: `${booking.metadata?.contactDetails?.firstName || ""} ${booking.metadata?.contactDetails?.lastName || ""}`.trim(),
+                email: booking.metadata?.contactDetails?.email || "",
+                phone: booking.metadata?.contactDetails?.phone || "",
+              },
+            }
+
+            // Calculate and add venue cost
+            enhancedBooking.venueCost = calculateVenuePrice(enhancedBooking)
+
+            return enhancedBooking
+          })
+        })
+
         console.log("allBookings", allBookings)
         setBookings(allBookings)
       } catch (err) {
@@ -95,23 +131,21 @@ export default function BusinessBookingsPage() {
     fetchVenuesAndBookings()
   }, [])
 
-  // Extract all bookings from venues
-  const allBookings = venues.flatMap((venue) =>
-    venue.bookings.map((booking: any) => ({
-      ...booking,
-      venueName: venue.name,
-      venueId: venue.id,
-      customer: {
-        name: `${booking.metadata?.contactDetails?.firstName || ""} ${booking.metadata?.contactDetails?.lastName || ""}`.trim(),
-        email: booking.metadata?.contactDetails?.email || "",
-        phone: booking.metadata?.contactDetails?.phone || "",
-      },
-    })),
-  )
+  // Format image URL to handle relative paths
+  const formatImageUrl = (url: string) => {
+    if (!url) return "/placeholder.svg"
 
-  const filteredBookings = allBookings.filter((booking) => {
-    const bookingDate = new Date(booking.startDate)
-    const today = new Date()
+    // If it's already an absolute URL, return it as is
+    if (url.startsWith("http")) return url
+
+    // If it's a relative path, prepend the API URL
+    const apiUrl = import.meta.env.VITE_API_IMAGE_URL || process.env.REACT_APP_API_IMAGE_URL || ""
+    return `${apiUrl}/${url.replace(/\\/g, "/")}`
+  }
+
+  const filteredBookings = bookings.filter((booking) => {
+    const bookingDate = new Date(booking.startDate).getUTCDate()
+    const today = new Date().getUTCDate()
 
     if (activeTab === "upcoming") {
       return bookingDate >= today && (booking.status === "confirmed" || booking.status === "pending")
@@ -123,7 +157,6 @@ export default function BusinessBookingsPage() {
 
     return true
   })
-
   const handleViewBooking = (booking: any) => {
     setSelectedBooking(booking)
     setIsViewModalOpen(true)
@@ -389,27 +422,70 @@ export default function BusinessBookingsPage() {
                   </div>
                 </div>
 
-                {/* Additional Services */}
-                {selectedBooking.serviceOptions && selectedBooking.serviceOptions.length > 0 && (
-                  <div>
-                    <h4 className="font-medium mb-2">
-                      {t("business.bookings.additionalServices") || "Additional Services"}
-                    </h4>
-                    <div className="space-y-2">
-                      {selectedBooking.serviceOptions.map((service: any, index: number) => {
-                        const servicePrice = service.price?.amount || service.price || 0
-                        return (
-                          <div key={index} className="flex justify-between items-center bg-secondary/20 p-2 rounded-md">
-                            <span className="font-medium">
-                              {service.name?.[language] || service.name?.en || `Service ${index + 1}`}
-                            </span>
-                            <Badge variant="secondary">${servicePrice}</Badge>
-                          </div>
-                        )
-                      })}
+                {/* Venue Pricing */}
+                <div>
+                  <h4 className="font-medium mb-2">{t("business.bookings.venuePricing") || "Venue Pricing"}</h4>
+                  <div className="bg-secondary/20 p-3 rounded-md space-y-2">
+                    {/* Venue Base Price */}
+                    <div className="flex justify-between">
+                      <span>
+                        {t("business.bookings.venueBasePrice") || "Venue Base Price"}
+                        <span className="text-xs text-muted-foreground ml-1">
+                          ({getPriceTypeDisplay(selectedBooking.venuePrice?.type || "FIXED")})
+                        </span>
+                      </span>
+                      <span>${(selectedBooking.venuePrice?.amount || 0).toFixed(2)}</span>
+                    </div>
+
+                    {/* Calculation Breakdown */}
+                    <div className="text-xs text-muted-foreground">
+                      {(() => {
+                        if (!selectedBooking.venuePrice) return null
+
+                        const priceType = selectedBooking.venuePrice.type?.toUpperCase() || "FIXED"
+                        const basePrice = selectedBooking.venuePrice.amount || 0
+
+                        if (priceType === "PER_PERSON" || priceType === "PERPERSON") {
+                          return (
+                            <div className="flex justify-between">
+                              <span>Calculation:</span>
+                              <span>
+                                ${basePrice.toFixed(2)} × {selectedBooking.numberOfGuests} guests
+                              </span>
+                            </div>
+                          )
+                        } else if (priceType === "PER_HOUR" || priceType === "PERHOUR") {
+                          const startTime = new Date(`2000-01-01 ${selectedBooking.startTime}`)
+                          const endTime = new Date(`2000-01-01 ${selectedBooking.endTime}`)
+                          const hours = Math.ceil((endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60))
+                          return (
+                            <div className="flex justify-between">
+                              <span>Calculation:</span>
+                              <span>
+                                ${basePrice.toFixed(2)} × {hours} hours
+                              </span>
+                            </div>
+                          )
+                        }
+                        return null
+                      })()}
+                    </div>
+
+                    {/* Total Venue Cost */}
+                    <div className="flex justify-between font-medium">
+                      <span>{t("business.bookings.venueTotalCost") || "Total Venue Cost"}</span>
+                      <span>${selectedBooking.venueCost?.toFixed(2) || "0.00"}</span>
+                    </div>
+
+                    <Separator />
+
+                    {/* Total Booking Amount */}
+                    <div className="flex justify-between font-bold">
+                      <span>{t("business.bookings.totalBookingAmount") || "Total Booking Amount"}</span>
+                      <span>${Number.parseFloat(selectedBooking.totalAmount).toFixed(2)}</span>
                     </div>
                   </div>
-                )}
+                </div>
 
                 {selectedBooking.notes && (
                   <div>
@@ -424,32 +500,6 @@ export default function BusinessBookingsPage() {
                     <p className="text-muted-foreground">{selectedBooking.specialRequests}</p>
                   </div>
                 )}
-
-                {/* Payment Summary */}
-                <div>
-                  <h4 className="font-medium mb-2">{t("business.bookings.paymentSummary") || "Payment Summary"}</h4>
-                  <div className="bg-secondary/20 p-3 rounded-md space-y-2">
-                    <div className="flex justify-between">
-                      <span>{t("business.bookings.venueRental") || "Venue Rental"}</span>
-                      <span>${(Number.parseFloat(selectedBooking.totalAmount) * 0.85).toFixed(2)}</span>
-                    </div>
-                    {selectedBooking.serviceOptions && selectedBooking.serviceOptions.length > 0 && (
-                      <div className="flex justify-between">
-                        <span>{t("business.bookings.additionalServices") || "Additional Services"}</span>
-                        <span>${calculateServiceOptionsTotal(selectedBooking.serviceOptions).toFixed(2)}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span>{t("business.bookings.serviceFee") || "Service Fee"}</span>
-                      <span>${(Number.parseFloat(selectedBooking.totalAmount) * 0.05).toFixed(2)}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between font-bold">
-                      <span>{t("business.bookings.total") || "Total"}</span>
-                      <span>${Number.parseFloat(selectedBooking.totalAmount).toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               {/* Action Buttons */}
@@ -566,7 +616,7 @@ export default function BusinessBookingsPage() {
                     <div className="flex items-start gap-4">
                       <div className="relative w-20 h-20 rounded-md overflow-hidden">
                         <img
-                          src={`/placeholder.svg?height=80&width=80&text=Venue ${booking.venueId}`}
+                          src={booking.image || "/placeholder.svg"}
                           alt={booking.venueName[language] || booking.venueName.en}
                           className="w-full h-full object-cover"
                         />
@@ -681,7 +731,7 @@ export default function BusinessBookingsPage() {
                     <div className="flex items-start gap-4">
                       <div className="relative w-20 h-20 rounded-md overflow-hidden">
                         <img
-                          src={`/placeholder.svg?height=80&width=80&text=Venue ${booking.venueId}`}
+                          src={booking.image || "/placeholder.svg"}
                           alt={booking.venueName[language] || booking.venueName.en}
                           className="w-full h-full object-cover"
                         />
@@ -796,7 +846,7 @@ export default function BusinessBookingsPage() {
                     <div className="flex items-start gap-4">
                       <div className="relative w-20 h-20 rounded-md overflow-hidden">
                         <img
-                          src={`/placeholder.svg?height=80&width=80&text=Venue ${booking.venueId}`}
+                          src={booking.image || "/placeholder.svg"}
                           alt={booking.venueName[language] || booking.venueName.en}
                           className="w-full h-full object-cover"
                         />
@@ -911,7 +961,7 @@ export default function BusinessBookingsPage() {
                     <div className="flex items-start gap-4">
                       <div className="relative w-20 h-20 rounded-md overflow-hidden">
                         <img
-                          src={`/placeholder.svg?height=80&width=80&text=Venue ${booking.venueId}`}
+                          src={booking.image || "/placeholder.svg"}
                           alt={booking.venueName[language] || booking.venueName.en}
                           className="w-full h-full object-cover"
                         />
