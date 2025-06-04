@@ -72,7 +72,7 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
   const { t } = useLanguage()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedImages, setSelectedImages] = useState<File[]>([])
-  const [formData, setFormData] = useState<ServiceFormData>({
+  const [formData, setFormData] = useState({
     name: { en: "", sq: "" },
     description: { en: "", sq: "" },
     type: ServiceType.OTHER,
@@ -200,6 +200,7 @@ for (const option of formData.options) {
         ],
       })
       setSelectedImages([])
+      createService(submitData)
 
       // Call the callback to refresh the services list
       if (onServiceCreated) {

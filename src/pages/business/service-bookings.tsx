@@ -6,6 +6,7 @@ import { BusinessLayout } from "../../components/business/layout"
 import { EditBookingModal } from "../../components/business/edit-booking-modal"
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
+import { Textarea } from "../../components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 import {
   Calendar,
@@ -26,6 +27,8 @@ import {
   Music,
   Palette,
   MapPin,
+  CheckCircle,
+  XCircle,
 } from "lucide-react"
 import {
   Dialog,
@@ -39,6 +42,7 @@ import { Badge } from "../../components/ui/badge"
 import { Separator } from "../../components/ui/separator"
 import { toast } from "../../components/ui/use-toast"
 import * as bookingService from "../../services/bookingService"
+import { BookingStatus } from "@/models/booking"
 
 // Helper function to get the appropriate icon based on service type
 const getServiceIcon = (type: string, iconName: string) => {
@@ -65,8 +69,10 @@ const getServiceIcon = (type: string, iconName: string) => {
 // Helper function to calculate service price for this specific service only
 const calculateServicePrice = (booking: any) => {
   if (!booking.serviceOptions || booking.serviceOptions.length === 0) {
-    return 0
+    return { serviceTotal: 0, priceType: "FIXED" }
   }
+  let priceType = "FIXED"
+  let basePrice = 0
 
   // Filter service options to only include the current service
   const currentServiceOptions = booking.serviceOptions.filter((option: any) => option.service?.id === booking.serviceId)
@@ -75,12 +81,30 @@ const calculateServicePrice = (booking: any) => {
   currentServiceOptions.forEach((option: any) => {
     if (option.price?.type === "perPerson") {
       serviceTotal += option.price.amount * booking.numberOfGuests
+      priceType = "perPerson"
+      basePrice = option.price.amount
+    } else if (option.price?.type === "perHour") {
+      serviceTotal += option.price?.amount * (booking.endTime - booking.startTime)
+      priceType = "perHour"
+      basePrice = option.price?.amount
     } else {
       serviceTotal += option.price?.amount || 0
     }
   })
 
-  return serviceTotal
+  return { serviceTotal, priceType: priceType, basePrice: basePrice }
+}
+
+// Helper function to get service status from metadata options
+const getServiceStatus = (booking: any) => {
+  if (booking?.metadata?.options && Array.isArray(booking.metadata.options)) {
+    // Find the option that matches this service
+    const serviceOption = booking.metadata.options.find(
+      (option: any) => option.service?.id === booking.serviceId || option.serviceId === booking.serviceId,
+    )
+    return serviceOption?.status || null
+  }
+  return null
 }
 
 export default function ServiceBookingsPage() {
@@ -90,7 +114,10 @@ export default function ServiceBookingsPage() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
+  const [isDeclineModalOpen, setIsDeclineModalOpen] = useState(false)
   const [bookingToCancel, setBookingToCancel] = useState<string | null>(null)
+  const [rejectionReason, setRejectionReason] = useState("")
+  const [bookingToDecline, setBookingToDecline] = useState<any | null>(null)
 
   const [services, setServices] = useState<any[]>([])
   const [bookings, setBookings] = useState<any[]>([])
@@ -99,91 +126,101 @@ export default function ServiceBookingsPage() {
   const [searchTerm, setSearchTerm] = useState("")
 
   // Fetch service bookings
-  useEffect(() => {
-    const fetchServiceBookings = async () => {
-      try {
-        setLoading(true)
-        const serviceData = await bookingService.getServiceBookings()
-        console.log("serviceData", serviceData)
+  const fetchServiceBookings = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const serviceData = await bookingService.getServiceBookings()
 
-        // Store the services
+      // Store the services
+      if (serviceData) {
         setServices(serviceData)
 
         // Extract all bookings from all services
         const allBookings: any[] = []
-        serviceData.forEach((service: any) => {
-          if (service.bookings && service.bookings.length > 0) {
-            service.bookings.forEach((booking: any) => {
-              // Enhance booking with service information
-              allBookings.push({
-                ...booking,
-                serviceId: service.id,
-                serviceName: service.name,
-                serviceType: service.type,
-                serviceIcon: service.icon,
-                // Extract customer info from metadata if available
-                customer: {
-                  name: booking.metadata?.contactDetails
-                    ? `${booking.metadata.contactDetails.firstName || ""} ${booking.metadata.contactDetails.lastName || ""}`.trim()
-                    : "Unknown Customer",
-                  email: booking.metadata?.contactDetails?.email || "",
-                  phone: booking.metadata?.contactDetails?.phone || "",
-                },
+        if (Array.isArray(serviceData)) {
+          serviceData.forEach((service: any) => {
+            if (service.bookings && service.bookings.length > 0) {
+              service.bookings.forEach((booking: any) => {
+                // Enhance booking with service information
+                allBookings.push({
+                  ...booking,
+                  serviceId: service.id,
+                  serviceName: service.name,
+                  serviceType: service.type,
+                  serviceIcon: service.icon,
+                  // Extract customer info from metadata if available
+                  customer: {
+                    name: booking.metadata?.contactDetails
+                      ? `${booking.metadata.contactDetails.firstName || ""} ${booking.metadata.contactDetails.lastName || ""}`.trim()
+                      : "Unknown Customer",
+                    email: booking.metadata?.contactDetails?.email || "",
+                    phone: booking.metadata?.contactDetails?.phone || "",
+                  },
+                })
               })
-            })
-          }
-        })
+            }
+          })
+        }
 
         setBookings(allBookings)
-      } catch (err) {
-        setError("Failed to fetch service bookings")
-        console.error("Error fetching service bookings:", err)
-      } finally {
-        setLoading(false)
       }
+    } catch (err: any) {
+      console.error("Error fetching service bookings:", err)
+      setError(err.message || "Failed to fetch service bookings")
+      toast({
+        title: t("common.error") || "Error",
+        description: err.message || "Failed to fetch service bookings. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchServiceBookings()
   }, [])
 
-  // Helper function to filter bookings for a specific tab
-  const getBookingsForTab = (tabValue: string) => {
-    return bookings.filter((booking) => {
-      // First apply search filter if any
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase()
-        const customerName = booking.customer?.name?.toLowerCase() || ""
-        const serviceName = (booking.serviceName?.[language] || booking.serviceName?.en || "").toLowerCase()
-        const bookingId = booking.id?.toLowerCase() || ""
+  const filteredBookings = bookings.filter((booking) => {
+    // First apply search filter if any
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase()
+      const customerName = booking.customer?.name?.toLowerCase() || ""
+      const serviceName = (booking.serviceName?.[language] || booking.serviceName?.en || "").toLowerCase()
+      const bookingId = booking.id?.toLowerCase() || ""
 
-        if (
-          !customerName.includes(searchLower) &&
-          !serviceName.includes(searchLower) &&
-          !bookingId.includes(searchLower)
-        ) {
-          return false
-        }
+      if (
+        !customerName.includes(searchLower) &&
+        !serviceName.includes(searchLower) &&
+        !bookingId.includes(searchLower)
+      ) {
+        return false
       }
+    }
 
-      // Then apply tab filter based on status and date
-      const bookingDate = new Date(booking.startDate)
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
+    // Then apply tab filter
+    const bookingDate = new Date(booking.startDate).toISOString().split("T")[0]
+    const today = new Date().toISOString().split("T")[0]
+    const serviceStatus = getServiceStatus(booking)
 
-      switch (tabValue) {
-        case "upcoming":
-          return (booking.status === "confirmed" || booking.status === "pending") && bookingDate >= today
-        case "completed":
-          return booking.status === "completed"
-        case "cancelled":
-          return booking.status === "cancelled"
-        case "all":
-          return true
-        default:
-          return true
+    if (activeTab === "upcoming") {
+      if (booking.status != BookingStatus.CONFIRMED && booking.status != BookingStatus.PENDING) {
+        return false
       }
-    })
-  }
+      if (bookingDate < today) {
+        return false
+      }
+      return true
+    } else if (activeTab === "completed") {
+      return booking.status === BookingStatus.COMPLETED
+    } else if (activeTab === "cancelled") {
+      // Show all bookings with cancelled/rejected services, regardless of overall booking status
+      return serviceStatus === "rejected" || serviceStatus === "cancelled"
+    }
+
+    return true
+  })
 
   const handleViewBooking = (booking: any) => {
     setSelectedBooking(booking)
@@ -196,8 +233,6 @@ export default function ServiceBookingsPage() {
   }
 
   const handleSaveBooking = (updatedBooking: any) => {
-    console.log(`Updating service booking ${updatedBooking.id}`, updatedBooking)
-
     toast({
       title: t("business.bookings.bookingUpdated") || "Booking Updated",
       description:
@@ -206,6 +241,8 @@ export default function ServiceBookingsPage() {
     })
 
     setIsEditModalOpen(false)
+    // Refresh data after successful update
+    fetchServiceBookings()
   }
 
   const openCancelDialog = (bookingId: string) => {
@@ -217,23 +254,21 @@ export default function ServiceBookingsPage() {
     if (!bookingToCancel) return
 
     try {
-      await bookingService.updateBookingVenueStatus(bookingToCancel, "cancelled")
-
-      // Update local state
-      setBookings(
-        bookings.map((booking) => (booking.id === bookingToCancel ? { ...booking, status: "cancelled" } : booking)),
-      )
+      await bookingService.updateBookingVenueStatus(bookingToCancel, BookingStatus.CANCELLED)
 
       toast({
         title: t("business.bookings.bookingCancelled") || "Booking Cancelled",
         description: t("business.bookings.bookingCancelledDescription") || "The service booking has been cancelled.",
         variant: "default",
       })
-    } catch (error) {
+
+      // Refresh data after successful cancellation
+      fetchServiceBookings()
+    } catch (error: any) {
       console.error("Error cancelling booking:", error)
       toast({
-        title: "Error",
-        description: "Failed to cancel booking. Please try again.",
+        title: t("common.error") || "Error",
+        description: error.message || "Failed to cancel booking. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -242,62 +277,166 @@ export default function ServiceBookingsPage() {
     }
   }
 
-  const handleApproveBooking = async (bookingId: string) => {
+  const openDeclineDialog = (booking: any) => {
+    setBookingToDecline(booking)
+    setRejectionReason("")
+    setIsDeclineModalOpen(true)
+  }
+
+  const handleApproveBooking = async (booking: any) => {
     try {
-      await bookingService.updateBookingVenueStatus(bookingId, "confirmed")
+      const result = await bookingService.updateBookingServiceStatus(
+        booking.id,
+        booking.serviceId,
+        BookingStatus.CONFIRMED,
+      )
 
-      // Update local state
-      setBookings(bookings.map((booking) => (booking.id === bookingId ? { ...booking, status: "confirmed" } : booking)))
+      if (result.success) {
+        // Update local state - find and update the specific service option
+        setBookings((prev) =>
+          prev.map((b) => {
+            if (b.id === booking.id) {
+              const updatedMetadata = { ...b.metadata }
+              if (updatedMetadata.options && Array.isArray(updatedMetadata.options)) {
+                updatedMetadata.options = updatedMetadata.options.map((option: any) => {
+                  if (option.service?.id === booking.serviceId || option.serviceId === booking.serviceId) {
+                    return { ...option, status: "confirmed" }
+                  }
+                  return option
+                })
+              }
+              return { ...b, metadata: updatedMetadata }
+            }
+            return b
+          }),
+        )
 
-      setIsViewModalOpen(false)
-      toast({
-        title: "Service Booking Approved",
-        description: "The service booking has been successfully approved.",
-      })
-    } catch (error) {
+        setIsViewModalOpen(false)
+        toast({
+          title: t("business.serviceBookings.serviceApproved") || "Service Approved",
+          description:
+            t("business.serviceBookings.serviceApprovedDescription") ||
+            "The service booking has been successfully approved.",
+        })
+
+        // Refresh data after successful approval
+        fetchServiceBookings()
+      } else {
+        throw new Error(result.error || "Failed to approve service booking")
+      }
+    } catch (error: any) {
       console.error("Error approving service booking:", error)
       toast({
-        title: "Error",
-        description: "Failed to approve service booking. Please try again.",
+        title: t("common.error") || "Error",
+        description: error.message || "Failed to approve service booking. Please try again.",
         variant: "destructive",
       })
     }
   }
 
-  const handleDeclineBooking = async (bookingId: string) => {
+  const handleDeclineBooking = async () => {
+    if (!bookingToDecline) return
+
     try {
-      await bookingService.updateBookingVenueStatus(bookingId, "cancelled")
+      const result = await bookingService.updateBookingServiceStatus(
+        bookingToDecline.id,
+        bookingToDecline.serviceId,
+        BookingStatus.CANCELLED,
+        rejectionReason,
+      )
 
-      // Update local state
-      setBookings(bookings.map((booking) => (booking.id === bookingId ? { ...booking, status: "cancelled" } : booking)))
+      if (result.success) {
+        // Update local state - find and update the specific service option
+        setBookings((prev) =>
+          prev.map((b) => {
+            if (b.id === bookingToDecline.id) {
+              const updatedMetadata = { ...b.metadata }
+              if (updatedMetadata.options && Array.isArray(updatedMetadata.options)) {
+                updatedMetadata.options = updatedMetadata.options.map((option: any) => {
+                  if (
+                    option.service?.id === bookingToDecline.serviceId ||
+                    option.serviceId === bookingToDecline.serviceId
+                  ) {
+                    return { ...option, status: "rejected", rejectionReason }
+                  }
+                  return option
+                })
+              }
+              return { ...b, metadata: updatedMetadata }
+            }
+            return b
+          }),
+        )
 
-      setIsViewModalOpen(false)
-      toast({
-        title: "Service Booking Declined",
-        description: "The service booking has been declined.",
-      })
-    } catch (error) {
+        toast({
+          title: t("business.serviceBookings.serviceDeclined") || "Service Declined",
+          description:
+            t("business.serviceBookings.serviceDeclinedDescription") || "The service booking has been declined.",
+        })
+
+        // Refresh data after successful decline
+        fetchServiceBookings()
+      } else {
+        throw new Error(result.error || "Failed to decline service booking")
+      }
+    } catch (error: any) {
       console.error("Error declining service booking:", error)
       toast({
-        title: "Error",
-        description: "Failed to decline service booking. Please try again.",
+        title: t("common.error") || "Error",
+        description: error.message || "Failed to decline service booking. Please try again.",
         variant: "destructive",
       })
+    } finally {
+      setIsDeclineModalOpen(false)
+      setBookingToDecline(null)
+      setIsViewModalOpen(false)
     }
   }
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case "confirmed":
-        return "bg-emerald-500/90 dark:bg-emerald-600/90 text-success-foreground hover:bg-emerald-500/70 dark:hover:bg-emerald-600/70"
+        return "bg-emerald-500/90 dark:bg-emerald-600/90 text-white hover:bg-emerald-500/70 dark:hover:bg-emerald-600/70"
       case "pending":
-        return "bg-warning text-warning-foreground hover:bg-warning/80"
+        return "bg-orange-500/90 dark:bg-orange-600/90 text-white hover:bg-orange-500/70 dark:hover:bg-orange-600/70"
       case "completed":
-        return "bg-info text-info-foreground hover:bg-info/80"
+        return "bg-blue-500/90 dark:bg-blue-600/90 text-white hover:bg-blue-500/70 dark:hover:bg-blue-600/70"
       case "cancelled":
-        return "bg-destructive text-destructive-foreground hover:bg-destructive/80"
+        return "bg-red-500/90 dark:bg-red-600/90 text-white hover:bg-red-500/70 dark:hover:bg-red-600/70"
       default:
-        return "bg-muted text-muted-foreground"
+        return "bg-gray-500/90 dark:bg-gray-600/90 text-white hover:bg-gray-500/70 dark:hover:bg-gray-600/70"
+    }
+  }
+
+  const getServiceStatusBadge = (serviceStatus: string | null) => {
+    if (!serviceStatus) return null
+
+    switch (serviceStatus) {
+      case "accepted":
+      case "confirmed":
+        return (
+          <Badge className="bg-green-500 hover:bg-green-600 text-white border-0">
+            <CheckCircle className="mr-1 h-3 w-3" />
+            {t("business.serviceBookings.serviceApproved") || "Service Approved"}
+          </Badge>
+        )
+      case "rejected":
+      case "cancelled":
+        return (
+          <Badge className="bg-red-500 hover:bg-red-600 text-white border-0">
+            <XCircle className="mr-1 h-3 w-3" />
+            {t("business.serviceBookings.serviceDeclined") || "Service Declined"}
+          </Badge>
+        )
+      case "pending":
+        return (
+          <Badge className="bg-orange-500 hover:bg-orange-600 text-white border-0">
+            <AlertTriangle className="mr-1 h-3 w-3" />
+            {t("business.serviceBookings.servicePending") || "Service Pending"}
+          </Badge>
+        )
+      default:
+        return <Badge variant="outline">{serviceStatus}</Badge>
     }
   }
 
@@ -315,6 +454,33 @@ export default function ServiceBookingsPage() {
       totalCount,
     }
   })
+
+  const getPriceTypeDisplay = (priceType: string) => {
+    if (!priceType) return t("business.serviceNew.fixed") || "Fixed Rate"
+
+    const type = priceType.toUpperCase()
+    if (type === "PER_PERSON" || type === "PERPERSON") {
+      return t("business.serviceNew.perPerson") || "Per Person"
+    } else if (type === "PER_HOUR" || type === "PERHOUR") {
+      return t("business.serviceNew.perHour") || "Per Hour"
+    }
+    return t("business.serviceNew.fixed") || "Fixed Rate"
+  }
+
+  if (error) {
+    return (
+      <BusinessLayout>
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="text-center">
+            <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">{t("common.error") || "Error"}</h3>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={fetchServiceBookings}>{t("common.retry") || "Try Again"}</Button>
+          </div>
+        </div>
+      </BusinessLayout>
+    )
+  }
 
   return (
     <BusinessLayout>
@@ -406,15 +572,18 @@ export default function ServiceBookingsPage() {
                 <h3 className="text-lg font-medium">
                   {selectedBooking.serviceName[language] || selectedBooking.serviceName.en}
                 </h3>
-                <Badge className={getStatusBadgeClass(selectedBooking.status)}>
-                  {selectedBooking.status === "confirmed"
-                    ? t("business.bookings.confirmed") || "Confirmed"
-                    : selectedBooking.status === "pending"
-                      ? t("business.bookings.pending") || "Pending"
-                      : selectedBooking.status === "completed"
-                        ? t("business.bookings.completed") || "Completed"
-                        : t("business.bookings.cancelled") || "Cancelled"}
-                </Badge>
+                <div className="flex gap-2">
+                  <Badge className={getStatusBadgeClass(selectedBooking.status)}>
+                    {selectedBooking.status === "confirmed"
+                      ? t("business.bookings.confirmed") || "Confirmed"
+                      : selectedBooking.status === "pending"
+                        ? t("business.bookings.pending") || "Pending"
+                        : selectedBooking.status === "completed"
+                          ? t("business.bookings.completed") || "Completed"
+                          : t("business.bookings.cancelled") || "Cancelled"}
+                  </Badge>
+                  {getServiceStatusBadge(getServiceStatus(selectedBooking))}
+                </div>
               </div>
 
               <Separator />
@@ -491,6 +660,86 @@ export default function ServiceBookingsPage() {
                   </div>
                 </div>
 
+                {/* Calculation */}
+                <div>
+                  <h4 className="font-medium mb-2">{t("business.bookings.servicePricing") || "Service Pricing"}</h4>
+                  <div className="bg-secondary/20 p-3 rounded-md space-y-2">
+                    {/* Service Base Price */}
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground ml-1">
+                        {t("business.bookings.serviceBasePrice") || "Service Base Price"}
+                        <span className="text-xs text-muted-foreground ml-1">
+                          ({getPriceTypeDisplay(calculateServicePrice(selectedBooking).priceType)})
+                        </span>
+                      </span>
+                      <span className="text-sm text-muted-foreground ml-1">
+                        ${(calculateServicePrice(selectedBooking).basePrice || 0).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground ml-1">
+                          {t("business.bookings.calculation")}:
+                        </span>
+                        <span className="text-sm text-muted-foreground ml-1">
+                          ${calculateServicePrice(selectedBooking).basePrice.toFixed(2)} ×{" "}
+                          {selectedBooking.numberOfGuests} guests
+                        </span>
+                      </div>
+                      <Separator className="my-2" />
+                      <div className="flex justify-between font-medium">
+                        <span className="text-lg text-foreground ml-1">
+                          {" "}
+                          {t("business.bookings.serviceTotalCost")}{" "}
+                        </span>
+                      </div>
+                      {(() => {
+                        const servicePrice = calculateServicePrice(selectedBooking)
+                        if (!servicePrice.serviceTotal) {
+                          return null
+                        }
+
+                        const priceType = servicePrice.priceType?.toUpperCase() || "FIXED"
+                        const basePrice = servicePrice.basePrice || 0
+
+                        if (priceType === "perPerson" || priceType === "PERPERSON") {
+                          return (
+                            <>
+                              <div className="flex justify-between">
+                                <span className="text-lg text-foreground ml-1">
+                                  {" "}
+                                  ${servicePrice.serviceTotal.toFixed(2)}{" "}
+                                </span>
+                              </div>
+                            </>
+                          )
+                        } else if (priceType === "perHour" || priceType === "PERHOUR") {
+                          const startTime = new Date(`2000-01-01 ${selectedBooking.startTime}`)
+                          const endTime = new Date(`2000-01-01 ${selectedBooking.endTime}`)
+                          const hours = Math.ceil((endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60))
+                          return (
+                            <div className="flex justify-between font-medium">
+                              <span>
+                                ${basePrice.toFixed(2)} × {hours} hours
+                              </span>
+                            </div>
+                          )
+                        } else {
+                          return (
+                            <div className="flex justify-between">
+                              <span className="text-lg text-foreground ml-1">
+                                {" "}
+                                ${servicePrice.serviceTotal.toFixed(2)}{" "}
+                              </span>
+                            </div>
+                          )
+                        }
+                        return null
+                      })()}
+                    </div>
+                  </div>
+                </div>
+
                 {/* Venue Information */}
                 {selectedBooking.venue && (
                   <div>
@@ -507,50 +756,6 @@ export default function ServiceBookingsPage() {
                   </div>
                 )}
 
-                {/* Price Information */}
-                <div>
-                  <h4 className="font-medium mb-2">{t("business.bookings.pricing") || "Pricing"}</h4>
-                  <div className="bg-secondary/20 p-3 rounded-md">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-sm text-muted-foreground">Service Price</div>
-                        <div className="font-medium">${calculateServicePrice(selectedBooking).toFixed(2)}</div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-muted-foreground">Total Amount</div>
-                        <div className="font-medium">${Number.parseFloat(selectedBooking.totalAmount).toFixed(2)}</div>
-                      </div>
-                    </div>
-                    {selectedBooking.serviceOptions && selectedBooking.serviceOptions.length > 0 && (
-                      <div className="mt-3">
-                        <div className="text-sm text-muted-foreground mb-2">Selected Options:</div>
-                        <div className="space-y-2">
-                          {selectedBooking.serviceOptions
-                            .filter((option: any) => option.service?.id === selectedBooking.serviceId)
-                            .map((option: any, index: number) => (
-                              <div key={index} className="flex justify-between items-center text-sm">
-                                <span>{option.name?.[language] || option.name?.en || "Option"}</span>
-                                <span className="font-medium">
-                                  ${option.price?.amount || 0}
-                                  {option.price?.type === "perPerson" && ` × ${selectedBooking.numberOfGuests} guests`}
-                                  <span className="text-muted-foreground ml-1">
-                                    (
-                                    {option.price?.type === "perPerson"
-                                      ? "per person"
-                                      : option.price?.type === "hourly"
-                                        ? "per hour"
-                                        : "fixed"}
-                                    )
-                                  </span>
-                                </span>
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
                 {selectedBooking.specialRequests && (
                   <div>
                     <h4 className="font-medium">{t("business.bookings.specialRequests") || "Special Requests"}</h4>
@@ -561,23 +766,23 @@ export default function ServiceBookingsPage() {
 
               {/* Action Buttons */}
               <div className="flex flex-wrap justify-end gap-2 pt-4">
-                {selectedBooking.status === "pending" && (
+                {!selectedBooking?.metadata?.options && selectedBooking.status !== "cancelled" && (
                   <>
                     <Button
                       variant="outline"
                       className="border-green-600 text-green-600 hover:bg-green-50"
-                      onClick={() => handleApproveBooking(selectedBooking.id)}
+                      onClick={() => handleApproveBooking(selectedBooking)}
                     >
                       <Check className="mr-1 h-4 w-4" />
-                      {t("business.bookings.approve") || "Approve"}
+                      {t("business.bookings.approve") || "Accept Service"}
                     </Button>
                     <Button
                       variant="outline"
                       className="border-red-600 text-red-600 hover:bg-red-50"
-                      onClick={() => handleDeclineBooking(selectedBooking.id)}
+                      onClick={() => openDeclineDialog(selectedBooking)}
                     >
                       <X className="mr-1 h-4 w-4" />
-                      {t("business.bookings.decline") || "Decline"}
+                      {t("business.bookings.decline") || "Reject Service"}
                     </Button>
                   </>
                 )}
@@ -636,6 +841,45 @@ export default function ServiceBookingsPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Decline Booking Dialog with Reason */}
+      <Dialog open={isDeclineModalOpen} onOpenChange={setIsDeclineModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              {t("business.serviceBookings.declineBooking") || "Decline Service Booking"}
+            </DialogTitle>
+            <DialogDescription>
+              {t("business.serviceBookings.declineBookingDescription") ||
+                "Please provide a reason for declining this booking. This will be shared with the customer."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <h4 className="font-medium">Rejection Reason</h4>
+              <Textarea
+                placeholder={
+                  t("business.serviceBookings.rejectionReasonPlaceholder") ||
+                  "We are not available during the requested time slot..."
+                }
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeclineModalOpen(false)}>
+              {t("business.common.cancel") || "Cancel"}
+            </Button>
+            <Button variant="destructive" onClick={handleDeclineBooking} disabled={!rejectionReason.trim()}>
+              {t("business.serviceBookings.confirmDecline") || "Decline Booking"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Tabs defaultValue="upcoming" className="w-full" onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="upcoming">{t("business.bookings.upcoming") || "Upcoming"}</TabsTrigger>
@@ -652,14 +896,34 @@ export default function ServiceBookingsPage() {
               </div>
             )}
 
-            {!loading && getBookingsForTab("upcoming").length === 0 && (
+            {!loading && filteredBookings.length === 0 && (
               <div className="text-center py-12 bg-secondary/30 rounded-lg">
-                <h3 className="text-lg font-medium">No service bookings found</h3>
-                <p className="text-muted-foreground mt-2">No upcoming service bookings at the moment</p>
+                <h3 className="text-lg font-medium">
+                  {t("business.serviceBookings.noBookingsFound") || "No service bookings found"}
+                </h3>
+                <p className="text-muted-foreground mt-2">
+                  {activeTab === "upcoming"
+                    ? t("business.serviceBookings.noUpcomingBookings") || "No upcoming service bookings at the moment"
+                    : activeTab === "completed"
+                      ? t("business.serviceBookings.noCompletedBookings") || "No completed service bookings yet"
+                      : activeTab === "cancelled"
+                        ? t("business.serviceBookings.noCancelledBookings") || "No cancelled service bookings"
+                        : t("business.serviceBookings.noBookingsAvailable") || "No service bookings available"}
+                </p>
               </div>
             )}
-            {getBookingsForTab("upcoming").map((booking) => {
+            {filteredBookings.map((booking) => {
               const servicePrice = calculateServicePrice(booking)
+              const serviceStatus = getServiceStatus(booking)
+              const hasServiceOptions =
+                booking?.metadata?.options &&
+                Array.isArray(booking.metadata.options) &&
+                booking.metadata.options.some(
+                  (option: any) =>
+                    (option.service?.id === booking.serviceId || option.serviceId === booking.serviceId) &&
+                    option.status,
+                )
+
               return (
                 <div key={booking.id} className="bg-background border rounded-lg shadow-sm">
                   <div className="p-4">
@@ -670,7 +934,9 @@ export default function ServiceBookingsPage() {
                         </div>
                         <div className="grid gap-1">
                           <h3 className="font-semibold">{booking.serviceName[language] || booking.serviceName.en}</h3>
-                          <div className="text-sm text-muted-foreground">{booking.eventType || "Service Booking"}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {t(`venueBook.${booking.eventType}`) || "Service Booking"}
+                          </div>
                           <div className="flex flex-wrap gap-2 mt-1">
                             <div className="flex items-center text-xs">
                               <Calendar className="mr-1 h-3.5 w-3.5" />
@@ -695,37 +961,40 @@ export default function ServiceBookingsPage() {
                       </div>
                       <div className="flex flex-col gap-2 items-end justify-between">
                         <div className="flex flex-col items-end gap-2">
-                          <div className="font-semibold">${servicePrice.toFixed(2)}</div>
-                          <Badge className={getStatusBadgeClass(booking.status)}>
-                            {booking.status === "confirmed"
-                              ? t("business.bookings.confirmed") || "Confirmed"
-                              : booking.status === "pending"
-                                ? t("business.bookings.pending") || "Pending"
-                                : booking.status === "completed"
-                                  ? t("business.bookings.completed") || "Completed"
-                                  : t("business.bookings.cancelled") || "Cancelled"}
-                          </Badge>
+                          <div className="font-semibold">${servicePrice.serviceTotal.toFixed(2)}</div>
+                          <div className="flex gap-2">
+                            <Badge className={getStatusBadgeClass(booking.status)}>
+                              {booking.status === "confirmed"
+                                ? t("business.bookings.confirmed") || "Confirmed"
+                                : booking.status === "pending"
+                                  ? t("business.bookings.pending") || "Pending"
+                                  : booking.status === "completed"
+                                    ? t("business.bookings.completed") || "Completed"
+                                    : t("business.bookings.cancelled") || "Cancelled"}
+                            </Badge>
+                            {getServiceStatusBadge(serviceStatus)}
+                          </div>
                         </div>
                         <div className="flex gap-2">
-                          {booking.status === "pending" && (
+                          {!hasServiceOptions && booking.status !== "cancelled" && (
                             <>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 className="text-green-600 hover:bg-green-50"
-                                onClick={() => handleApproveBooking(booking.id)}
+                                onClick={() => handleApproveBooking(booking)}
                               >
                                 <Check className="mr-1 h-3 w-3" />
-                                {t("business.bookings.approve") || "Approve"}
+                                {t("business.bookings.approve") || "Accept"}
                               </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 className="text-red-600 hover:bg-red-50"
-                                onClick={() => handleDeclineBooking(booking.id)}
+                                onClick={() => openDeclineDialog(booking)}
                               >
                                 <X className="mr-1 h-3 w-3" />
-                                {t("business.bookings.decline") || "Decline"}
+                                {t("business.bookings.decline") || "Reject"}
                               </Button>
                             </>
                           )}
@@ -756,14 +1025,26 @@ export default function ServiceBookingsPage() {
               </div>
             )}
 
-            {!loading && getBookingsForTab("completed").length === 0 && (
+            {!loading && filteredBookings.length === 0 && (
               <div className="text-center py-12 bg-secondary/30 rounded-lg">
-                <h3 className="text-lg font-medium">No service bookings found</h3>
-                <p className="text-muted-foreground mt-2">No completed service bookings yet</p>
+                <h3 className="text-lg font-medium">
+                  {t("business.serviceBookings.noBookingsFound") || "No service bookings found"}
+                </h3>
+                <p className="text-muted-foreground mt-2">
+                  {activeTab === "upcoming"
+                    ? t("business.serviceBookings.noUpcomingBookings") || "No upcoming service bookings at the moment"
+                    : activeTab === "completed"
+                      ? t("business.serviceBookings.noCompletedBookings") || "No completed service bookings yet"
+                      : activeTab === "cancelled"
+                        ? t("business.serviceBookings.noCancelledBookings") || "No cancelled service bookings"
+                        : t("business.serviceBookings.noBookingsAvailable") || "No service bookings available"}
+                </p>
               </div>
             )}
-            {getBookingsForTab("completed").map((booking) => {
+            {filteredBookings.map((booking) => {
               const servicePrice = calculateServicePrice(booking)
+              const serviceStatus = getServiceStatus(booking)
+
               return (
                 <div key={booking.id} className="bg-background border rounded-lg shadow-sm">
                   <div className="p-4">
@@ -799,10 +1080,13 @@ export default function ServiceBookingsPage() {
                       </div>
                       <div className="flex flex-col gap-2 items-end justify-between">
                         <div className="flex flex-col items-end gap-2">
-                          <div className="font-semibold">${servicePrice.toFixed(2)}</div>
-                          <Badge className={getStatusBadgeClass(booking.status)}>
-                            {t("business.bookings.completed") || "Completed"}
-                          </Badge>
+                          <div className="font-semibold">${servicePrice.serviceTotal.toFixed(2)}</div>
+                          <div className="flex gap-2">
+                            <Badge className={getStatusBadgeClass(booking.status)}>
+                              {t("business.bookings.completed") || "Completed"}
+                            </Badge>
+                            {getServiceStatusBadge(serviceStatus)}
+                          </div>
                         </div>
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm" onClick={() => handleViewBooking(booking)}>
@@ -826,14 +1110,26 @@ export default function ServiceBookingsPage() {
               </div>
             )}
 
-            {!loading && getBookingsForTab("cancelled").length === 0 && (
+            {!loading && filteredBookings.length === 0 && (
               <div className="text-center py-12 bg-secondary/30 rounded-lg">
-                <h3 className="text-lg font-medium">No service bookings found</h3>
-                <p className="text-muted-foreground mt-2">No cancelled service bookings</p>
+                <h3 className="text-lg font-medium">
+                  {t("business.serviceBookings.noBookingsFound") || "No service bookings found"}
+                </h3>
+                <p className="text-muted-foreground mt-2">
+                  {activeTab === "upcoming"
+                    ? t("business.serviceBookings.noUpcomingBookings") || "No upcoming service bookings at the moment"
+                    : activeTab === "completed"
+                      ? t("business.serviceBookings.noCompletedBookings") || "No completed service bookings yet"
+                      : activeTab === "cancelled"
+                        ? t("business.serviceBookings.noCancelledBookings") || "No cancelled service bookings"
+                        : t("business.serviceBookings.noBookingsAvailable") || "No service bookings available"}
+                </p>
               </div>
             )}
-            {getBookingsForTab("cancelled").map((booking) => {
+            {filteredBookings.map((booking) => {
               const servicePrice = calculateServicePrice(booking)
+              const serviceStatus = getServiceStatus(booking)
+
               return (
                 <div key={booking.id} className="bg-background border rounded-lg shadow-sm">
                   <div className="p-4">
@@ -869,10 +1165,21 @@ export default function ServiceBookingsPage() {
                       </div>
                       <div className="flex flex-col gap-2 items-end justify-between">
                         <div className="flex flex-col items-end gap-2">
-                          <div className="font-semibold">${servicePrice.toFixed(2)}</div>
-                          <Badge className={getStatusBadgeClass(booking.status)}>
-                            {t("business.bookings.cancelled") || "Cancelled"}
-                          </Badge>
+                          <div className="font-semibold">${servicePrice.serviceTotal.toFixed(2)}</div>
+                          <div className="flex gap-2">
+                            <Badge className={getStatusBadgeClass(booking.status)}>
+                              {booking.status === "cancelled"
+                                ? t("business.bookings.cancelled") || "Cancelled"
+                                : booking.status === "confirmed"
+                                  ? t("business.bookings.confirmed") || "Confirmed"
+                                  : booking.status === "pending"
+                                    ? t("business.bookings.pending") || "Pending"
+                                    : booking.status === "completed"
+                                      ? t("business.bookings.completed") || "Completed"
+                                      : t("business.bookings.cancelled") || "Cancelled"}
+                            </Badge>
+                            {getServiceStatusBadge(serviceStatus)}
+                          </div>
                         </div>
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm" onClick={() => handleViewBooking(booking)}>
@@ -896,14 +1203,34 @@ export default function ServiceBookingsPage() {
               </div>
             )}
 
-            {!loading && getBookingsForTab("all").length === 0 && (
+            {!loading && filteredBookings.length === 0 && (
               <div className="text-center py-12 bg-secondary/30 rounded-lg">
-                <h3 className="text-lg font-medium">No service bookings found</h3>
-                <p className="text-muted-foreground mt-2">No service bookings available</p>
+                <h3 className="text-lg font-medium">
+                  {t("business.serviceBookings.noBookingsFound") || "No service bookings found"}
+                </h3>
+                <p className="text-muted-foreground mt-2">
+                  {activeTab === "upcoming"
+                    ? t("business.serviceBookings.noUpcomingBookings") || "No upcoming service bookings at the moment"
+                    : activeTab === "completed"
+                      ? t("business.serviceBookings.noCompletedBookings") || "No completed service bookings yet"
+                      : activeTab === "cancelled"
+                        ? t("business.serviceBookings.noCancelledBookings") || "No cancelled service bookings"
+                        : t("business.serviceBookings.noBookingsAvailable") || "No service bookings available"}
+                </p>
               </div>
             )}
-            {getBookingsForTab("all").map((booking) => {
+            {filteredBookings.map((booking) => {
               const servicePrice = calculateServicePrice(booking)
+              const serviceStatus = getServiceStatus(booking)
+              const hasServiceOptions =
+                booking?.metadata?.options &&
+                Array.isArray(booking.metadata.options) &&
+                booking.metadata.options.some(
+                  (option: any) =>
+                    (option.service?.id === booking.serviceId || option.serviceId === booking.serviceId) &&
+                    option.status,
+                )
+
               return (
                 <div key={booking.id} className="bg-background border rounded-lg shadow-sm">
                   <div className="p-4">
@@ -939,37 +1266,40 @@ export default function ServiceBookingsPage() {
                       </div>
                       <div className="flex flex-col gap-2 items-end justify-between">
                         <div className="flex flex-col items-end gap-2">
-                          <div className="font-semibold">${servicePrice.toFixed(2)}</div>
-                          <Badge className={getStatusBadgeClass(booking.status)}>
-                            {booking.status === "confirmed"
-                              ? t("business.bookings.confirmed") || "Confirmed"
-                              : booking.status === "pending"
-                                ? t("business.bookings.pending") || "Pending"
-                                : booking.status === "completed"
-                                  ? t("business.bookings.completed") || "Completed"
-                                  : t("business.bookings.cancelled") || "Cancelled"}
-                          </Badge>
+                          <div className="font-semibold">${servicePrice.serviceTotal.toFixed(2)}</div>
+                          <div className="flex gap-2">
+                            <Badge className={getStatusBadgeClass(booking.status)}>
+                              {booking.status === "confirmed"
+                                ? t("business.bookings.confirmed") || "Confirmed"
+                                : booking.status === "pending"
+                                  ? t("business.bookings.pending") || "Pending"
+                                  : booking.status === "completed"
+                                    ? t("business.bookings.completed") || "Completed"
+                                    : t("business.bookings.cancelled") || "Cancelled"}
+                            </Badge>
+                            {getServiceStatusBadge(serviceStatus)}
+                          </div>
                         </div>
                         <div className="flex gap-2">
-                          {booking.status === "pending" && (
+                          {!hasServiceOptions && booking.status !== "cancelled" && (
                             <>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 className="text-green-600 hover:bg-green-50"
-                                onClick={() => handleApproveBooking(booking.id)}
+                                onClick={() => handleApproveBooking(booking)}
                               >
                                 <Check className="mr-1 h-3 w-3" />
-                                {t("business.bookings.approve") || "Approve"}
+                                {t("business.bookings.approve") || "Accept"}
                               </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 className="text-red-600 hover:bg-red-50"
-                                onClick={() => handleDeclineBooking(booking.id)}
+                                onClick={() => openDeclineDialog(booking)}
                               >
                                 <X className="mr-1 h-3 w-3" />
-                                {t("business.bookings.decline") || "Decline"}
+                                {t("business.bookings.decline") || "Reject"}
                               </Button>
                             </>
                           )}

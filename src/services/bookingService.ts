@@ -111,6 +111,16 @@ export const updateBookingVenueStatus = async (
   }
 };
 
+export const updateBookingServiceStatus = async (
+  id: string,
+  serviceId: string,
+  status: BookingStatus,
+  rejectionReason?: string
+): Promise<{ success: boolean; error?: string }> => {
+  await apiRequest<Booking>(`/bookings/${id}/service/${serviceId}/status`, 'PATCH', { status, rejectionReason });
+  return { success: true };
+};
+
 /**
  * Update payment status
  */

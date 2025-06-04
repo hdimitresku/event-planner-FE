@@ -16,7 +16,6 @@ import type { VenueSummary } from "../../models/venue"
 import type { ServiceSummary } from "../../models/service"
 import { PricingType } from "../../models/common"
 import type { User as UserModel } from "../../models/user"
-import { DashboardLayout } from "@/components/dashboard/layout"
 
 export default function FavoritesPage() {
   const { t, language } = useLanguage()

@@ -4,7 +4,7 @@
  * This service handles all service-related API calls.
  */
 
-import { Service, ServiceSummary, ServiceCreateData, ServiceType } from '../models/service';
+import { Service, ServiceSummary, ServiceCreateData, ServiceType, ServiceOption } from '../models/service';
 import { apiRequest, buildQueryString } from './apiService';
 import * as mockDataService from '../data/mockDataService';
 import { VenueType } from '../models/venue';
@@ -257,6 +257,18 @@ export const getServicesByVenue = async (
   }
 };
 
+export const getServiceOptionById = async (
+  serviceId: string,
+  optionId: string
+): Promise<{ success: boolean; option: ServiceOption; error?: string }> => {
+  try {
+    const response = await apiRequest<ServiceOption>(`/services/${serviceId}/options/${optionId}`);
+    return { success: true, option: response };
+  } catch (error) {
+    console.error('Error fetching service option:', error);
+    return { success: false, error: error.message || 'Failed to fetch service option' };
+  }
+};
 
 export const getServiceTypesByVenueType = async (
   venueType: VenueType
@@ -300,4 +312,5 @@ export const getServiceTypesByVenueType = async (
     console.error('Error fetching services by venue type:', error);
     return { serviceTypes: [] };
   }
+
 };

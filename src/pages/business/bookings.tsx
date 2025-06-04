@@ -36,6 +36,8 @@ import { Separator } from "../../components/ui/separator"
 import { toast } from "../../components/ui/use-toast"
 import * as venueService from "../../services/venueService"
 import * as bookingService from "../../services/bookingService"
+import { Textarea } from "../../components/ui/textarea"
+import { BookingStatus } from "../../models/booking"
 
 export default function BusinessBookingsPage() {
   const { t, language } = useLanguage()
@@ -45,6 +47,7 @@ export default function BusinessBookingsPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
   const [bookingToCancel, setBookingToCancel] = useState<string | null>(null)
+  const [rejectionReason, setRejectionReason] = useState("")
 
   const [venues, setVenues] = useState<any[]>([])
   const [bookings, setBookings] = useState<any[]>([])
@@ -59,9 +62,9 @@ export default function BusinessBookingsPage() {
     const priceType = booking.venuePrice.type || "FIXED"
 
     let calculatedPrice = basePrice
-    if (priceType === "PER_PERSON" || priceType === "PERPERSON") {
+    if (priceType === "perPerson" || priceType === "perperson") {
       calculatedPrice = basePrice * booking.numberOfGuests
-    } else if (priceType === "PER_HOUR" || priceType === "PERHOUR") {
+    } else if (priceType === "perHour" || priceType === "perhour") {
       // Calculate hours between start and end time
       const startTime = new Date(`2000-01-01 ${booking.startTime}`)
       const endTime = new Date(`2000-01-01 ${booking.endTime}`)
@@ -74,15 +77,15 @@ export default function BusinessBookingsPage() {
 
   // Get price type display text
   const getPriceTypeDisplay = (priceType: string) => {
-    if (!priceType) return "Fixed Rate"
+    if (!priceType) return t("business.bookings.fixedRate") || "Fixed Rate"
 
     const type = priceType.toUpperCase()
     if (type === "PER_PERSON" || type === "PERPERSON") {
-      return "Per Person"
+      return t("business.serviceNew.perPerson") || "Per Person"
     } else if (type === "PER_HOUR" || type === "PERHOUR") {
-      return "Per Hour"
+      return t("business.serviceNew.perHour") || "Per Hour"
     }
-    return "Fixed Rate"
+    return t("business.bookings.fixedRate") || "Fixed Rate"
   }
 
   // Fetch venues and their bookings
@@ -95,7 +98,7 @@ export default function BusinessBookingsPage() {
         const allBookings = venueDetails.flatMap((venue: any) => {
           return venue.bookings.map((booking: any) => {
             // Extract venue price information
-            const venuePrice = venue.pricing || { amount: 0, type: "FIXED" }
+            const venuePrice = venue.price || { amount: 0, type: "FIXED" }
 
             // Create booking with venue information
             const enhancedBooking = {
@@ -118,7 +121,6 @@ export default function BusinessBookingsPage() {
           })
         })
 
-        console.log("allBookings", allBookings)
         setBookings(allBookings)
       } catch (err) {
         setError("Failed to fetch venues and bookings")
@@ -169,7 +171,6 @@ export default function BusinessBookingsPage() {
 
   const handleSaveBooking = (updatedBooking: any) => {
     // In a real app, this would update the booking in the database
-    console.log(`Updating booking ${updatedBooking.id}`, updatedBooking)
 
     toast({
       title: t("business.bookings.bookingUpdated") || "Booking Updated",
@@ -187,7 +188,6 @@ export default function BusinessBookingsPage() {
 
   const handleCancelBooking = () => {
     // In a real app, this would update the booking status in the database
-    console.log(`Cancelling booking ${bookingToCancel}`)
 
     toast({
       title: t("business.bookings.bookingCancelled") || "Booking Cancelled",
@@ -201,20 +201,20 @@ export default function BusinessBookingsPage() {
 
   const handleApproveBooking = async (bookingId: string) => {
     try {
-      await bookingService.updateBookingVenueStatus(bookingId, "confirmed")
+      await bookingService.updateBookingVenueStatus(bookingId, BookingStatus.CONFIRMED)
       // Refresh venues data
       const venueDetails = await venueService.getVenueByOwner()
       setVenues(venueDetails)
       setIsViewModalOpen(false)
       toast({
-        title: "Booking Approved",
-        description: "The booking has been successfully approved.",
+        title: t("business.bookings.bookingApproved") || "Booking Approved",
+        description: t("business.bookings.bookingApprovedDescription") || "The booking has been successfully approved.",
       })
     } catch (error) {
       console.error("Error approving booking:", error)
       toast({
-        title: "Error",
-        description: "Failed to approve booking. Please try again.",
+        title: t("business.bookings.error") || "Error",
+        description: t("business.bookings.approveError") || "Failed to approve booking. Please try again.",
         variant: "destructive",
       })
     }
@@ -222,20 +222,20 @@ export default function BusinessBookingsPage() {
 
   const handleDeclineBooking = async (bookingId: string) => {
     try {
-      await bookingService.updateBookingVenueStatus(bookingId, "cancelled")
+      await bookingService.updateBookingVenueStatus(bookingId, BookingStatus.CANCELLED)
       // Refresh venues data
       const venueDetails = await venueService.getVenueByOwner()
       setVenues(venueDetails)
       setIsViewModalOpen(false)
       toast({
-        title: "Booking Declined",
-        description: "The booking has been declined.",
+        title: t("business.bookings.bookingDeclined") || "Booking Declined",
+        description: t("business.bookings.bookingDeclinedDescription") || "The booking has been declined.",
       })
     } catch (error) {
       console.error("Error declining booking:", error)
       toast({
-        title: "Error",
-        description: "Failed to decline booking. Please try again.",
+        title: t("business.bookings.error") || "Error",
+        description: t("business.bookings.declineError") || "Failed to decline booking. Please try again.",
         variant: "destructive",
       })
     }
@@ -448,19 +448,18 @@ export default function BusinessBookingsPage() {
                         if (priceType === "PER_PERSON" || priceType === "PERPERSON") {
                           return (
                             <div className="flex justify-between">
-                              <span>Calculation:</span>
+                              <span>{t("business.bookings.calculation")}:</span>
                               <span>
                                 ${basePrice.toFixed(2)} × {selectedBooking.numberOfGuests} guests
                               </span>
                             </div>
                           )
-                        } else if (priceType === "PER_HOUR" || priceType === "PERHOUR") {
+                        } else if (priceType === "perHour" || priceType === "PERHOUR") {
                           const startTime = new Date(`2000-01-01 ${selectedBooking.startTime}`)
                           const endTime = new Date(`2000-01-01 ${selectedBooking.endTime}`)
                           const hours = Math.ceil((endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60))
                           return (
                             <div className="flex justify-between">
-                              <span>Calculation:</span>
                               <span>
                                 ${basePrice.toFixed(2)} × {hours} hours
                               </span>
@@ -477,13 +476,6 @@ export default function BusinessBookingsPage() {
                       <span>${selectedBooking.venueCost?.toFixed(2) || "0.00"}</span>
                     </div>
 
-                    <Separator />
-
-                    {/* Total Booking Amount */}
-                    <div className="flex justify-between font-bold">
-                      <span>{t("business.bookings.totalBookingAmount") || "Total Booking Amount"}</span>
-                      <span>${Number.parseFloat(selectedBooking.totalAmount).toFixed(2)}</span>
-                    </div>
                   </div>
                 </div>
 
@@ -597,15 +589,15 @@ export default function BusinessBookingsPage() {
 
             {!loading && filteredBookings.length === 0 && (
               <div className="text-center py-12 bg-secondary/30 rounded-lg">
-                <h3 className="text-lg font-medium">No bookings found</h3>
+                <h3 className="text-lg font-medium">{t("business.bookings.noBookingsFound") || "No bookings found"}</h3>
                 <p className="text-muted-foreground mt-2">
                   {activeTab === "upcoming"
-                    ? "No upcoming bookings at the moment"
+                    ? t("business.bookings.noUpcomingBookings") || "No upcoming bookings at the moment"
                     : activeTab === "completed"
-                      ? "No completed bookings yet"
+                      ? t("business.bookings.noCompletedBookings") || "No completed bookings yet"
                       : activeTab === "cancelled"
-                        ? "No cancelled bookings"
-                        : "No bookings available"}
+                        ? t("business.bookings.noCancelledBookings") || "No cancelled bookings"
+                        : t("business.bookings.noBookingsAvailable") || "No bookings available"}
                 </p>
               </div>
             )}
@@ -622,7 +614,7 @@ export default function BusinessBookingsPage() {
                         />
                       </div>
                       <div className="grid gap-1">
-                        <h3 className="font-semibold">{booking.eventType || "Event"}</h3>
+                        <h3 className="font-semibold">{t(`venueBook.${booking.eventType}`) || "Event"}</h3>
                         <div className="text-sm text-muted-foreground">
                           {booking.venueName[language] || booking.venueName.en}
                         </div>
@@ -650,7 +642,7 @@ export default function BusinessBookingsPage() {
                     </div>
                     <div className="flex flex-col gap-2 items-end justify-between">
                       <div className="flex flex-col items-end gap-2">
-                        <div className="font-semibold">${Number.parseFloat(booking.totalAmount).toFixed(2)}</div>
+                        <div className="font-semibold">${Number.parseFloat(calculateVenuePrice(booking)).toFixed(2)}</div>
                         <Badge className={getStatusBadgeClass(booking.status)}>
                           {booking.status === "confirmed"
                             ? t("business.bookings.confirmed") || "Confirmed"
@@ -712,15 +704,15 @@ export default function BusinessBookingsPage() {
 
             {!loading && filteredBookings.length === 0 && (
               <div className="text-center py-12 bg-secondary/30 rounded-lg">
-                <h3 className="text-lg font-medium">No bookings found</h3>
+                <h3 className="text-lg font-medium">{t("business.bookings.noBookingsFound") || "No bookings found"}</h3>
                 <p className="text-muted-foreground mt-2">
                   {activeTab === "upcoming"
-                    ? "No upcoming bookings at the moment"
+                    ? t("business.bookings.noUpcomingBookings") || "No upcoming bookings at the moment"
                     : activeTab === "completed"
-                      ? "No completed bookings yet"
+                      ? t("business.bookings.noCompletedBookings") || "No completed bookings yet"
                       : activeTab === "cancelled"
-                        ? "No cancelled bookings"
-                        : "No bookings available"}
+                        ? t("business.bookings.noCancelledBookings") || "No cancelled bookings"
+                        : t("business.bookings.noBookingsAvailable") || "No bookings available"}
                 </p>
               </div>
             )}
@@ -765,7 +757,7 @@ export default function BusinessBookingsPage() {
                     </div>
                     <div className="flex flex-col gap-2 items-end justify-between">
                       <div className="flex flex-col items-end gap-2">
-                        <div className="font-semibold">${Number.parseFloat(booking.totalAmount).toFixed(2)}</div>
+                        <div className="font-semibold">${Number.parseFloat(calculateVenuePrice(booking)).toFixed(2)}</div>
                         <Badge className={getStatusBadgeClass(booking.status)}>
                           {booking.status === "confirmed"
                             ? t("business.bookings.confirmed") || "Confirmed"
@@ -827,15 +819,15 @@ export default function BusinessBookingsPage() {
 
             {!loading && filteredBookings.length === 0 && (
               <div className="text-center py-12 bg-secondary/30 rounded-lg">
-                <h3 className="text-lg font-medium">No bookings found</h3>
+                <h3 className="text-lg font-medium">{t("business.bookings.noBookingsFound") || "No bookings found"}</h3>
                 <p className="text-muted-foreground mt-2">
                   {activeTab === "upcoming"
-                    ? "No upcoming bookings at the moment"
+                    ? t("business.bookings.noUpcomingBookings") || "No upcoming bookings at the moment"
                     : activeTab === "completed"
-                      ? "No completed bookings yet"
+                      ? t("business.bookings.noCompletedBookings") || "No completed bookings yet"
                       : activeTab === "cancelled"
-                        ? "No cancelled bookings"
-                        : "No bookings available"}
+                        ? t("business.bookings.noCancelledBookings") || "No cancelled bookings"
+                        : t("business.bookings.noBookingsAvailable") || "No bookings available"}
                 </p>
               </div>
             )}
@@ -880,7 +872,7 @@ export default function BusinessBookingsPage() {
                     </div>
                     <div className="flex flex-col gap-2 items-end justify-between">
                       <div className="flex flex-col items-end gap-2">
-                        <div className="font-semibold">${Number.parseFloat(booking.totalAmount).toFixed(2)}</div>
+                        <div className="font-semibold">${Number.parseFloat(calculateVenuePrice(booking)).toFixed(2)}</div>
                         <Badge className={getStatusBadgeClass(booking.status)}>
                           {booking.status === "confirmed"
                             ? t("business.bookings.confirmed") || "Confirmed"
@@ -942,15 +934,15 @@ export default function BusinessBookingsPage() {
 
             {!loading && filteredBookings.length === 0 && (
               <div className="text-center py-12 bg-secondary/30 rounded-lg">
-                <h3 className="text-lg font-medium">No bookings found</h3>
+                <h3 className="text-lg font-medium">{t("business.bookings.noBookingsFound") || "No bookings found"}</h3>
                 <p className="text-muted-foreground mt-2">
                   {activeTab === "upcoming"
-                    ? "No upcoming bookings at the moment"
+                    ? t("business.bookings.noUpcomingBookings") || "No upcoming bookings at the moment"
                     : activeTab === "completed"
-                      ? "No completed bookings yet"
+                      ? t("business.bookings.noCompletedBookings") || "No completed bookings yet"
                       : activeTab === "cancelled"
-                        ? "No cancelled bookings"
-                        : "No bookings available"}
+                        ? t("business.bookings.noCancelledBookings") || "No cancelled bookings"
+                        : t("business.bookings.noBookingsAvailable") || "No bookings available"}
                 </p>
               </div>
             )}
@@ -995,7 +987,7 @@ export default function BusinessBookingsPage() {
                     </div>
                     <div className="flex flex-col gap-2 items-end justify-between">
                       <div className="flex flex-col items-end gap-2">
-                        <div className="font-semibold">${Number.parseFloat(booking.totalAmount).toFixed(2)}</div>
+                        <div className="font-semibold">${Number.parseFloat(calculateVenuePrice(booking)).toFixed(2)}</div>
                         <Badge className={getStatusBadgeClass(booking.status)}>
                           {booking.status === "confirmed"
                             ? t("business.bookings.confirmed") || "Confirmed"

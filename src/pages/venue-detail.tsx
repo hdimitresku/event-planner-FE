@@ -152,53 +152,55 @@ export default function VenueDetailPage() {
 
   // Helper function to check if time is within operating hours
 
-// Updated function to check if a given date/time is within operating hours
-const isTimeWithinOperatingHours = (date: Date) => {
-  if (!venue?.dayAvailability) return true;
+  // Updated function to check if a given date/time is within operating hours
+  const isTimeWithinOperatingHours = (date: Date) => {
+    if (!venue?.dayAvailability) return true
 
-  // Get the day name in lowercase (e.g., "monday")
-  const dayName = date.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
-  const operatingHours = venue.dayAvailability[dayName];
-  if (!operatingHours || operatingHours === "Closed") return false;
+    // Get the day name in lowercase (e.g., "monday")
+    const dayName = date.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase()
+    const operatingHours = venue.dayAvailability[dayName]
+    if (!operatingHours || operatingHours === "Closed") return false
 
-  // Parse the operating hours (e.g., "9:00 AM - 10:00 PM")
-  const [openTimeStr, closeTimeStr] = operatingHours.split(" - ");
+    // Parse the operating hours (e.g., "9:00 AM - 10:00 PM")
+    const [openTimeStr, closeTimeStr] = operatingHours.split(" - ")
 
-  // Parse opening and closing times using date-fns
-  const baseDate = new Date(); // Use a dummy date for parsing
-  const openTime = parse(openTimeStr, "h:mm a", baseDate);    
-  let closeTime = parse(closeTimeStr, "h:mm a", baseDate);
+    // Parse opening and closing times using date-fns
+    const baseDate = new Date() // Use a dummy date for parsing
+    const openTime = parse(openTimeStr, "h:mm a", baseDate)
+    let closeTime = parse(closeTimeStr, "h:mm a", baseDate)
 
-  // Handle cases where closing time is past midnight (e.g., "12:00 AM")
-  if (closeTimeStr === "12:00 AM") {
-    closeTime = set(closeTime, { hours: 0, minutes: 0 }); // Set to 00:00 of the same day
-    closeTime.setDate(closeTime.getDate() + 1); // Move to the next day
+    // Handle cases where closing time is past midnight (e.g., "12:00 AM")
+    if (closeTimeStr === "12:00 AM") {
+      closeTime = set(closeTime, { hours: 0, minutes: 0 }) // Set to 00:00 of the same day
+      closeTime.setDate(closeTime.getDate() + 1) // Move to the next day
+    }
+
+    // Extract the hours and minutes from the input date
+    const selectedTime = set(baseDate, {
+      hours: date.getHours(),
+      minutes: date.getMinutes(),
+      seconds: 0,
+      milliseconds: 0,
+    })
+
+    // Compare the times
+    // If closing time is on the next day, adjust the comparison
+    if (isBefore(closeTime, openTime)) {
+      // Closing time is on the next day (e.g., 12:00 AM is after 9:00 AM)
+      return (
+        isAfter(selectedTime, openTime) ||
+        selectedTime.getTime() === openTime.getTime() ||
+        isBefore(selectedTime, closeTime) ||
+        selectedTime.getTime() === closeTime.getTime()
+      )
+    } else {
+      // Same-day comparison
+      return (
+        (isAfter(selectedTime, openTime) || selectedTime.getTime() === openTime.getTime()) &&
+        (isBefore(selectedTime, closeTime) || selectedTime.getTime() === closeTime.getTime())
+      )
+    }
   }
-
-  // Extract the hours and minutes from the input date
-  const selectedTime = set(baseDate, {
-    hours: date.getHours(),
-    minutes: date.getMinutes(),
-    seconds: 0,
-    milliseconds: 0,
-  });
-
-  // Compare the times
-  // If closing time is on the next day, adjust the comparison
-  if (isBefore(closeTime, openTime)) {
-    // Closing time is on the next day (e.g., 12:00 AM is after 9:00 AM)
-    return (
-      (isAfter(selectedTime, openTime) || selectedTime.getTime() === openTime.getTime()) ||
-      (isBefore(selectedTime, closeTime) || selectedTime.getTime() === closeTime.getTime())
-    );
-  } else {
-    // Same-day comparison
-    return (
-      (isAfter(selectedTime, openTime) || selectedTime.getTime() === openTime.getTime()) &&
-      (isBefore(selectedTime, closeTime) || selectedTime.getTime() === closeTime.getTime())
-    );
-  }
-};
 
   // Validation function
   const validateBookingInputs = () => {
@@ -303,7 +305,13 @@ const isTimeWithinOperatingHours = (date: Date) => {
           console.log(id)
           const venueData = await venueService.getVenueById(id)
           const result = await serviceService.getServiceTypesByVenueType(venueData?.type)
-          setAvailableServiceTypes(result)
+
+          // Get unique service types only (remove duplicates)
+          const uniqueServiceTypes = result.filter(
+            (serviceType, index, self) => index === self.findIndex((st) => st.type === serviceType.type),
+          )
+
+          setAvailableServiceTypes(uniqueServiceTypes)
           setVenue(venueData)
 
           if (venueData?.capacity?.min && !initialGuests) {
@@ -915,8 +923,7 @@ const isTimeWithinOperatingHours = (date: Date) => {
                               <div className="flex items-center justify-between">
                                 <h4 className="font-medium text-sm truncate">{similarVenue.name[language]}</h4>
                                 <Badge variant="secondary" className="ml-2 text-xs">
-                                  {similarVenue.similarityScore}/
-                                  6
+                                  {similarVenue.similarityScore}/ 6
                                 </Badge>
                               </div>
                               <p className="text-xs text-muted-foreground mt-1">{getPriceDisplay(similarVenue)}</p>
@@ -1125,11 +1132,13 @@ const isTimeWithinOperatingHours = (date: Date) => {
                     <label className="text-sm font-medium">{t("venueDetail.startDateTime")}</label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           className={cn(
                             "w-full justify-start text-left font-normal border-dashed",
-                            validationErrors.startDate || validationErrors.startTime ? "border-red-500 bg-red-50 dark:bg-red-950/20" : ""
+                            validationErrors.startDate || validationErrors.startTime
+                              ? "border-red-500 bg-red-50 dark:bg-red-950/20"
+                              : "",
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
@@ -1141,9 +1150,9 @@ const isTimeWithinOperatingHours = (date: Date) => {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar 
-                          mode="single" 
-                          selected={selectedDate} 
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
                           onSelect={handleStartDateSelect}
                           initialFocus
                           modifiers={{
@@ -1151,8 +1160,10 @@ const isTimeWithinOperatingHours = (date: Date) => {
                             unavailable: (date) => !isDateAvailable(date),
                           }}
                           modifiersClassNames={{
-                            available: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50",
-                            unavailable: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
+                            available:
+                              "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50",
+                            unavailable:
+                              "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
                           }}
                           disabled={(date) => !isDateAvailable(date)}
                         />
@@ -1170,14 +1181,14 @@ const isTimeWithinOperatingHours = (date: Date) => {
                                   handleStartDateSelect(newDate)
                                 }
                               }}
-                              className={cn(
-                                "w-full",
-                                validationErrors.startTime ? "border-red-500" : ""
-                              )}
+                              className={cn("w-full", validationErrors.startTime ? "border-red-500" : "")}
                             />
                             {venue?.dayAvailability && (
                               <p className="text-xs text-muted-foreground">
-                                {t("venueDetail.operatingHours")}: {venue.dayAvailability[selectedDate?.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()] || 'Closed'}
+                                {t("venueDetail.operatingHours")}:{" "}
+                                {venue.dayAvailability[
+                                  selectedDate?.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase()
+                                ] || "Closed"}
                               </p>
                             )}
                           </div>
@@ -1197,11 +1208,13 @@ const isTimeWithinOperatingHours = (date: Date) => {
                     <label className="text-sm font-medium">{t("venueDetail.endDateTime")}</label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           className={cn(
                             "w-full justify-start text-left font-normal border-dashed",
-                            validationErrors.endDate || validationErrors.endTime ? "border-red-500 bg-red-50 dark:bg-red-950/20" : ""
+                            validationErrors.endDate || validationErrors.endTime
+                              ? "border-red-500 bg-red-50 dark:bg-red-950/20"
+                              : "",
                           )}
                         >
                           <Clock className="mr-2 h-4 w-4" />
@@ -1209,9 +1222,9 @@ const isTimeWithinOperatingHours = (date: Date) => {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar 
-                          mode="single" 
-                          selected={endDate} 
+                        <Calendar
+                          mode="single"
+                          selected={endDate}
                           onSelect={handleEndDateSelect}
                           initialFocus
                           modifiers={{
@@ -1219,8 +1232,10 @@ const isTimeWithinOperatingHours = (date: Date) => {
                             unavailable: (date) => !isDateAvailable(date),
                           }}
                           modifiersClassNames={{
-                            available: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50",
-                            unavailable: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
+                            available:
+                              "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50",
+                            unavailable:
+                              "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
                           }}
                           disabled={(date) => !isDateAvailable(date)}
                         />
@@ -1238,14 +1253,14 @@ const isTimeWithinOperatingHours = (date: Date) => {
                                   handleEndDateSelect(newDate)
                                 }
                               }}
-                              className={cn(
-                                "w-full",
-                                validationErrors.endTime ? "border-red-500" : ""
-                              )}
+                              className={cn("w-full", validationErrors.endTime ? "border-red-500" : "")}
                             />
                             {venue?.dayAvailability && (
                               <p className="text-xs text-muted-foreground">
-                                {t("venueDetail.operatingHours")}: {venue.dayAvailability[endDate?.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()] || 'Closed'}
+                                {t("venueDetail.operatingHours")}:{" "}
+                                {venue.dayAvailability[
+                                  endDate?.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase()
+                                ] || "Closed"}
                               </p>
                             )}
                           </div>
@@ -1273,7 +1288,7 @@ const isTimeWithinOperatingHours = (date: Date) => {
                         onChange={(e) => handleGuestsChange(Number(e.target.value))}
                         className={cn(
                           "border-0 focus-visible:ring-0 focus-visible:ring-offset-0",
-                          validationErrors.guests ? "bg-red-50 dark:bg-red-950/20" : ""
+                          validationErrors.guests ? "bg-red-50 dark:bg-red-950/20" : "",
                         )}
                       />
                     </div>

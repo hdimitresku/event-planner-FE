@@ -148,7 +148,7 @@ export default function BusinessDashboardPage() {
                           <img src={booking.image} alt={booking.venue?.name || "Venue"} className="w-full h-full object-cover" />
                         </div>
                         <div>
-                          <p className="font-medium">{booking.eventType || "Event"}</p>
+                          <p className="font-medium">{t(`venueBook.${booking.eventType}`) || "Event"}</p>
                           <p className="text-sm text-gray-500">
                             {new Date(booking.startDate).toLocaleDateString()} • {booking.startTime}
                           </p>
