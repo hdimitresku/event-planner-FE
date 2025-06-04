@@ -67,7 +67,7 @@ export interface Service extends BaseEntity {
   rating?: Rating;
   reviews?: Review[];
   featured?: boolean;
-  active: boolean;
+  isActive: boolean;
   providerId: string;  // Business/provider ID
   availableForVenueTypes?: string[]; // Venue types this service is available for
 }

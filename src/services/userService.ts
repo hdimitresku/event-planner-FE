@@ -143,9 +143,9 @@ export const getLoggedInUser = async (): Promise<User | null> => {
  */
 export const getUserById = async (id: string): Promise<User | null> => {
   try {
-    if (USE_MOCK_DATA) {
-      return mockDataService.getUserById(id);
-    }
+    // if (USE_MOCK_DATA) {
+    //   return mockDataService.getUserById(id);
+    // }
 
     return await apiRequest<User>(`/users/${id}`);
   } catch (error) {

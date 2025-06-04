@@ -4,10 +4,10 @@
  * This service handles all service-related API calls.
  */
 
-import { Service, ServiceSummary, ServiceCreateData, ServiceType, ServiceOption } from '../models/service';
+import { Service, ServiceSummary, ServiceType, ServiceOption } from '../models/service';
 import { apiRequest, buildQueryString } from './apiService';
-import * as mockDataService from '../data/mockDataService';
 import { VenueType } from '../models/venue';
+import mockDataService from "@/services/mockDataService.ts";
 
 // Flag to determine if we should use mock data (during development)
 const USE_MOCK_DATA = false;
@@ -73,8 +73,7 @@ export const createService = async (serviceData: FormData): Promise<{ success: b
     // if (USE_MOCK_DATA) {
     //   return mockDataService.createService(serviceData);
     // }
-
-    const response = await apiRequest<FormData>('/services', 'POST', serviceData, undefined, true);
+    await apiRequest<FormData>('/services', 'POST', serviceData, undefined, true);
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to create service' };
@@ -312,5 +311,17 @@ export const getServiceTypesByVenueType = async (
     console.error('Error fetching services by venue type:', error);
     return { serviceTypes: [] };
   }
-
 };
+
+export const getOwnedServices = async (): Promise<Service[]> => {
+  try {
+    // if (USE_MOCK_DATA) {
+    //   return mockDataService.getOwnedServices();
+    // }
+
+    return await apiRequest<Service[]>(`/services/owned`);
+  } catch (error) {
+    console.error(`Error fetching owned services for current user:`, error);
+    return [];
+  }
+}

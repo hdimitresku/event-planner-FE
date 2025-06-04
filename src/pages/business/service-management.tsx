@@ -27,13 +27,6 @@ import { type Service, ServiceType } from "../../models/service"
 import { PricingType } from "../../models/common"
 import { toast } from "../../components/ui/use-toast"
 
-interface ServiceOption {
-  id: string
-  name: string
-  description: string
-  price: number
-  pricingType: string
-}
 
 export default function ServicesManagementPage() {
   const { t, language } = useLanguage()
@@ -46,8 +39,6 @@ export default function ServicesManagementPage() {
   const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [options, setOptions] = useState<ServiceOption[]>([])
-  const [showOptions, setShowOptions] = useState(false)
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
   const [editForm, setEditForm] = useState({
@@ -79,7 +70,7 @@ export default function ServicesManagementPage() {
     setLoading(true)
     try {
       // We'll need to get service summaries and then the full details for each
-      const result = await serviceService.getServices()
+      const result = await serviceService.getOwnedServices()
       // For each service summary, get the full service details
       const serviceDetails = await Promise.all(
         result.map(async (service) => {
@@ -230,26 +221,6 @@ export default function ServicesManagementPage() {
     setIsViewModalOpen(true)
   }
 
-  console.log(services)
-
-  const addOption = () => {
-    const newOption: ServiceOption = {
-      id: crypto.randomUUID(),
-      name: "",
-      description: "",
-      price: 0,
-      pricingType: "fixed",
-    }
-    setOptions([...options, newOption])
-  }
-
-  const removeOption = (id: string) => {
-    setOptions(options.filter((option) => option.id !== id))
-  }
-
-  const updateOption = (id: string, field: keyof ServiceOption, value: string | number) => {
-    setOptions(options.map((option) => (option.id === id ? { ...option, [field]: value } : option)))
-  }
 
   const handleEditService = (service: Service) => {
     setSelectedService(service)
