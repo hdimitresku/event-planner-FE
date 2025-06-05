@@ -26,59 +26,60 @@ export default function HomePage() {
           <div className="grid gap-8 lg:grid-cols-[1fr_500px] lg:gap-12 xl:grid-cols-[1fr_550px] items-center">
             <div className="flex flex-col justify-center space-y-8">
               <div className="space-y-4">
-                <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full">
-                  <Star className="mr-1 h-3.5 w-3.5" />
+                <div className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-sky-700 dark:text-sky-400 bg-gradient-to-r from-sky-100 to-sky-50 dark:bg-sky-900/40 rounded-full border border-sky-200/60 dark:border-sky-700/50">
+                  <Star className="mr-1 h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
                   <span>{t("hero.new") || "New and Improved Experience"}</span>
                 </div>
-                <h1 className="text-4xl font-bold tracking-tight sm:text-5xl xl:text-6xl/none text-gray-800 dark:text-gray-50">
+                <h1 className="text-4xl font-bold tracking-tight sm:text-5xl xl:text-6xl/none text-gray-900 dark:text-gray-50">
                   {t("hero.title")}
                 </h1>
-                <p className="max-w-[600px] text-gray-600 dark:text-gray-300 text-lg md:text-xl">
+                <p className="max-w-[600px] text-gray-700 dark:text-gray-300 text-lg md:text-xl">
                   {t("hero.subtitle")}
                 </p>
               </div>
-              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-slate-700">
+              <div className="bg-white/95 dark:bg-slate-800 rounded-xl p-6 shadow-xl border border-gray-200/80 dark:border-slate-700 backdrop-blur-sm">
                 <div className="grid gap-4">
-                  <div className="flex items-center gap-2 border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 transition-all">
-                    <MapPin className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  <div className="flex items-center gap-2 border border-gray-200 dark:border-slate-600 rounded-md p-3 bg-gray-50/80 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 focus-within:border-sky-300 dark:focus-within:border-sky-500 transition-all">
+                    <MapPin className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                     <Input
-                      className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
+                      className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-gray-800 dark:text-gray-200"
                       placeholder={t("search.location")}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-2 border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 transition-all">
-                      <Calendar className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                    <div className="flex items-center gap-2 border border-gray-200 dark:border-slate-600 rounded-md p-3 bg-gray-50/80 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 focus-within:border-sky-300 dark:focus-within:border-sky-500 transition-all">
+                      <Calendar className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                       <Input
-                        className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
+                        className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-gray-800 dark:text-gray-200"
                         type="date"
                         placeholder={t("search.date")}
                       />
                     </div>
-                    <div className="flex items-center gap-2 border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 transition-all">
-                      <Users className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                    <div className="flex items-center gap-2 border border-gray-200 dark:border-slate-600 rounded-md p-3 bg-gray-50/80 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 focus-within:border-sky-300 dark:focus-within:border-sky-500 transition-all">
+                      <Users className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                       <Input
-                        className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
+                        className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-gray-800 dark:text-gray-200"
                         type="number"
                         placeholder={t("search.guests")}
                       />
                     </div>
                   </div>
-                  <Button className="w-full bg-sky-500 hover:bg-sky-600 text-white">
+                  <Button className="w-full bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white shadow-lg shadow-sky-500/25 transition-all duration-200 hover:shadow-xl hover:shadow-sky-500/30">
                     <Search className="mr-2 h-4 w-4" /> {t("search.button")}
                   </Button>
                 </div>
               </div>
             </div>
             <div className="relative">
-              <div className="absolute -top-4 -left-4 w-24 h-24 bg-emerald-400/20 dark:bg-emerald-400/10 rounded-lg blur-xl"></div>
-              <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-sky-400/20 dark:bg-sky-400/10 rounded-lg blur-xl"></div>
+              <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-to-br from-emerald-400/30 to-emerald-500/20 dark:bg-emerald-400/10 rounded-lg blur-xl"></div>
+              <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-gradient-to-tl from-sky-400/30 to-sky-500/20 dark:bg-sky-400/10 rounded-lg blur-xl"></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-gradient-to-r from-violet-400/20 to-purple-400/20 dark:bg-purple-400/10 rounded-full blur-xl"></div>
               <img
                 src="/placeholder.svg?height=600&width=800"
                 width="550"
                 height="550"
                 alt="Featured venue"
-                className="relative mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last lg:aspect-square shadow-xl border border-gray-200 dark:border-gray-700"
+                className="relative mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last lg:aspect-square shadow-2xl border border-gray-300/60 dark:border-gray-700"
               />
             </div>
           </div>
