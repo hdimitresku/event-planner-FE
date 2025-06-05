@@ -560,16 +560,16 @@ export default function VenuesPage() {
               </Button>
             </div>
           </div>
-          <div className="space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-soft bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm p-6">
+          <div className="space-y-3 bg-white/95 dark:bg-slate-800/95 rounded-xl border border-gray-200/80 dark:border-slate-700 shadow-lg p-6 backdrop-blur-sm">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="font-semibold text-lg text-gray-800 dark:text-gray-50 flex items-center">
-                <Filter className="mr-2 h-5 w-5 text-sky-500 dark:text-sky-400" />
+              <h2 className="font-semibold text-lg text-gray-900 dark:text-gray-50 flex items-center">
+                <Filter className="mr-2 h-5 w-5 text-sky-600 dark:text-sky-400" />
                 {t("venues.filters.title") || "Filters"}
               </h2>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-xs text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300"
+                className="h-8 text-xs text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300"
                 onClick={clearAllFilters}
               >
                 {t("venues.filters.clearAll") || "Clear All"}
