@@ -123,59 +123,62 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="w-full py-16 md:py-24 bg-gradient-to-br from-gray-50 to-sky-50 dark:from-slate-900 dark:to-slate-800">
-        <div className="container px-4 md:px-6">
+      <section className="w-full py-16 md:py-24 bg-gradient-to-br from-gray-100 via-sky-50 to-emerald-50 dark:from-slate-900 dark:to-slate-800 relative">
+        {/* Subtle background pattern for light mode */}
+        <div className="absolute inset-0 opacity-[0.02] dark:opacity-0 bg-[linear-gradient(45deg,_transparent_35%,_rgba(0,0,0,0.05)_35%,_rgba(0,0,0,0.05)_65%,_transparent_65%)] bg-[length:20px_20px]"></div>
+        
+        <div className="container px-4 md:px-6 relative">
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-3">
+            <div className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-sky-700 dark:text-sky-400 bg-gradient-to-r from-sky-100 to-sky-50 dark:bg-sky-900/40 rounded-full mb-3 border border-sky-200/60 dark:border-sky-700/50">
               <span>{t("howItWorks.simple") || "Simple Process"}</span>
             </div>
             <div className="space-y-2 max-w-3xl">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-gray-800 dark:text-gray-50">
+              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-gray-900 dark:text-gray-50">
                 {t("howItWorks.hero.title")}
               </h2>
-              <p className="text-gray-600 dark:text-gray-300 md:text-xl/relaxed">{t("howItWorks.hero.subtitle")}</p>
+              <p className="text-gray-700 dark:text-gray-300 md:text-xl/relaxed">{t("howItWorks.hero.subtitle")}</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
-            <div className="flex flex-col items-center text-center space-y-4 p-6 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 relative">
+            <div className="flex flex-col items-center text-center space-y-4 p-6 bg-white/95 dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200/80 dark:border-slate-700 relative backdrop-blur-sm hover:shadow-xl hover:shadow-gray-500/10 dark:hover:shadow-black/20 transition-all duration-300 group hover:-translate-y-1">
               <div className="absolute -top-3 -left-3">
-                <div className="bg-sky-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold shadow-lg">
+                <div className="bg-gradient-to-br from-sky-500 to-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold shadow-lg shadow-sky-500/30">
                   1
                 </div>
               </div>
-              <div className="h-20 w-20 rounded-full bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center mt-4">
-                <Search className="h-8 w-8 text-sky-500 dark:text-sky-400" />
+              <div className="h-20 w-20 rounded-full bg-gradient-to-br from-sky-100 to-sky-50 dark:bg-sky-900/40 flex items-center justify-center mt-4 group-hover:scale-105 transition-transform duration-200">
+                <Search className="h-8 w-8 text-sky-600 dark:text-sky-400" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-50">{t("howItWorks.step1.title")}</h3>
-              <p className="text-gray-600 dark:text-gray-300">{t("howItWorks.step1.description")}</p>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-50">{t("howItWorks.step1.title")}</h3>
+              <p className="text-gray-700 dark:text-gray-300">{t("howItWorks.step1.description")}</p>
             </div>
-            <div className="flex flex-col items-center text-center space-y-4 p-6 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 relative">
+            <div className="flex flex-col items-center text-center space-y-4 p-6 bg-white/95 dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200/80 dark:border-slate-700 relative backdrop-blur-sm hover:shadow-xl hover:shadow-gray-500/10 dark:hover:shadow-black/20 transition-all duration-300 group hover:-translate-y-1">
               <div className="absolute -top-3 -left-3">
-                <div className="bg-sky-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold shadow-lg">
+                <div className="bg-gradient-to-br from-sky-500 to-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold shadow-lg shadow-sky-500/30">
                   2
                 </div>
               </div>
-              <div className="h-20 w-20 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center mt-4">
-                <Calendar className="h-8 w-8 text-emerald-500 dark:text-emerald-400" />
+              <div className="h-20 w-20 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-50 dark:bg-emerald-900/40 flex items-center justify-center mt-4 group-hover:scale-105 transition-transform duration-200">
+                <Calendar className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-50">{t("howItWorks.step2.title")}</h3>
-              <p className="text-gray-600 dark:text-gray-300">{t("howItWorks.step2.description")}</p>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-50">{t("howItWorks.step2.title")}</h3>
+              <p className="text-gray-700 dark:text-gray-300">{t("howItWorks.step2.description")}</p>
             </div>
-            <div className="flex flex-col items-center text-center space-y-4 p-6 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 relative">
+            <div className="flex flex-col items-center text-center space-y-4 p-6 bg-white/95 dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200/80 dark:border-slate-700 relative backdrop-blur-sm hover:shadow-xl hover:shadow-gray-500/10 dark:hover:shadow-black/20 transition-all duration-300 group hover:-translate-y-1">
               <div className="absolute -top-3 -left-3">
-                <div className="bg-sky-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold shadow-lg">
+                <div className="bg-gradient-to-br from-sky-500 to-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold shadow-lg shadow-sky-500/30">
                   3
                 </div>
               </div>
-              <div className="h-20 w-20 rounded-full bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center mt-4">
-                <Star className="h-8 w-8 text-sky-500 dark:text-sky-400" />
+              <div className="h-20 w-20 rounded-full bg-gradient-to-br from-sky-100 to-sky-50 dark:bg-sky-900/40 flex items-center justify-center mt-4 group-hover:scale-105 transition-transform duration-200">
+                <Star className="h-8 w-8 text-sky-600 dark:text-sky-400" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-50">{t("howItWorks.step3.title")}</h3>
-              <p className="text-gray-600 dark:text-gray-300">{t("howItWorks.step3.description")}</p>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-50">{t("howItWorks.step3.title")}</h3>
+              <p className="text-gray-700 dark:text-gray-300">{t("howItWorks.step3.description")}</p>
             </div>
           </div>
           <div className="flex justify-center mt-12">
-            <Button size="lg" className="bg-sky-500 hover:bg-sky-600 text-white group" asChild>
+            <Button size="lg" className="bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white group shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30 transition-all duration-200" asChild>
               <Link to="/venues">
                 {t("howItWorks.step1.cta")} 
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
