@@ -485,24 +485,24 @@ export default function VenuesPage() {
 
       <div className="grid gap-8 md:grid-cols-[300px_1fr]">
         <div className="space-y-6">
-          <div className="space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-soft bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm p-6">
-            <h2 className="font-semibold text-lg text-gray-800 dark:text-gray-50 mb-5 flex items-center">
-              <Search className="mr-2 h-5 w-5 text-sky-500 dark:text-sky-400" />
+          <div className="space-y-3 bg-white/95 dark:bg-slate-800/95 rounded-xl border border-gray-200/80 dark:border-slate-700 shadow-lg p-6 backdrop-blur-sm">
+            <h2 className="font-semibold text-lg text-gray-900 dark:text-gray-50 mb-5 flex items-center">
+              <Search className="mr-2 h-5 w-5 text-sky-600 dark:text-sky-400" />
               {t("venues.searchBar.title") || "Search"}
             </h2>
             <div className="space-y-5">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300" htmlFor="location">
+                <label className="text-sm font-medium text-gray-800 dark:text-gray-200" htmlFor="location">
                   {t("venues.searchBar.location") || "Location"}
                 </label>
-                <div className="rounded-lg border border-transparent transition-all hover:border-primary hover:shadow-sm flex items-center gap-2 border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 transition-all">
-                  <MapPin className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                <div className="flex items-center gap-2 border border-gray-200 dark:border-slate-600 rounded-md p-3 bg-gray-50/80 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 focus-within:border-sky-300 dark:focus-within:border-sky-500 transition-all">
+                  <MapPin className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                   <Input
                     id="location"
                     name="location"
                     value={searchParams.location}
                     onChange={handleSearchChange}
-                    className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
+                    className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-gray-900 dark:text-gray-100"
                     placeholder={t("venues.searchBar.locationPlaceholder") || "City, neighborhood, or address"}
                   />
                 </div>
