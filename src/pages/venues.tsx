@@ -469,18 +469,19 @@ export default function VenuesPage() {
   }
 
   return (
-    <div className="container px-4 md:px-8 py-8 md:py-12">
-      <div className="mb-8 md:mb-12">
-        <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-2">
-          <span>{t("venues.discover") || "Discover"}</span>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50/80 to-white dark:from-slate-900 dark:to-slate-800">
+      <div className="container px-4 md:px-8 py-8 md:py-12">
+        <div className="mb-8 md:mb-12">
+          <div className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-sky-700 dark:text-sky-400 bg-gradient-to-r from-sky-100 to-sky-50 dark:bg-sky-900/40 rounded-full mb-3 border border-sky-200/60 dark:border-sky-700/50">
+            <span>{t("venues.discover") || "Discover"}</span>
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-50 mb-2">
+            {t("venues.heading") || "Find Your Perfect Venue"}
+          </h1>
+          <p className="text-gray-700 dark:text-gray-300 max-w-3xl">
+            {t("venues.subheading") || "Browse our curated selection of unique venues for your next event"}
+          </p>
         </div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-800 dark:text-gray-50 mb-2">
-          {t("venues.heading") || "Find Your Perfect Venue"}
-        </h1>
-        <p className="text-gray-600 dark:text-gray-300 max-w-3xl">
-          {t("venues.subheading") || "Browse our curated selection of unique venues for your next event"}
-        </p>
-      </div>
 
       <div className="grid gap-8 md:grid-cols-[300px_1fr]">
         <div className="space-y-6">
