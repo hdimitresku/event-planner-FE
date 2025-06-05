@@ -261,24 +261,24 @@ const VenueCard = ({ venue, language, t }) => {
 
       {/* Venue Info - Bottom Half */}
       <div className="flex flex-col flex-grow p-4 space-y-3">
-        <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-50 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors line-clamp-1">
+        <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-50 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-1">
           {venue.name[language]}
         </h3>
-        <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-          <MapPin className="flex-shrink-0 mr-1 h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+        <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+          <MapPin className="flex-shrink-0 mr-1 h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
           <span className="truncate">{venue.address ? `${venue.address.city}, ${venue.address.country}` : ""}</span>
         </div>
         <div className="flex items-center">
           <div className="flex items-center">
             <Star className="flex-shrink-0 h-4 w-4 text-yellow-500 mr-1" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">{rating.average}</span>
+            <span className="text-sm text-gray-800 dark:text-gray-200">{rating.average}</span>
           </div>
-          <span className="text-sm text-gray-500 dark:text-gray-400 ml-1 truncate">
+          <span className="text-sm text-gray-600 dark:text-gray-400 ml-1 truncate">
             ({rating.count} {t("business.bookings.reviews")})
           </span>
         </div>
         <div className="mt-auto">
-          <p className="font-medium text-sky-500 dark:text-sky-400">{getPriceDisplay(venue)}</p>
+          <p className="font-medium text-sky-600 dark:text-sky-400">{getPriceDisplay(venue)}</p>
         </div>
       </div>
     </div>
