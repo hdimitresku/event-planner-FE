@@ -1,349 +1,250 @@
 "use client"
 
-import type React from "react"
-
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
-import { Search, MapPin, Calendar, Users, ArrowRight, Star, ChevronRight } from "lucide-react"
-import { Link, useNavigate } from "react-router-dom"
+import { Search, MapPin, Calendar, Users, ArrowRight, Star, ChevronRight } from 'lucide-react'
+import { Link } from "react-router-dom"
 import { useLanguage } from "../context/language-context"
-import { useState } from "react"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar as CalendarComponent } from "@/components/ui/calendar"
-import { format } from "date-fns"
-import { cn } from "@/lib/utils"
 
 export default function HomePage() {
   const { t } = useLanguage()
-  const navigate = useNavigate()
-  const [searchData, setSearchData] = useState({
-    location: "",
-    guests: "",
-  })
-  const [date, setDate] = useState<Date>()
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setSearchData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleSearch = () => {
-    const searchParams = new URLSearchParams()
-
-    if (searchData.location) {
-      searchParams.set("location", searchData.location)
-    }
-
-    if (date) {
-      searchParams.set("date", format(date, "yyyy-MM-dd"))
-    }
-
-    if (searchData.guests) {
-      searchParams.set("guests", searchData.guests)
-    }
-
-    navigate(`/venues?${searchParams.toString()}`)
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSearch()
-    }
-  }
 
   return (
-    <>
-      {/* Hero Section */}
-      <section className="relative w-full py-20 md:py-28 lg:py-36 overflow-hidden">
-        {/* Modern gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/20 to-primary/5"></div>
+      <>
+        <section className="relative w-full py-16 md:py-24 lg:py-32 overflow-hidden bg-gradient-to-br from-gray-100 via-sky-50 to-emerald-50 dark:from-slate-900 dark:to-slate-800">
+          {/* Enhanced abstract background elements with better contrast */}
+          <div className="absolute inset-0 overflow-hidden opacity-40 dark:opacity-10">
+            <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-sky-300 to-sky-400 dark:bg-sky-700 blur-3xl"></div>
+            <div className="absolute top-40 -left-20 w-60 h-60 rounded-full bg-gradient-to-tr from-emerald-300 to-emerald-400 dark:bg-emerald-700 blur-3xl"></div>
+            <div className="absolute bottom-20 left-1/2 w-40 h-40 rounded-full bg-gradient-to-r from-violet-200 to-purple-300 dark:bg-purple-700 blur-2xl opacity-60"></div>
+          </div>
 
-        {/* Abstract background elements */}
-        <div className="absolute inset-0 overflow-hidden opacity-40 dark:opacity-20">
-          <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/20 blur-3xl"></div>
-          <div className="absolute top-40 -left-20 w-60 h-60 rounded-full bg-secondary/20 blur-3xl"></div>
-          <div className="absolute bottom-20 right-20 w-40 h-40 rounded-full bg-accent/20 blur-2xl"></div>
-        </div>
+          {/* Subtle texture overlay for light mode */}
+          <div className="absolute inset-0 opacity-[0.03] dark:opacity-0 bg-[radial-gradient(circle_at_1px_1px,_rgba(0,0,0,0.15)_1px,_transparent_0)] bg-[length:20px_20px]"></div>
 
-        <div className="container relative px-4 md:px-6 z-10">
-          <div className="grid gap-12 lg:grid-cols-[1fr_500px] lg:gap-16 xl:grid-cols-[1fr_550px] items-center">
-            <div className="flex flex-col justify-center space-y-8">
-              <div className="space-y-6">
-                <div className="inline-flex items-center px-4 py-2 text-sm font-medium text-primary bg-primary/10 rounded-full">
-                  <Star className="mr-2 h-3.5 w-3.5" />
-                  <span>{t("hero.new") || "New and Improved Experience"}</span>
-                </div>
-                <h1 className="text-5xl font-bold tracking-tight sm:text-6xl xl:text-7xl/none text-foreground">
-                  {t("hero.title") || "Find Your Perfect Event Space"}
-                </h1>
-                <p className="max-w-[600px] text-muted-foreground text-xl md:text-2xl leading-relaxed">
-                  {t("hero.subtitle") ||
-                    "Discover and book unique venues for unforgettable events with our seamless platform."}
-                </p>
-              </div>
-
-              {/* Search Card */}
-              <div className="bg-card rounded-2xl p-8 shadow-large border border-border">
-                <div className="grid gap-6">
-                  <div className="form-input flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                    <Input
-                      name="location"
-                      value={searchData.location}
-                      onChange={handleInputChange}
-                      onKeyPress={handleKeyPress}
-                      className="border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-lg"
-                      placeholder={t("search.location") || "Where is your event?"}
-                    />
+          <div className="container relative px-4 md:px-6 z-10">
+            <div className="grid gap-8 lg:grid-cols-[1fr_500px] lg:gap-12 xl:grid-cols-[1fr_550px] items-center">
+              <div className="flex flex-col justify-center space-y-8">
+                <div className="space-y-4">
+                  <div className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-sky-700 dark:text-sky-400 bg-gradient-to-r from-sky-100 to-sky-50 dark:bg-sky-900/40 rounded-full border border-sky-200/60 dark:border-sky-700/50">
+                    <Star className="mr-1 h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
+                    <span>{t("hero.new") || "New and Improved Experience"}</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="form-input flex items-center gap-3">
-                      <Calendar className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            className={cn(
-                              "w-full justify-start text-left font-normal p-0 h-auto border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-lg",
-                              !date && "text-muted-foreground",
-                            )}
-                          >
-                            {date ? format(date, "MMM dd, yyyy") : <span>{t("search.date") || "Event date"}</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <CalendarComponent
-                            mode="single"
-                            selected={date}
-                            onSelect={setDate}
-                            initialFocus
-                            className="rounded-md border"
-                            weekStartsOn={0}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <div className="form-input flex items-center gap-3">
-                      <Users className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                  <h1 className="text-4xl font-bold tracking-tight sm:text-5xl xl:text-6xl/none text-gray-900 dark:text-gray-50">
+                    {t("hero.title")}
+                  </h1>
+                  <p className="max-w-[600px] text-gray-700 dark:text-gray-300 text-lg md:text-xl">
+                    {t("hero.subtitle")}
+                  </p>
+                </div>
+                <div className="bg-white/95 dark:bg-slate-800 rounded-xl p-6 shadow-xl border border-gray-200/80 dark:border-slate-700 backdrop-blur-sm">
+                  <div className="grid gap-4">
+                    <div className="flex items-center gap-2 border border-gray-200 dark:border-slate-600 rounded-md p-3 bg-gray-50/80 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 focus-within:border-sky-300 dark:focus-within:border-sky-500 transition-all">
+                      <MapPin className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                       <Input
-                        name="guests"
-                        value={searchData.guests}
-                        onChange={handleInputChange}
-                        onKeyPress={handleKeyPress}
-                        className="border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        type="number"
-                        placeholder={t("search.guests") || "Guest count"}
+                          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-gray-800 dark:text-gray-200"
+                          placeholder={t("search.location")}
                       />
                     </div>
-                  </div>
-                  <Button className="w-full btn-primary h-12 text-lg font-medium" onClick={handleSearch}>
-                    <Search className="mr-2 h-5 w-5" /> {t("search.button") || "Search Venues"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Hero Image */}
-            <div className="relative fade-in">
-              <div className="absolute -top-6 -left-6 w-24 h-24 bg-accent/20 rounded-2xl blur-xl"></div>
-              <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-primary/20 rounded-2xl blur-xl"></div>
-              <img
-                src="/hero.png?height=600&width=800"
-                width="550"
-                height="550"
-                alt="Featured venue"
-                className="relative mx-auto aspect-video overflow-hidden rounded-2xl object-cover sm:w-full lg:order-last lg:aspect-square shadow-large border border-border"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Categories Section */}
-      <section className="w-full py-20 md:py-28">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-6 text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 text-sm font-medium text-secondary bg-secondary/10 rounded-full">
-              <span>{t("categories.explore") || "Explore Venues"}</span>
-            </div>
-            <div className="space-y-4 max-w-3xl">
-              <h2 className="text-4xl font-bold tracking-tight md:text-5xl text-foreground">
-                {t("categories.title") || "Every Event Type Covered"}
-              </h2>
-              <p className="text-muted-foreground text-xl leading-relaxed">
-                {t("categories.subtitle") ||
-                  "From intimate gatherings to grand celebrations, find the perfect space for any occasion."}
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
-            {[
-              { name: "Meeting Rooms", icon: "🏢", color: "primary" },
-              { name: "Party Venues", icon: "🎉", color: "secondary" },
-              { name: "Photography Studios", icon: "📸", color: "accent" },
-              { name: "Wedding Venues", icon: "💍", color: "primary" },
-              { name: "Outdoor Spaces", icon: "🌳", color: "secondary" },
-              { name: "Restaurants", icon: "🍽️", color: "accent" },
-              { name: "Lofts & Penthouses", icon: "🏙️", color: "primary" },
-              { name: "Unique Spaces", icon: "🎨", color: "secondary" },
-            ].map((category, index) => (
-              <Link
-                to={`/venues?category=${category.name.toLowerCase().replace(" ", "-")}`}
-                key={category.name}
-                className="flex flex-col items-center justify-center p-8 bg-card rounded-2xl hover:bg-card/80 transition-all duration-300 shadow-soft border border-border group card-hover"
-              >
-                <span className="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
-                  {category.icon}
-                </span>
-                <span className="font-medium text-center text-card-foreground group-hover:text-primary transition-colors text-lg">
-                  {category.name}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section className="w-full py-20 md:py-28 bg-gradient-to-br from-muted/30 to-primary/5">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-6 text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 text-sm font-medium text-accent bg-accent/10 rounded-full">
-              <span>{t("howItWorks.simple") || "Simple Process"}</span>
-            </div>
-            <div className="space-y-4 max-w-3xl">
-              <h2 className="text-4xl font-bold tracking-tight md:text-5xl text-foreground">
-                {t("howItWorks.hero.title") || "How It Works"}
-              </h2>
-              <p className="text-muted-foreground text-xl leading-relaxed">
-                {t("howItWorks.hero.subtitle") || "Book your perfect venue in three simple steps."}
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-            {[
-              {
-                step: 1,
-                icon: Search,
-                title: t("howItWorks.step1.title") || "Search & Discover",
-                description: t("howItWorks.step1.description") || "Browse our curated collection of unique venues.",
-                color: "primary",
-              },
-              {
-                step: 2,
-                icon: Calendar,
-                title: t("howItWorks.step2.title") || "Compare & Select",
-                description: t("howItWorks.step2.description") || "Compare options and choose your perfect space.",
-                color: "secondary",
-              },
-              {
-                step: 3,
-                icon: Star,
-                title: t("howItWorks.step3.title") || "Book & Celebrate",
-                description: t("howItWorks.step3.description") || "Secure your booking and enjoy your event.",
-                color: "accent",
-              },
-            ].map((step, index) => (
-              <div
-                key={step.step}
-                className="flex flex-col items-center text-center space-y-6 p-8 bg-card rounded-2xl shadow-medium border border-border relative fade-in"
-              >
-                <div className="absolute -top-4 -left-4">
-                  <div className="bg-primary text-primary-foreground rounded-2xl w-14 h-14 flex items-center justify-center text-xl font-bold shadow-medium">
-                    {step.step}
-                  </div>
-                </div>
-                <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center mt-6">
-                  <step.icon className="h-10 w-10 text-primary" />
-                </div>
-                <h3 className="text-2xl font-bold text-card-foreground">{step.title}</h3>
-                <p className="text-muted-foreground text-lg leading-relaxed">{step.description}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex justify-center mt-16">
-            <Button size="lg" className="btn-primary group h-14 px-8 text-lg" asChild>
-              <Link to="/venues">
-                {t("howItWorks.step1.cta") || "Start Exploring"}
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="w-full py-20 md:py-28">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-6 text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 text-sm font-medium text-primary bg-primary/10 rounded-full">
-              <span>{t("testimonials.title") || "What People Say"}</span>
-            </div>
-            <div className="space-y-4 max-w-3xl">
-              <h2 className="text-4xl font-bold tracking-tight md:text-5xl text-foreground">
-                {t("testimonials.heading") || "Loved by Event Planners"}
-              </h2>
-              <p className="text-muted-foreground text-xl leading-relaxed">
-                {t("testimonials.subheading") || "See what our customers have to say about their experience"}
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Sarah Johnson",
-                rating: 5,
-                text: "Finding the perfect venue for our company retreat was so easy with this platform. The booking process was seamless and the venue exceeded our expectations!",
-              },
-              {
-                name: "Michael Chen",
-                rating: 5,
-                text: "I planned my entire wedding using this site. The variety of venues and the detailed information made decision-making so much easier.",
-              },
-              {
-                name: "Emma Rodriguez",
-                rating: 5,
-                text: "As an event planner, I rely on this platform for all my client events. The customer service is exceptional and the venues are always as described.",
-              },
-            ].map((testimonial, i) => (
-              <div key={i} className="bg-card p-8 rounded-2xl shadow-medium border border-border card-hover">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="h-14 w-14 rounded-full bg-primary/10 overflow-hidden flex items-center justify-center">
-                    <img
-                      src={`/placeholder.svg?height=56&width=56&text=${testimonial.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}`}
-                      alt={testimonial.name}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-card-foreground text-lg">{testimonial.name}</h4>
-                    <div className="flex items-center">
-                      {[...Array(testimonial.rating)].map((_, j) => (
-                        <Star key={j} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                      ))}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex items-center gap-2 border border-gray-200 dark:border-slate-600 rounded-md p-3 bg-gray-50/80 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 focus-within:border-sky-300 dark:focus-within:border-sky-500 transition-all">
+                        <Calendar className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                        <Input
+                            className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-gray-800 dark:text-gray-200"
+                            type="date"
+                            placeholder={t("search.date")}
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 border border-gray-200 dark:border-slate-600 rounded-md p-3 bg-gray-50/80 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 focus-within:border-sky-300 dark:focus-within:border-sky-500 transition-all">
+                        <Users className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                        <Input
+                            className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-gray-800 dark:text-gray-200"
+                            type="number"
+                            placeholder={t("search.guests")}
+                        />
+                      </div>
                     </div>
+                    <Button className="w-full bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white shadow-lg shadow-sky-500/25 transition-all duration-200 hover:shadow-xl hover:shadow-sky-500/30">
+                      <Search className="mr-2 h-4 w-4" /> {t("search.button")}
+                    </Button>
                   </div>
                 </div>
-                <p className="text-muted-foreground text-lg leading-relaxed italic">"{testimonial.text}"</p>
               </div>
-            ))}
+              <div className="relative">
+                <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-to-br from-emerald-400/30 to-emerald-500/20 dark:bg-emerald-400/10 rounded-lg blur-xl"></div>
+                <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-gradient-to-tl from-sky-400/30 to-sky-500/20 dark:bg-sky-400/10 rounded-lg blur-xl"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-gradient-to-r from-violet-400/20 to-purple-400/20 dark:bg-purple-400/10 rounded-full blur-xl"></div>
+                <img
+                    src="/hero.png?height=600&width=800"
+                    width="550"
+                    height="550"
+                    alt="Featured venue"
+                    className="relative mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last lg:aspect-square shadow-2xl border border-gray-300/60 dark:border-gray-700"
+                />
+              </div>
+            </div>
           </div>
+        </section>
 
-          <div className="flex justify-center mt-12">
-            <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 group h-12 px-6">
-              {t("testimonials.readMore") || "Read more testimonials"}
-              <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Button>
+        <section className="w-full py-16 md:py-24 bg-gradient-to-b from-white to-gray-50/80 dark:from-slate-900 dark:to-slate-800">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+              <div className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-emerald-700 dark:text-emerald-400 bg-gradient-to-r from-emerald-100 to-emerald-50 dark:bg-emerald-900/40 rounded-full mb-3 border border-emerald-200/60 dark:border-emerald-700/50">
+                <span>{t("categories.explore") || "Explore Venues"}</span>
+              </div>
+              <div className="space-y-2 max-w-3xl">
+                <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-gray-900 dark:text-gray-50">
+                  {t("categories.title")}
+                </h2>
+                <p className="text-gray-700 dark:text-gray-300 md:text-xl/relaxed">{t("categories.subtitle")}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
+              {[
+                { name: "Meeting Rooms", icon: "🏢" },
+                { name: "Party Venues", icon: "🎉" },
+                { name: "Photography Studios", icon: "📸" },
+                { name: "Wedding Venues", icon: "💍" },
+                { name: "Outdoor Spaces", icon: "🌳" },
+                { name: "Restaurants", icon: "🍽️" },
+                { name: "Lofts & Penthouses", icon: "🏙️" },
+                { name: "Unique Spaces", icon: "🎨" },
+              ].map((category) => (
+                  <Link
+                      to={`/venues?category=${category.name.toLowerCase().replace(" ", "-")}`}
+                      key={category.name}
+                      className="flex flex-col items-center justify-center p-6 bg-white/90 dark:bg-slate-800 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-200 shadow-md border border-gray-200/80 dark:border-slate-700 group hover:shadow-lg hover:shadow-gray-500/10 dark:hover:shadow-black/20 hover:-translate-y-1"
+                  >
+                    <span className="text-4xl mb-3 transform group-hover:scale-110 transition-transform duration-200">{category.icon}</span>
+                    <span className="font-medium text-center text-gray-800 dark:text-gray-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">{category.name}</span>
+                  </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
-    </>
+        </section>
+
+        <section className="w-full py-16 md:py-24 bg-gradient-to-br from-gray-100 via-sky-50 to-emerald-50 dark:from-slate-900 dark:to-slate-800 relative">
+          {/* Subtle background pattern for light mode */}
+          <div className="absolute inset-0 opacity-[0.02] dark:opacity-0 bg-[linear-gradient(45deg,_transparent_35%,_rgba(0,0,0,0.05)_35%,_rgba(0,0,0,0.05)_65%,_transparent_65%)] bg-[length:20px_20px]"></div>
+
+          <div className="container px-4 md:px-6 relative">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+              <div className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-sky-700 dark:text-sky-400 bg-gradient-to-r from-sky-100 to-sky-50 dark:bg-sky-900/40 rounded-full mb-3 border border-sky-200/60 dark:border-sky-700/50">
+                <span>{t("howItWorks.simple") || "Simple Process"}</span>
+              </div>
+              <div className="space-y-2 max-w-3xl">
+                <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-gray-900 dark:text-gray-50">
+                  {t("howItWorks.hero.title")}
+                </h2>
+                <p className="text-gray-700 dark:text-gray-300 md:text-xl/relaxed">{t("howItWorks.hero.subtitle")}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
+              <div className="flex flex-col items-center text-center space-y-4 p-6 bg-white/95 dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200/80 dark:border-slate-700 relative backdrop-blur-sm hover:shadow-xl hover:shadow-gray-500/10 dark:hover:shadow-black/20 transition-all duration-300 group hover:-translate-y-1">
+                <div className="absolute -top-3 -left-3">
+                  <div className="bg-gradient-to-br from-sky-500 to-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold shadow-lg shadow-sky-500/30">
+                    1
+                  </div>
+                </div>
+                <div className="h-20 w-20 rounded-full bg-gradient-to-br from-sky-100 to-sky-50 dark:bg-sky-900/40 flex items-center justify-center mt-4 group-hover:scale-105 transition-transform duration-200">
+                  <Search className="h-8 w-8 text-sky-600 dark:text-sky-400" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-50">{t("howItWorks.step1.title")}</h3>
+                <p className="text-gray-700 dark:text-gray-300">{t("howItWorks.step1.description")}</p>
+              </div>
+              <div className="flex flex-col items-center text-center space-y-4 p-6 bg-white/95 dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200/80 dark:border-slate-700 relative backdrop-blur-sm hover:shadow-xl hover:shadow-gray-500/10 dark:hover:shadow-black/20 transition-all duration-300 group hover:-translate-y-1">
+                <div className="absolute -top-3 -left-3">
+                  <div className="bg-gradient-to-br from-sky-500 to-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold shadow-lg shadow-sky-500/30">
+                    2
+                  </div>
+                </div>
+                <div className="h-20 w-20 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-50 dark:bg-emerald-900/40 flex items-center justify-center mt-4 group-hover:scale-105 transition-transform duration-200">
+                  <Calendar className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-50">{t("howItWorks.step2.title")}</h3>
+                <p className="text-gray-700 dark:text-gray-300">{t("howItWorks.step2.description")}</p>
+              </div>
+              <div className="flex flex-col items-center text-center space-y-4 p-6 bg-white/95 dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200/80 dark:border-slate-700 relative backdrop-blur-sm hover:shadow-xl hover:shadow-gray-500/10 dark:hover:shadow-black/20 transition-all duration-300 group hover:-translate-y-1">
+                <div className="absolute -top-3 -left-3">
+                  <div className="bg-gradient-to-br from-sky-500 to-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold shadow-lg shadow-sky-500/30">
+                    3
+                  </div>
+                </div>
+                <div className="h-20 w-20 rounded-full bg-gradient-to-br from-sky-100 to-sky-50 dark:bg-sky-900/40 flex items-center justify-center mt-4 group-hover:scale-105 transition-transform duration-200">
+                  <Star className="h-8 w-8 text-sky-600 dark:text-sky-400" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-50">{t("howItWorks.step3.title")}</h3>
+                <p className="text-gray-700 dark:text-gray-300">{t("howItWorks.step3.description")}</p>
+              </div>
+            </div>
+            <div className="flex justify-center mt-12">
+              <Button size="lg" className="bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white group shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30 transition-all duration-200" asChild>
+                <Link to="/venues">
+                  {t("howItWorks.step1.cta")}
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        <section className="w-full py-16 md:py-24 bg-gradient-to-b from-white to-gray-50/80 dark:from-slate-900 dark:to-slate-800">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+              <div className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-emerald-700 dark:text-emerald-400 bg-gradient-to-r from-emerald-100 to-emerald-50 dark:bg-emerald-900/40 rounded-full mb-3 border border-emerald-200/60 dark:border-emerald-700/50">
+                <span>{t("testimonials.title") || "What People Say"}</span>
+              </div>
+              <div className="space-y-2 max-w-3xl">
+                <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-gray-900 dark:text-gray-50">
+                  {t("testimonials.heading") || "Loved by event planners everywhere"}
+                </h2>
+                <p className="text-gray-700 dark:text-gray-300 md:text-xl/relaxed">
+                  {t("testimonials.subheading") || "See what our customers have to say about their experience"}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-white/95 dark:bg-slate-800 p-6 rounded-xl shadow-lg border border-gray-200/80 dark:border-slate-700 backdrop-blur-sm hover:shadow-xl hover:shadow-gray-500/10 dark:hover:shadow-black/20 transition-all duration-300 hover:-translate-y-1 group">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="h-12 w-12 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 dark:bg-gray-700 overflow-hidden ring-2 ring-gray-300/50 dark:ring-gray-600/50">
+                        <img
+                            src={`/placeholder.svg?height=48&width=48&text=User${i}`}
+                            alt="User"
+                            className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                          {["Sarah Johnson", "Michael Chen", "Emma Rodriguez"][i-1]}
+                        </h4>
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, j) => (
+                              <Star key={j} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-gray-700 dark:text-gray-300 italic group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors">
+                      {[
+                        "Finding the perfect venue for our company retreat was so easy with this platform. The booking process was seamless and the venue exceeded our expectations!",
+                        "I planned my entire wedding using this site. The variety of venues and the detailed information made decision-making so much easier.",
+                        "As an event planner, I rely on this platform for all my client events. The customer service is exceptional and the venues are always as described."
+                      ][i-1]}
+                    </p>
+                  </div>
+              ))}
+            </div>
+
+            <div className="flex justify-center mt-12">
+              <Button variant="outline" className="border-sky-600 text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-900/20 group shadow-sm hover:shadow-md transition-all duration-200">
+                {t("testimonials.readMore") || "Read more testimonials"}
+                <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+            </div>
+          </div>
+        </section>
+      </>
   )
 }

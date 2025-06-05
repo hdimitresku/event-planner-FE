@@ -602,7 +602,7 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
                       <SelectContent>
                         {Object.values(VenueType).map((type) => (
                             <SelectItem key={type} value={type}>
-                              {t(`venues.types.${type.toLowerCase()}`) || type.replace("_", " ")}
+                              {t(`business.venueTypes.${type}`) || type.replace("_", " ")}
                             </SelectItem>
                         ))}
                       </SelectContent>

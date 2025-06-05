@@ -646,7 +646,7 @@ export default function BusinessVenuesPage() {
                         <h3 className="font-medium mb-2">{t("business.venues.venueType")}</h3>
                         <Badge className="bg-secondary text-secondary-foreground">
                           {getVenueTypeIcon(selectedVenue.type)}{" "}
-                          {t(`business.venueTypes.${selectedVenue.type}`) || selectedVenue.type}
+                          {t(`business.venueTypes.${selectedVenue.type.toLowerCase()}`) || selectedVenue.type}
                         </Badge>
                       </div>
 
@@ -908,7 +908,7 @@ export default function BusinessVenuesPage() {
                   <SelectContent>
                     {Object.values(VenueType).map((type) => (
                         <SelectItem key={type} value={type}>
-                          {t(`business.venueTypes.${type}`) || type.replace("_", " ")}
+                          {t(`business.venueTypes.${type.toLowerCase()}`) || type.replace("_", " ")}
                         </SelectItem>
                     ))}
                   </SelectContent>
@@ -1062,15 +1062,18 @@ export default function BusinessVenuesPage() {
                   <h3 className="font-medium mb-2">{t("business.venues.venueType")}</h3>
                   <div className="space-y-2">
                     {[
-                      "restaurant",
+                      "ballroom",
+                      "garden",
+                      "rooftop",
+                      "loft",
                       "hotel",
-                      "conference_hall",
-                      "wedding_hall",
-                      "outdoor_space",
-                      "entertainment",
-                      "studio",
-                      "gallery",
-                      "other",
+                      "restaurant",
+                      "meetingRoom",
+                      "weddingVenue",
+                      "outdoorSpace",
+                      "photographyStudio",
+                      "partyVenue",
+                      "other"
                     ].map((type) => (
                         <div key={type} className="flex items-center space-x-2 group">
                           <Checkbox
@@ -1089,7 +1092,7 @@ export default function BusinessVenuesPage() {
                               htmlFor={`venue-type-${type}`}
                               className="text-sm cursor-pointer transition-colors group-hover:text-primary"
                           >
-                            {t(`business.venueTypes.${type.toUpperCase()}`)}
+                            {t(`business.venueTypes.${type}`)}
                           </label>
                         </div>
                     ))}
