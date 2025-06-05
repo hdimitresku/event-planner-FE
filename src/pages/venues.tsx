@@ -182,7 +182,7 @@ const VenueCard = ({ venue, language, t }) => {
   }
 
   return (
-    <div className="flex flex-col h-[350px] bg-white dark:bg-slate-800 rounded-xl overflow-hidden card-hover bg-background shadow-sm border border-gray-100 dark:border-slate-700 hover:shadow-md transition-shadow">
+    <div className="flex flex-col h-[350px] bg-white/95 dark:bg-slate-800/95 border border-gray-200/80 dark:border-slate-700 shadow-lg hover:shadow-xl hover:shadow-gray-500/10 dark:hover:shadow-black/20 transition-all duration-300 hover:-translate-y-1 backdrop-blur-sm">
       {/* Image Carousel - Top Half */}
       <div className="relative h-[175px] w-full overflow-hidden">
         {venue.media && venue.media.length > 0 ? (
