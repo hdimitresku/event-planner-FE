@@ -1,8 +1,7 @@
 yarn run v1.22.22
 $ vite
-Port 3000 is in use, trying another one...
 
-  VITE v5.4.19  ready in 314 ms
+  VITE v5.4.19  ready in 479 ms
 
-  ➜  Local:   http://localhost:3001/
-  ➜  Network: http://10.64.130.205:3001/
+  ➜  Local:   http://localhost:5432/
+  ➜  Network: http://10.64.136.50:5432/
