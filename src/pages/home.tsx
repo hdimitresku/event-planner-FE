@@ -188,17 +188,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="w-full py-16 md:py-24">
+      <section className="w-full py-16 md:py-24 bg-gradient-to-b from-white to-gray-50/80 dark:from-slate-900 dark:to-slate-800">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 rounded-full mb-3">
+            <div className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-emerald-700 dark:text-emerald-400 bg-gradient-to-r from-emerald-100 to-emerald-50 dark:bg-emerald-900/40 rounded-full mb-3 border border-emerald-200/60 dark:border-emerald-700/50">
               <span>{t("testimonials.title") || "What People Say"}</span>
             </div>
             <div className="space-y-2 max-w-3xl">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-gray-800 dark:text-gray-50">
+              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-gray-900 dark:text-gray-50">
                 {t("testimonials.heading") || "Loved by event planners everywhere"}
               </h2>
-              <p className="text-gray-600 dark:text-gray-300 md:text-xl/relaxed">
+              <p className="text-gray-700 dark:text-gray-300 md:text-xl/relaxed">
                 {t("testimonials.subheading") || "See what our customers have to say about their experience"}
               </p>
             </div>
@@ -206,9 +206,9 @@ export default function HomePage() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+              <div key={i} className="bg-white/95 dark:bg-slate-800 p-6 rounded-xl shadow-lg border border-gray-200/80 dark:border-slate-700 backdrop-blur-sm hover:shadow-xl hover:shadow-gray-500/10 dark:hover:shadow-black/20 transition-all duration-300 hover:-translate-y-1 group">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="h-12 w-12 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 dark:bg-gray-700 overflow-hidden ring-2 ring-gray-300/50 dark:ring-gray-600/50">
                     <img 
                       src={`/placeholder.svg?height=48&width=48&text=User${i}`} 
                       alt="User" 
@@ -216,7 +216,7 @@ export default function HomePage() {
                     />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-800 dark:text-gray-100">
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100">
                       {["Sarah Johnson", "Michael Chen", "Emma Rodriguez"][i-1]}
                     </h4>
                     <div className="flex items-center">
@@ -226,7 +226,7 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
-                <p className="text-gray-600 dark:text-gray-300 italic">
+                <p className="text-gray-700 dark:text-gray-300 italic group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors">
                   {[
                     "Finding the perfect venue for our company retreat was so easy with this platform. The booking process was seamless and the venue exceeded our expectations!",
                     "I planned my entire wedding using this site. The variety of venues and the detailed information made decision-making so much easier.",
@@ -238,7 +238,7 @@ export default function HomePage() {
           </div>
           
           <div className="flex justify-center mt-12">
-            <Button variant="outline" className="border-sky-500 text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/20 group">
+            <Button variant="outline" className="border-sky-600 text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-900/20 group shadow-sm hover:shadow-md transition-all duration-200">
               {t("testimonials.readMore") || "Read more testimonials"}
               <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Button>
