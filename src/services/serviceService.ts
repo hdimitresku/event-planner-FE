@@ -12,9 +12,25 @@ import mockDataService from "@/services/mockDataService.ts";
 // Flag to determine if we should use mock data (during development)
 const USE_MOCK_DATA = false;
 
+export const iconMap: Record<ServiceType, string> = {
+  [ServiceType.CATERING]: "Utensils",
+  [ServiceType.MUSIC]: "Music",
+  [ServiceType.DECORATION]: "Palette",
+  [ServiceType.PHOTOGRAPHY]: "Camera",
+  [ServiceType.VIDEOGRAPHY]: "Video",
+  [ServiceType.TRANSPORTATION]: "Car",
+  [ServiceType.SECURITY]: "Shield",
+  [ServiceType.STAFFING]: "Users",
+  [ServiceType.ENTERTAINMENT]: "Drama",
+  [ServiceType.OTHER]: "CircleDot",
+};
+
+
+
 /**
  * Get all services with optional filtering
  */
+
 export const getServices = async (filters?: {
   serviceTypes?: ServiceType[];
   providerId?: string;
@@ -85,14 +101,15 @@ export const createService = async (serviceData: FormData): Promise<{ success: b
  */
 export const updateService = async (
   id: string,
-  serviceData: Partial<Service>
+  serviceData: FormData
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    if (USE_MOCK_DATA) {
-      return mockDataService.updateService(id, serviceData);
-    }
+    // if (USE_MOCK_DATA) {
+    //   return mockDataService.updateService(id, serviceData);
+    // }
+    console.log(serviceData.get('data'))
 
-    await apiRequest<Service>(`/services/${id}`, 'PUT', serviceData);
+    await apiRequest<Service>(`/services/${id}`, 'PATCH', serviceData, undefined, true);
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to update service' };
@@ -172,16 +189,16 @@ export const getServicesByVenueType = async (
   try {
       // Since we don't have venue type filtering in the mock data service,
       // we'll just get all services and assume they're compatible with this venue type
-      const { services } = await mockDataService.getServices();
-      
-      // Get unique service types
-      const serviceTypes = Array.from(
-        new Set(services.map((service: ServiceSummary) => service.type))
-      );
-
-      return { 
-        serviceTypes: serviceTypes as ServiceType[]
-      };
+      // const { services } = await mockDataService.getServices();
+      //
+      // // Get unique service types
+      // const serviceTypes = Array.from(
+      //   new Set(services.map((service: ServiceSummary) => service.type))
+      // );
+      //
+      // return {
+      //   serviceTypes: serviceTypes as ServiceType[]
+      // };
 
     // For real API
     const queryString = buildQueryString({ venueType });

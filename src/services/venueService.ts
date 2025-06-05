@@ -1,6 +1,6 @@
 /**
  * Venue API Service
- * 
+ *
  * This service handles all venue-related API calls.
  */
 
@@ -91,14 +91,14 @@ export const createVenue = async (venueData: FormData): Promise<{ success: boole
  */
 export const updateVenue = async (
   id: string,
-  venueData: Partial<Venue>
+  venueData: FormData
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     if (USE_MOCK_DATA) {
       return await MockDataService.updateVenue(id, venueData);
     }
 
-    await apiRequest<Venue>(`/venues/${id}`, 'PUT', venueData);
+    await apiRequest<Venue>(`/venues/${id}`, 'PATCH', venueData, undefined, true);
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to update venue' };
@@ -133,7 +133,7 @@ export const uploadVenueImages = async (
     images.forEach(image => {
       formData.append('images', image);
     });
-    
+
     const response = await apiRequest<{ imageUrls: string[] }>(
       `/venues/${venueId}/images`,
       'POST',
@@ -141,7 +141,7 @@ export const uploadVenueImages = async (
       undefined,
       true
     );
-    
+
     return { success: true, imageUrls: response.imageUrls };
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to upload venue images' };
@@ -165,7 +165,7 @@ export const getVenueAvailability = async (
   } catch (error: any) {
     return { availableDates: [], error: error.message || 'Failed to get venue availability' };
   }
-}; 
+};
 
 export const getSimilarVenues = async (
   venueId: string,

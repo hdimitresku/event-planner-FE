@@ -13,7 +13,6 @@ export enum ServiceType {
   SECURITY = 'security',
   STAFFING = 'staffing',
   ENTERTAINMENT = 'entertainment',
-  LIGHTING = 'lighting',
   OTHER = 'other'
 }
 

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
@@ -179,6 +179,18 @@ interface ServiceType {
   icon: string
 }
 
+// Validation errors interface
+interface ValidationErrors {
+  eventType?: string
+  startDate?: string
+  endDate?: string
+  guests?: string
+  firstName?: string
+  lastName?: string
+  email?: string
+  phone?: string
+}
+
 // Helper function to get icon component by name
 const getIconByName = (iconName: string) => {
   const icons: Record<string, React.ElementType> = {
@@ -217,6 +229,15 @@ export default function VenueBookPage() {
   const location = useLocation()
   const { t, language } = useLanguage()
   const { user } = useAuth()
+
+  // Refs for scrolling to fields
+  const eventTypeRef = useRef<HTMLDivElement>(null)
+  const dateRangeRef = useRef<HTMLDivElement>(null)
+  const guestsRef = useRef<HTMLDivElement>(null)
+  const firstNameRef = useRef<HTMLDivElement>(null)
+  const lastNameRef = useRef<HTMLDivElement>(null)
+  const emailRef = useRef<HTMLDivElement>(null)
+  const phoneRef = useRef<HTMLDivElement>(null)
 
   // Extract data from location state
   const {
@@ -268,6 +289,8 @@ export default function VenueBookPage() {
     email: "",
     phone: "",
   })
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({})
 
   const handleViewOptionDetails = (service: Service, option: ServiceOption) => {
     setSelectedOptionDetails({ service, option })
@@ -275,6 +298,147 @@ export default function VenueBookPage() {
 
   const closeOptionDetails = () => {
     setSelectedOptionDetails(null)
+  }
+
+  // Validation functions
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  const validatePhone = (phone: string): boolean => {
+    const phoneRegex = /^[+]?[1-9][\d]{0,15}$/
+    return phoneRegex.test(phone.replace(/[\s\-$$$$]/g, ""))
+  }
+
+  const validateField = (fieldName: string, value: any): string | undefined => {
+    switch (fieldName) {
+      case "eventType":
+        return !value ? t("venueBook.validation.eventTypeRequired") || "Event type is required" : undefined
+
+      case "startDate":
+        if (!value) return t("venueBook.validation.startDateRequired") || "Start date is required"
+        if (value < new Date()) return t("venueBook.validation.startDateFuture") || "Start date must be in the future"
+        return undefined
+
+      case "endDate":
+        if (!value) return t("venueBook.validation.endDateRequired") || "End date is required"
+        if (startDate && value <= startDate)
+          return t("venueBook.validation.endDateAfterStart") || "End date must be after start date"
+        return undefined
+
+      case "guests":
+        if (!value || value < 1) return t("venueBook.validation.guestsRequired") || "Number of guests is required"
+        if (venue && value < venue.capacity.min)
+          return (
+              t("venueBook.validation.guestsMin", { min: venue.capacity.min }) ||
+              `Minimum ${venue.capacity.min} guests required`
+          )
+        if (venue && value > venue.capacity.max)
+          return (
+              t("venueBook.validation.guestsMax", { max: venue.capacity.max }) ||
+              `Maximum ${venue.capacity.max} guests allowed`
+          )
+        return undefined
+
+      case "firstName":
+        return !value?.trim() ? t("venueBook.validation.firstNameRequired") || "First name is required" : undefined
+
+      case "lastName":
+        return !value?.trim() ? t("venueBook.validation.lastNameRequired") || "Last name is required" : undefined
+
+      case "email":
+        if (!value?.trim()) return t("venueBook.validation.emailRequired") || "Email is required"
+        if (!validateEmail(value)) return t("venueBook.validation.emailInvalid") || "Please enter a valid email address"
+        return undefined
+
+      case "phone":
+        if (!value?.trim()) return t("venueBook.validation.phoneRequired") || "Phone number is required"
+        if (!validatePhone(value)) return t("venueBook.validation.phoneInvalid") || "Please enter a valid phone number"
+        return undefined
+
+      default:
+        return undefined
+    }
+  }
+
+  const validateAllFields = (): ValidationErrors => {
+    const errors: ValidationErrors = {}
+
+    const eventTypeError = validateField("eventType", eventType)
+    if (eventTypeError) errors.eventType = eventTypeError
+
+    const startDateError = validateField("startDate", startDate)
+    if (startDateError) errors.startDate = startDateError
+
+    const endDateError = validateField("endDate", endDate)
+    if (endDateError) errors.endDate = endDateError
+
+    const guestsError = validateField("guests", guests)
+    if (guestsError) errors.guests = guestsError
+
+    const firstNameError = validateField("firstName", formValues.firstName)
+    if (firstNameError) errors.firstName = firstNameError
+
+    const lastNameError = validateField("lastName", formValues.lastName)
+    if (lastNameError) errors.lastName = lastNameError
+
+    const emailError = validateField("email", formValues.email)
+    if (emailError) errors.email = emailError
+
+    const phoneError = validateField("phone", formValues.phone)
+    if (phoneError) errors.phone = phoneError
+
+    return errors
+  }
+
+  const scrollToField = (fieldName: string) => {
+    const refs: Record<string, React.RefObject<HTMLDivElement>> = {
+      eventType: eventTypeRef,
+      startDate: dateRangeRef,
+      endDate: dateRangeRef,
+      guests: guestsRef,
+      firstName: firstNameRef,
+      lastName: lastNameRef,
+      email: emailRef,
+      phone: phoneRef,
+    }
+
+    const ref = refs[fieldName]
+    if (ref?.current) {
+      ref.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      })
+
+      // Focus the input if it exists
+      setTimeout(() => {
+        const input = ref.current?.querySelector("input, select, textarea") as HTMLElement
+        if (input) {
+          input.focus()
+        }
+      }, 500)
+    }
+  }
+
+  const handleFieldBlur = (fieldName: string, value: any) => {
+    setTouchedFields((prev) => ({ ...prev, [fieldName]: true }))
+
+    const error = validateField(fieldName, value)
+    setValidationErrors((prev) => ({
+      ...prev,
+      [fieldName]: error,
+    }))
+  }
+
+  const handleFieldChange = (fieldName: string, value: any) => {
+    // Clear error when user starts typing
+    if (validationErrors[fieldName as keyof ValidationErrors]) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        [fieldName]: undefined,
+      }))
+    }
   }
 
   // Fetch venue and services data
@@ -412,6 +576,7 @@ export default function VenueBookPage() {
       ...prev,
       [field]: value,
     }))
+    handleFieldChange(field, value)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -419,18 +584,29 @@ export default function VenueBookPage() {
     setIsSubmitting(true)
 
     try {
+      // Validate all fields
+      const errors = validateAllFields()
+
+      if (Object.keys(errors).length > 0) {
+        setValidationErrors(errors)
+
+        // Find the first error and scroll to it
+        const errorFields = Object.keys(errors)
+        const firstErrorField = errorFields[0]
+
+        toast.error(t("common.error"), {
+          description: t("venueBook.validation.pleaseFixErrors") || "Please fix the errors below",
+          icon: <AlertCircle className="h-4 w-4" />,
+        })
+
+        // Scroll to the first error field
+        scrollToField(firstErrorField)
+        return
+      }
+
       // Use form values from state
       const { firstName, lastName, email, phone } = formValues
       const specialRequests = (document.getElementById("special-requests") as HTMLTextAreaElement).value
-
-      // Validate required fields
-      if (!firstName || !lastName || !email || !phone) {
-        toast.error(t("common.error"), {
-          description: t("venueBook.fillRequiredFields"),
-          icon: <AlertCircle className="h-4 w-4" />,
-        })
-        return
-      }
 
       // Format dates and times
       const formattedStartDate = startDate ? format(startDate, "yyyy-MM-dd") : ""
@@ -761,16 +937,25 @@ export default function VenueBookPage() {
                 <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
                   <h2 className="text-xl font-semibold">{t("venueBook.eventDetails")}</h2>
 
-                  <div className="space-y-3">
+                  <div ref={eventTypeRef} className="space-y-3">
                     <label className="text-sm font-medium" htmlFor="event-type">
-                      {t("venueBook.eventType")}
+                      {t("venueBook.eventType")} <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <select
                           id="event-type"
                           value={eventType}
-                          onChange={(e) => setEventType(e.target.value)}
-                          className="hover:border-primary hover:shadow-sm w-full p-3 pr-10 border rounded-md bg-background appearance-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                          onChange={(e) => {
+                            setEventType(e.target.value)
+                            handleFieldChange("eventType", e.target.value)
+                          }}
+                          onBlur={(e) => handleFieldBlur("eventType", e.target.value)}
+                          className={cn(
+                              "hover:border-primary hover:shadow-sm w-full p-3 pr-10 border rounded-md bg-background appearance-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
+                              validationErrors.eventType && touchedFields.eventType
+                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                                  : "",
+                          )}
                           required
                       >
                         <option value="">{t("venueBook.selectEventType")}</option>
@@ -782,15 +967,28 @@ export default function VenueBookPage() {
                       </select>
                       <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                     </div>
+                    {validationErrors.eventType && touchedFields.eventType && (
+                        <p className="text-sm text-red-500 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {validationErrors.eventType}
+                        </p>
+                    )}
                   </div>
 
-                  <div className="space-y-4">
-                    <label className="text-sm font-semibold text-foreground">{t("venueBook.dateRange")}</label>
+                  <div ref={dateRangeRef} className="space-y-4">
+                    <label className="text-sm font-semibold text-foreground">
+                      {t("venueBook.dateRange")} <span className="text-red-500">*</span>
+                    </label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Start Date Display */}
                       <div className="space-y-2">
                         <label className="text-xs font-medium text-muted-foreground">{t("venueBook.from")}</label>
-                        <div className="flex items-center border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50">
+                        <div
+                            className={cn(
+                                "flex items-center border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50",
+                                validationErrors.startDate ? "border-red-500" : "",
+                            )}
+                        >
                           <CalendarIcon className="h-4 w-4 text-muted-foreground mr-2" />
                           <span>{startDate ? format(startDate, "PPP p") : t("venueBook.startDateTime")}</span>
                         </div>
@@ -799,12 +997,23 @@ export default function VenueBookPage() {
                       {/* End Date Display */}
                       <div className="space-y-2">
                         <label className="text-xs font-medium text-muted-foreground">{t("venueBook.to")}</label>
-                        <div className="flex items-center border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50">
+                        <div
+                            className={cn(
+                                "flex items-center border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50",
+                                validationErrors.endDate ? "border-red-500" : "",
+                            )}
+                        >
                           <Clock className="h-4 w-4 text-muted-foreground mr-2" />
                           <span>{endDate ? format(endDate, "PPP p") : t("venueBook.endDateTime")}</span>
                         </div>
                       </div>
                     </div>
+                    {(validationErrors.startDate || validationErrors.endDate) && (
+                        <p className="text-sm text-red-500 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {validationErrors.startDate || validationErrors.endDate}
+                        </p>
+                    )}
                     <p className="text-xs font-medium text-muted-foreground">
                       {duration > 0 && (
                           <span>
@@ -814,20 +1023,40 @@ export default function VenueBookPage() {
                     </p>
                   </div>
 
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium">{t("venueBook.guests")}</label>
-                    <div className="flex items-center border rounded-md bg-background overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-colors hover:border-primary hover:shadow-sm">
+                  <div ref={guestsRef} className="space-y-3">
+                    <label className="text-sm font-medium">
+                      {t("venueBook.guests")} <span className="text-red-500">*</span>
+                    </label>
+                    <div
+                        className={cn(
+                            "flex items-center border rounded-md bg-background overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-colors hover:border-primary hover:shadow-sm",
+                            validationErrors.guests
+                                ? "border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20"
+                                : "",
+                        )}
+                    >
                       <Users className="ml-3 h-4 w-4 text-muted-foreground" />
                       <Input
                           type="number"
                           min={venue.capacity.min}
                           max={venue.capacity.max}
                           value={guests}
-                          onChange={(e) => setGuests(Number.parseInt(e.target.value))}
+                          onChange={(e) => {
+                            const value = Number.parseInt(e.target.value)
+                            setGuests(value)
+                            handleFieldChange("guests", value)
+                          }}
+                          onBlur={(e) => handleFieldBlur("guests", Number.parseInt(e.target.value))}
                           className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           required
                       />
                     </div>
+                    {validationErrors.guests && (
+                        <p className="text-sm text-red-500 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {validationErrors.guests}
+                        </p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       {t("venueBook.guestCapacity", { min: venue.capacity.min, max: venue.capacity.max })}
                     </p>
@@ -1057,7 +1286,7 @@ export default function VenueBookPage() {
                   <h2 className="text-xl font-semibold">{t("venueBook.contactDetails")}</h2>
 
                   <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2 ">
+                    <div ref={firstNameRef} className="space-y-2">
                       <label className="text-sm font-medium" htmlFor="first-name">
                         {t("venueBook.firstName")} <span className="text-red-500">*</span>
                       </label>
@@ -1065,12 +1294,24 @@ export default function VenueBookPage() {
                           id="first-name"
                           value={formValues.firstName}
                           onChange={(e) => handleFormChange("firstName", e.target.value)}
-                          className="hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                          onBlur={(e) => handleFieldBlur("firstName", e.target.value)}
+                          className={cn(
+                              "hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
+                              validationErrors.firstName && touchedFields.firstName
+                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                                  : "",
+                          )}
                           required
                       />
+                      {validationErrors.firstName && touchedFields.firstName && (
+                          <p className="text-sm text-red-500 flex items-center">
+                            <AlertCircle className="h-4 w-4 mr-1" />
+                            {validationErrors.firstName}
+                          </p>
+                      )}
                     </div>
 
-                    <div className="space-y-2">
+                    <div ref={lastNameRef} className="space-y-2">
                       <label className="text-sm font-medium" htmlFor="last-name">
                         {t("venueBook.lastName")} <span className="text-red-500">*</span>
                       </label>
@@ -1078,13 +1319,25 @@ export default function VenueBookPage() {
                           id="last-name"
                           value={formValues.lastName}
                           onChange={(e) => handleFormChange("lastName", e.target.value)}
-                          className="hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                          onBlur={(e) => handleFieldBlur("lastName", e.target.value)}
+                          className={cn(
+                              "hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
+                              validationErrors.lastName && touchedFields.lastName
+                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                                  : "",
+                          )}
                           required
                       />
+                      {validationErrors.lastName && touchedFields.lastName && (
+                          <p className="text-sm text-red-500 flex items-center">
+                            <AlertCircle className="h-4 w-4 mr-1" />
+                            {validationErrors.lastName}
+                          </p>
+                      )}
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div ref={emailRef} className="space-y-2">
                     <label className="text-sm font-medium" htmlFor="email">
                       {t("venueBook.email")} <span className="text-red-500">*</span>
                     </label>
@@ -1093,12 +1346,24 @@ export default function VenueBookPage() {
                         type="email"
                         value={formValues.email}
                         onChange={(e) => handleFormChange("email", e.target.value)}
-                        className="hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                        onBlur={(e) => handleFieldBlur("email", e.target.value)}
+                        className={cn(
+                            "hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
+                            validationErrors.email && touchedFields.email
+                                ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                                : "",
+                        )}
                         required
                     />
+                    {validationErrors.email && touchedFields.email && (
+                        <p className="text-sm text-red-500 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {validationErrors.email}
+                        </p>
+                    )}
                   </div>
 
-                  <div className="space-y-2">
+                  <div ref={phoneRef} className="space-y-2">
                     <label className="text-sm font-medium" htmlFor="phone">
                       {t("venueBook.phone")} <span className="text-red-500">*</span>
                     </label>
@@ -1107,9 +1372,21 @@ export default function VenueBookPage() {
                         type="tel"
                         value={formValues.phone}
                         onChange={(e) => handleFormChange("phone", e.target.value)}
-                        className="focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                        onBlur={(e) => handleFieldBlur("phone", e.target.value)}
+                        className={cn(
+                            "focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
+                            validationErrors.phone && touchedFields.phone
+                                ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                                : "",
+                        )}
                         required
                     />
+                    {validationErrors.phone && touchedFields.phone && (
+                        <p className="text-sm text-red-500 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {validationErrors.phone}
+                        </p>
+                    )}
                   </div>
                 </div>
 
@@ -1399,6 +1676,7 @@ export default function VenueBookPage() {
                               <img
                                   src={
                                       formatImageUrl(selectedOptionDetails.service.media[currentImageIndex]?.url) ||
+                                      "/placeholder.svg" ||
                                       "/placeholder.svg" ||
                                       "/placeholder.svg"
                                   }

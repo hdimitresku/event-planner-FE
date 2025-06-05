@@ -58,8 +58,8 @@ export function SiteHeader() {
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 font-bold text-2xl">
-          <span className="text-primary">Venue</span>
-          <span className="text-secondary">Space</span>
+          <span className="text-primary">Rezervo</span>
+          <span className="text-secondary">Ambientin</span>
         </Link>
 
         {/* Desktop Navigation */}

@@ -148,7 +148,7 @@ export default function HomePage() {
               <div className="absolute -top-6 -left-6 w-24 h-24 bg-accent/20 rounded-2xl blur-xl"></div>
               <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-primary/20 rounded-2xl blur-xl"></div>
               <img
-                src="/placeholder.svg?height=600&width=800"
+                src="/hero.png?height=600&width=800"
                 width="550"
                 height="550"
                 alt="Featured venue"
