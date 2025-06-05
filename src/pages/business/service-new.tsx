@@ -600,22 +600,56 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
                     <CardContent className="space-y-4">
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
-                          <Label>Option Name (English)*</Label>
+                          <Label className="flex items-center gap-1">
+                            Option Name (English)*
+                            {fieldTouched[`option.${index}.name.en`] && !fieldErrors[`option.${index}.name.en`] && (
+                                <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                  <path
+                                      fillRule="evenodd"
+                                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                      clipRule="evenodd"
+                                  />
+                                </svg>
+                            )}
+                          </Label>
                           <Input
                               value={option.name.en}
-                              onChange={(e) => updateOption(index, "name.en", e.target.value)}
+                              onChange={(e) => {
+                                updateOption(index, "name.en", e.target.value)
+                                validateField(`option.${index}.name.en`, e.target.value)
+                              }}
+                              onBlur={() => handleFieldTouch(`option.${index}.name.en`)}
                               placeholder="Option name in English"
+                              className={`${fieldErrors[`option.${index}.name.en`] ? "border-red-500 focus:border-red-500" : fieldTouched[`option.${index}.name.en`] && !fieldErrors[`option.${index}.name.en`] ? "border-green-500" : ""}`}
                               required
                           />
+                          <FieldError error={fieldTouched[`option.${index}.name.en`] ? fieldErrors[`option.${index}.name.en`] : undefined} />
                         </div>
                         <div className="space-y-2">
-                          <Label>Option Name (Albanian)*</Label>
+                          <Label className="flex items-center gap-1">
+                            Option Name (Albanian)*
+                            {fieldTouched[`option.${index}.name.sq`] && !fieldErrors[`option.${index}.name.sq`] && (
+                                <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                  <path
+                                      fillRule="evenodd"
+                                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                      clipRule="evenodd"
+                                  />
+                                </svg>
+                            )}
+                          </Label>
                           <Input
                               value={option.name.sq}
-                              onChange={(e) => updateOption(index, "name.sq", e.target.value)}
+                              onChange={(e) => {
+                                updateOption(index, "name.sq", e.target.value)
+                                validateField(`option.${index}.name.sq`, e.target.value)
+                              }}
+                              onBlur={() => handleFieldTouch(`option.${index}.name.sq`)}
                               placeholder="Option name in Albanian"
+                              className={`${fieldErrors[`option.${index}.name.sq`] ? "border-red-500 focus:border-red-500" : fieldTouched[`option.${index}.name.sq`] && !fieldErrors[`option.${index}.name.sq`] ? "border-green-500" : ""}`}
                               required
                           />
+                          <FieldError error={fieldTouched[`option.${index}.name.sq`] ? fieldErrors[`option.${index}.name.sq`] : undefined} />
                         </div>
                       </div>
 
@@ -642,7 +676,18 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
 
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
-                          <Label>Price*</Label>
+                          <Label className="flex items-center gap-1">
+                            Price*
+                            {fieldTouched[`option.${index}.price.amount`] && !fieldErrors[`option.${index}.price.amount`] && (
+                                <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                  <path
+                                      fillRule="evenodd"
+                                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                      clipRule="evenodd"
+                                  />
+                                </svg>
+                            )}
+                          </Label>
                           <div className="relative">
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
                           $
@@ -652,12 +697,18 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
                                 min="0"
                                 step="0.01"
                                 value={option.price.amount}
-                                onChange={(e) => updateOption(index, "price.amount", Number.parseFloat(e.target.value) || 0)}
-                                className="pl-7"
+                                onChange={(e) => {
+                                  const value = Number.parseFloat(e.target.value) || 0
+                                  updateOption(index, "price.amount", value)
+                                  validateField(`option.${index}.price.amount`, value)
+                                }}
+                                onBlur={() => handleFieldTouch(`option.${index}.price.amount`)}
+                                className={`pl-7 ${fieldErrors[`option.${index}.price.amount`] ? "border-red-500 focus:border-red-500" : fieldTouched[`option.${index}.price.amount`] && !fieldErrors[`option.${index}.price.amount`] ? "border-green-500" : ""}`}
                                 placeholder="0.00"
                                 required
                             />
                           </div>
+                          <FieldError error={fieldTouched[`option.${index}.price.amount`] ? fieldErrors[`option.${index}.price.amount`] : undefined} />
                         </div>
                         <div className="space-y-2">
                           <Label>Pricing Type*</Label>
