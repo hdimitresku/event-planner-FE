@@ -86,17 +86,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="w-full py-16 md:py-24">
+      <section className="w-full py-16 md:py-24 bg-gradient-to-b from-white to-gray-50/80 dark:from-slate-900 dark:to-slate-800">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 rounded-full mb-3">
+            <div className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-emerald-700 dark:text-emerald-400 bg-gradient-to-r from-emerald-100 to-emerald-50 dark:bg-emerald-900/40 rounded-full mb-3 border border-emerald-200/60 dark:border-emerald-700/50">
               <span>{t("categories.explore") || "Explore Venues"}</span>
             </div>
             <div className="space-y-2 max-w-3xl">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-gray-800 dark:text-gray-50">
+              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl text-gray-900 dark:text-gray-50">
                 {t("categories.title")}
               </h2>
-              <p className="text-gray-600 dark:text-gray-300 md:text-xl/relaxed">{t("categories.subtitle")}</p>
+              <p className="text-gray-700 dark:text-gray-300 md:text-xl/relaxed">{t("categories.subtitle")}</p>
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
@@ -113,10 +113,10 @@ export default function HomePage() {
               <Link
                 to={`/venues?category=${category.name.toLowerCase().replace(" ", "-")}`}
                 key={category.name}
-                className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-200 shadow-sm border border-gray-100 dark:border-slate-700 group"
+                className="flex flex-col items-center justify-center p-6 bg-white/90 dark:bg-slate-800 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-200 shadow-md border border-gray-200/80 dark:border-slate-700 group hover:shadow-lg hover:shadow-gray-500/10 dark:hover:shadow-black/20 hover:-translate-y-1"
               >
                 <span className="text-4xl mb-3 transform group-hover:scale-110 transition-transform duration-200">{category.icon}</span>
-                <span className="font-medium text-center text-gray-800 dark:text-gray-100 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors">{category.name}</span>
+                <span className="font-medium text-center text-gray-800 dark:text-gray-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">{category.name}</span>
               </Link>
             ))}
           </div>
