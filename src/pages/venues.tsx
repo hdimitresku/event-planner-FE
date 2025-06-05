@@ -508,7 +508,7 @@ export default function VenuesPage() {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300" htmlFor="date">
+                <label className="text-sm font-medium text-gray-800 dark:text-gray-200" htmlFor="date">
                   {t("venues.searchBar.date") || "Date"}
                 </label>
                 <div>
@@ -517,11 +517,11 @@ export default function VenuesPage() {
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-full justify-start text-left font-normal rounded-lg border border-transparent transition-all hover:border-primary hover:shadow-sm bg-gray-50 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 transition-all",
+                          "w-full justify-start text-left font-normal border border-gray-200 dark:border-slate-600 bg-gray-50/80 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 focus-within:border-sky-300 dark:focus-within:border-sky-500 transition-all hover:bg-gray-100 dark:hover:bg-slate-600",
                           !date && "text-muted-foreground",
                         )}
                       >
-                        <CalendarIcon className="mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" />
+                        <CalendarIcon className="mr-2 h-5 w-5 text-gray-600 dark:text-gray-400" />
                         {date ? format(date, "PPP") : <span>Pick a date</span>}
                       </Button>
                     </PopoverTrigger>
