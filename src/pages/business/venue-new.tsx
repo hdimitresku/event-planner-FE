@@ -611,30 +611,60 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="description-en">{t("business.common.description")}* (English)</Label>
+                      <Label htmlFor="description-en" className="flex items-center gap-1">
+                        {t("business.common.description")}* (English)
+                        {fieldTouched["description.en"] && !fieldErrors["description.en"] && (
+                            <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                              />
+                            </svg>
+                        )}
+                      </Label>
                       <Textarea
                           id="description-en"
                           value={venueForm.description.en}
-                          onChange={(e) =>
-                              setVenueForm({ ...venueForm, description: { ...venueForm.description, en: e.target.value } })
-                          }
+                          onChange={(e) => {
+                            setVenueForm({ ...venueForm, description: { ...venueForm.description, en: e.target.value } })
+                            validateField("description.en", e.target.value)
+                          }}
+                          onBlur={() => handleFieldTouch("description.en")}
                           placeholder={t("business.venueNew.descriptionPlaceholder")}
                           rows={5}
+                          className={`${fieldErrors["description.en"] ? "border-red-500 focus:border-red-500" : fieldTouched["description.en"] && !fieldErrors["description.en"] ? "border-green-500" : ""}`}
                           required
                       />
+                      <FieldError error={fieldTouched["description.en"] ? fieldErrors["description.en"] : undefined} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="description-sq">{t("business.common.description")}* (Albanian)</Label>
+                      <Label htmlFor="description-sq" className="flex items-center gap-1">
+                        {t("business.common.description")}* (Albanian)
+                        {fieldTouched["description.sq"] && !fieldErrors["description.sq"] && (
+                            <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                              />
+                            </svg>
+                        )}
+                      </Label>
                       <Textarea
                           id="description-sq"
                           value={venueForm.description.sq}
-                          onChange={(e) =>
-                              setVenueForm({ ...venueForm, description: { ...venueForm.description, sq: e.target.value } })
-                          }
+                          onChange={(e) => {
+                            setVenueForm({ ...venueForm, description: { ...venueForm.description, sq: e.target.value } })
+                            validateField("description.sq", e.target.value)
+                          }}
+                          onBlur={() => handleFieldTouch("description.sq")}
                           placeholder={t("business.venueNew.descriptionPlaceholder")}
                           rows={5}
+                          className={`${fieldErrors["description.sq"] ? "border-red-500 focus:border-red-500" : fieldTouched["description.sq"] && !fieldErrors["description.sq"] ? "border-green-500" : ""}`}
                           required
                       />
+                      <FieldError error={fieldTouched["description.sq"] ? fieldErrors["description.sq"] : undefined} />
                     </div>
                   </div>
 
