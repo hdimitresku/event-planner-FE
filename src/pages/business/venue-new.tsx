@@ -802,52 +802,100 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
 
                   <div className="grid gap-4 sm:grid-cols-3">
                     <div className="space-y-2">
-                      <Label htmlFor="capacity-min">{t("business.venueNew.minCapacity")}*</Label>
+                      <Label htmlFor="capacity-min" className="flex items-center gap-1">
+                        {t("business.venueNew.minCapacity")}*
+                        {fieldTouched["capacity.min"] && !fieldErrors["capacity.min"] && (
+                            <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                              />
+                            </svg>
+                        )}
+                      </Label>
                       <Input
                           id="capacity-min"
                           type="number"
                           min="1"
                           value={venueForm.capacity.min}
-                          onChange={(e) =>
-                              setVenueForm({
-                                ...venueForm,
-                                capacity: { ...venueForm.capacity, min: Number.parseInt(e.target.value) },
-                              })
-                          }
+                          onChange={(e) => {
+                            const value = Number.parseInt(e.target.value)
+                            setVenueForm({
+                              ...venueForm,
+                              capacity: { ...venueForm.capacity, min: value },
+                            })
+                            validateField("capacity.min", value)
+                          }}
+                          onBlur={() => handleFieldTouch("capacity.min")}
+                          className={`${fieldErrors["capacity.min"] ? "border-red-500 focus:border-red-500" : fieldTouched["capacity.min"] && !fieldErrors["capacity.min"] ? "border-green-500" : ""}`}
                           required
                       />
+                      <FieldError error={fieldTouched["capacity.min"] ? fieldErrors["capacity.min"] : undefined} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="capacity-max">{t("business.venueNew.maxCapacity")}*</Label>
+                      <Label htmlFor="capacity-max" className="flex items-center gap-1">
+                        {t("business.venueNew.maxCapacity")}*
+                        {fieldTouched["capacity.max"] && !fieldErrors["capacity.max"] && (
+                            <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                              />
+                            </svg>
+                        )}
+                      </Label>
                       <Input
                           id="capacity-max"
                           type="number"
                           min="1"
                           value={venueForm.capacity.max}
-                          onChange={(e) =>
-                              setVenueForm({
-                                ...venueForm,
-                                capacity: { ...venueForm.capacity, max: Number.parseInt(e.target.value) },
-                              })
-                          }
+                          onChange={(e) => {
+                            const value = Number.parseInt(e.target.value)
+                            setVenueForm({
+                              ...venueForm,
+                              capacity: { ...venueForm.capacity, max: value },
+                            })
+                            validateField("capacity.max", value)
+                          }}
+                          onBlur={() => handleFieldTouch("capacity.max")}
+                          className={`${fieldErrors["capacity.max"] ? "border-red-500 focus:border-red-500" : fieldTouched["capacity.max"] && !fieldErrors["capacity.max"] ? "border-green-500" : ""}`}
                           required
                       />
+                      <FieldError error={fieldTouched["capacity.max"] ? fieldErrors["capacity.max"] : undefined} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="capacity-recommended">{t("business.venueNew.recommendedCapacity")}*</Label>
+                      <Label htmlFor="capacity-recommended" className="flex items-center gap-1">
+                        {t("business.venueNew.recommendedCapacity")}*
+                        {fieldTouched["capacity.recommended"] && !fieldErrors["capacity.recommended"] && (
+                            <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                              />
+                            </svg>
+                        )}
+                      </Label>
                       <Input
                           id="capacity-recommended"
                           type="number"
                           min="1"
                           value={venueForm.capacity.recommended}
-                          onChange={(e) =>
-                              setVenueForm({
-                                ...venueForm,
-                                capacity: { ...venueForm.capacity, recommended: Number.parseInt(e.target.value) },
-                              })
-                          }
+                          onChange={(e) => {
+                            const value = Number.parseInt(e.target.value)
+                            setVenueForm({
+                              ...venueForm,
+                              capacity: { ...venueForm.capacity, recommended: value },
+                            })
+                            validateField("capacity.recommended", value)
+                          }}
+                          onBlur={() => handleFieldTouch("capacity.recommended")}
+                          className={`${fieldErrors["capacity.recommended"] ? "border-red-500 focus:border-red-500" : fieldTouched["capacity.recommended"] && !fieldErrors["capacity.recommended"] ? "border-green-500" : ""}`}
                           required
                       />
+                      <FieldError error={fieldTouched["capacity.recommended"] ? fieldErrors["capacity.recommended"] : undefined} />
                     </div>
                   </div>
                 </div>
