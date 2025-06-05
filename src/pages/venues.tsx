@@ -577,13 +577,13 @@ export default function VenuesPage() {
             </div>
             <div className="space-y-6">
               <div className="space-y-3">
-                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <h3 className="text-sm font-medium text-gray-800 dark:text-gray-200">
                   {t("venues.filters.priceRange") || "Price Range"}
                 </h3>
                 <Slider value={priceRange} onValueChange={setPriceRange} max={500} step={10} className="py-2" />
-                <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
                   <div className="font-medium">$0</div>
-                  <div className="font-medium text-sky-500 dark:text-sky-400">${priceRange[0]}</div>
+                  <div className="font-medium text-sky-600 dark:text-sky-400">${priceRange[0]}</div>
                   <div className="font-medium">$500</div>
                 </div>
               </div>
