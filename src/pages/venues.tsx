@@ -539,23 +539,23 @@ export default function VenuesPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300" htmlFor="guests">
+                <label className="text-sm font-medium text-gray-800 dark:text-gray-200" htmlFor="guests">
                   {t("venues.searchBar.guests") || "Guests"}
                 </label>
-                <div className="rounded-lg border border-transparent transition-all hover:border-primary hover:shadow-sm flex items-center gap-2 border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 transition-all">
-                  <Users className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                <div className="flex items-center gap-2 border border-gray-200 dark:border-slate-600 rounded-md p-3 bg-gray-50/80 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 focus-within:border-sky-300 dark:focus-within:border-sky-500 transition-all">
+                  <Users className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                   <Input
                     id="guests"
                     name="guests"
                     value={searchParams.guests}
                     onChange={handleSearchChange}
-                    className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-gray-900 dark:text-gray-100"
                     type="number"
                     placeholder={t("venues.searchBar.guestsPlaceholder") || "Number of guests"}
                   />
                 </div>
               </div>
-              <Button className="w-full bg-sky-500 hover:bg-sky-600 text-white shadow-sm" onClick={handleSearch}>
+              <Button className="w-full bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30 transition-all duration-200" onClick={handleSearch}>
                 <Search className="mr-2 h-4 w-4" /> {t("venues.searchBar.button") || "Search"}
               </Button>
             </div>
