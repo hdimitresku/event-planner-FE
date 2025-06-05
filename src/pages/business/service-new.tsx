@@ -380,6 +380,21 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
             <DialogDescription>
               {t("business.serviceNew.subtitle") || "Add a new service to your business"}
             </DialogDescription>
+            
+            {/* Validation Progress Indicator */}
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">Form Completion</span>
+                <span className="text-muted-foreground">
+                  {Object.keys(fieldErrors).length === 0 ? 'All fields valid' : `${Object.keys(fieldErrors).length} field(s) need attention`}
+                </span>
+              </div>
+              {Object.keys(fieldErrors).length > 0 && (
+                <div className="mt-2 text-xs text-red-600">
+                  <p>Please complete the required fields to continue</p>
+                </div>
+              )}
+            </div>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-6 py-4">
