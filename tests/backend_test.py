@@ -1,10 +1,11 @@
+
 import requests
 import sys
-import os
+import json
 from datetime import datetime
 
-class VenueAPITester:
-    def __init__(self, base_url="http://localhost:8001/api"):
+class VenueBookingAPITester:
+    def __init__(self, base_url="http://localhost:8001"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
@@ -27,10 +28,19 @@ class VenueAPITester:
             if success:
                 self.tests_passed += 1
                 print(f"✅ Passed - Status: {response.status_code}")
-                return success, response.json() if response.content else {}
+                if response.content:
+                    try:
+                        return success, response.json()
+                    except json.JSONDecodeError:
+                        return success, response.content
+                return success, {}
             else:
                 print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
-                print(f"Response: {response.text}")
+                if response.content:
+                    try:
+                        print(f"Response: {response.json()}")
+                    except json.JSONDecodeError:
+                        print(f"Response: {response.content}")
                 return False, {}
 
         except Exception as e:
@@ -39,45 +49,40 @@ class VenueAPITester:
 
     def test_get_venues(self):
         """Test getting all venues"""
-        success, response = self.run_test(
+        return self.run_test(
             "Get All Venues",
             "GET",
-            "venues",
+            "api/venues",
             200
         )
-        if success:
-            print(f"Retrieved {len(response)} venues")
-        return success
 
-    def test_get_venue_by_id(self, venue_id="1"):
-        """Test getting a venue by ID"""
-        success, response = self.run_test(
-            f"Get Venue by ID ({venue_id})",
+    def test_get_venue(self, venue_id):
+        """Test getting a specific venue"""
+        return self.run_test(
+            f"Get Venue {venue_id}",
             "GET",
-            f"venues/{venue_id}",
+            f"api/venues/{venue_id}",
             200
         )
-        if success:
-            print(f"Retrieved venue: {response.get('name', 'Unknown')}")
-        return success
 
 def main():
-    # Get backend URL from environment or use default
-    backend_url = os.environ.get("REACT_APP_BACKEND_URL", "http://localhost:8001/api")
-    
-    # Setup tester
-    tester = VenueAPITester(backend_url)
+    # Setup
+    tester = VenueBookingAPITester()
     
     # Run tests
-    venues_test = tester.test_get_venues()
-    if not venues_test:
+    success, venues_response = tester.test_get_venues()
+    if not success:
         print("❌ Failed to get venues, stopping tests")
         return 1
     
-    venue_detail_test = tester.test_get_venue_by_id("1")
-    if not venue_detail_test:
-        print("❌ Failed to get venue details, stopping tests")
-        return 1
+    print(f"Found {len(venues_response)} venues")
+    
+    # Test getting a specific venue if we have any
+    if venues_response and len(venues_response) > 0:
+        venue_id = venues_response[0]["id"]
+        success, venue_response = tester.test_get_venue(venue_id)
+        if not success:
+            print(f"❌ Failed to get venue {venue_id}")
     
     # Print results
     print(f"\n📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
