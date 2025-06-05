@@ -239,6 +239,34 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
           delete errors[fieldName]
         }
         break
+      default:
+        // Handle dynamic option validation
+        if (fieldName.startsWith("option.")) {
+          const parts = fieldName.split(".")
+          const optionIndex = parseInt(parts[1])
+          const fieldType = parts.slice(2).join(".")
+          
+          if (fieldType === "name.en") {
+            if (!value?.trim()) {
+              errors[fieldName] = "English option name is required"
+            } else {
+              delete errors[fieldName]
+            }
+          } else if (fieldType === "name.sq") {
+            if (!value?.trim()) {
+              errors[fieldName] = "Albanian option name is required"
+            } else {
+              delete errors[fieldName]
+            }
+          } else if (fieldType === "price.amount") {
+            if (!value || value <= 0) {
+              errors[fieldName] = "Price must be greater than 0"
+            } else {
+              delete errors[fieldName]
+            }
+          }
+        }
+        break
     }
 
     setFieldErrors(errors)
