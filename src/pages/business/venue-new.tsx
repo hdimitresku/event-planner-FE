@@ -698,40 +698,85 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
 
                   <div className="grid gap-4 sm:grid-cols-3">
                     <div className="space-y-2">
-                      <Label htmlFor="city">{t("business.common.city")}*</Label>
+                      <Label htmlFor="city" className="flex items-center gap-1">
+                        {t("business.common.city")}*
+                        {fieldTouched["address.city"] && !fieldErrors["address.city"] && (
+                            <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                              />
+                            </svg>
+                        )}
+                      </Label>
                       <Input
                           id="city"
                           value={venueForm.address.city}
-                          onChange={(e) =>
-                              setVenueForm({ ...venueForm, address: { ...venueForm.address, city: e.target.value } })
-                          }
+                          onChange={(e) => {
+                            setVenueForm({ ...venueForm, address: { ...venueForm.address, city: e.target.value } })
+                            validateField("address.city", e.target.value)
+                          }}
+                          onBlur={() => handleFieldTouch("address.city")}
                           placeholder={t("business.venueNew.cityPlaceholder")}
+                          className={`${fieldErrors["address.city"] ? "border-red-500 focus:border-red-500" : fieldTouched["address.city"] && !fieldErrors["address.city"] ? "border-green-500" : ""}`}
                           required
                       />
+                      <FieldError error={fieldTouched["address.city"] ? fieldErrors["address.city"] : undefined} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="state">{t("business.common.state")}*</Label>
+                      <Label htmlFor="state" className="flex items-center gap-1">
+                        {t("business.common.state")}*
+                        {fieldTouched["address.state"] && !fieldErrors["address.state"] && (
+                            <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                              />
+                            </svg>
+                        )}
+                      </Label>
                       <Input
                           id="state"
                           value={venueForm.address.state}
-                          onChange={(e) =>
-                              setVenueForm({ ...venueForm, address: { ...venueForm.address, state: e.target.value } })
-                          }
+                          onChange={(e) => {
+                            setVenueForm({ ...venueForm, address: { ...venueForm.address, state: e.target.value } })
+                            validateField("address.state", e.target.value)
+                          }}
+                          onBlur={() => handleFieldTouch("address.state")}
                           placeholder={t("business.venueNew.statePlaceholder")}
+                          className={`${fieldErrors["address.state"] ? "border-red-500 focus:border-red-500" : fieldTouched["address.state"] && !fieldErrors["address.state"] ? "border-green-500" : ""}`}
                           required
                       />
+                      <FieldError error={fieldTouched["address.state"] ? fieldErrors["address.state"] : undefined} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="zip">{t("business.common.zip")}*</Label>
+                      <Label htmlFor="zip" className="flex items-center gap-1">
+                        {t("business.common.zip")}*
+                        {fieldTouched["address.zipCode"] && !fieldErrors["address.zipCode"] && (
+                            <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                              />
+                            </svg>
+                        )}
+                      </Label>
                       <Input
                           id="zip"
                           value={venueForm.address.zipCode}
-                          onChange={(e) =>
-                              setVenueForm({ ...venueForm, address: { ...venueForm.address, zipCode: e.target.value } })
-                          }
+                          onChange={(e) => {
+                            setVenueForm({ ...venueForm, address: { ...venueForm.address, zipCode: e.target.value } })
+                            validateField("address.zipCode", e.target.value)
+                          }}
+                          onBlur={() => handleFieldTouch("address.zipCode")}
                           placeholder={t("business.venueNew.zipPlaceholder")}
+                          className={`${fieldErrors["address.zipCode"] ? "border-red-500 focus:border-red-500" : fieldTouched["address.zipCode"] && !fieldErrors["address.zipCode"] ? "border-green-500" : ""}`}
                           required
                       />
+                      <FieldError error={fieldTouched["address.zipCode"] ? fieldErrors["address.zipCode"] : undefined} />
                     </div>
                   </div>
 
