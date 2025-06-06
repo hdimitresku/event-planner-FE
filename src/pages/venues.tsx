@@ -705,7 +705,7 @@ export default function VenuesPage() {
                 </div>
               </div>
 
-              <Button className="w-full btn-primary" onClick={handleSearch}>
+              <Button className="w-full bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white shadow-lg shadow-sky-500/25 transition-all duration-200 hover:shadow-xl hover:shadow-sky-500/30" onClick={handleSearch}>
                 <Search className="mr-2 h-4 w-4" /> {t("venues.searchBar.button") || "Search"}
               </Button>
             </div>
