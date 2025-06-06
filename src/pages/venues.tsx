@@ -633,8 +633,8 @@ export default function VenuesPage() {
         <div className="space-y-6">
           {/* Search Card */}
           <div className="bg-white/95 dark:bg-slate-800 rounded-xl border border-gray-200/80 dark:border-slate-700 shadow-xl backdrop-blur-sm p-6">
-            <h2 className="font-semibold text-lg text-card-foreground mb-6 flex items-center">
-              <Search className="mr-2 h-5 w-5 text-primary" />
+            <h2 className="font-semibold text-lg text-gray-900 dark:text-gray-50 mb-6 flex items-center">
+              <Search className="mr-2 h-5 w-5 text-sky-600 dark:text-sky-400" />
               {t("venues.searchBar.title") || "Search"}
             </h2>
             <div className="space-y-5">
