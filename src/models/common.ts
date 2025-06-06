@@ -144,7 +144,7 @@ export interface Host {
  * Capacity information for venues
  */
 export interface Capacity {
-  minimum: number;
-  maximum: number;
+  min: number;
+  max: number;
   recommended: number;
 }
