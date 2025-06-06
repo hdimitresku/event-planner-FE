@@ -718,7 +718,7 @@ export default function ServicesManagementPage() {
                             </div>
                           </div>
                           <div>
-                            <Label htmlFor={`option-price-type-${index}`}>{t("business.services.priceType")}</Label>
+                            <Label htmlFor={`option-price-type-${index}`}>{t("venues.filters.priceType")}</Label>
                             <Select
                                 value={option.price.type}
                                 onValueChange={(value) => updateOptionField(index, "price.type", value)}

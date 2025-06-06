@@ -19,6 +19,7 @@ import { VenueAmenity, VenueType } from "../../models/venue"
 import { PricingType } from "../../models/common"
 import { toast } from "../../components/ui/use-toast"
 import { createVenue } from "../../services/venueService"
+import { AddressAutocomplete } from "../../components/address-autocomplete"
 
 interface VenueNewModalProps {
   isOpen: boolean
@@ -26,11 +27,50 @@ interface VenueNewModalProps {
   onSuccess?: () => void
 }
 
+interface VenueForm {
+  name: {
+    en: string;
+    sq: string;
+  };
+  description: {
+    en: string;
+    sq: string;
+  };
+  type: VenueType;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  amenities: VenueAmenity[];
+  capacity: {
+    min: number;
+    max: number;
+    recommended: number;
+  };
+  price: {
+    amount: number;
+    currency: string;
+    type: PricingType;
+  };
+  dayAvailability: {
+    monday: string;
+    tuesday: string;
+    wednesday: string;
+    thursday: string;
+    friday: string;
+    saturday: string;
+    sunday: string;
+  };
+}
+
 export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps) {
   const { t, language } = useLanguage()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState("details")
-  const [venueForm, setVenueForm] = useState({
+  const [venueForm, setVenueForm] = useState<VenueForm>({
     name: {
       en: "",
       sq: "",
@@ -45,10 +85,9 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
       city: "",
       state: "",
       zipCode: "",
-      country: "USA",
-      location: {},
+      country: "",
     },
-    amenities: [] as VenueAmenity[],
+    amenities: [],
     capacity: {
       min: 10,
       max: 100,
@@ -319,7 +358,6 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
           state: venueForm.address.state,
           zipCode: venueForm.address.zipCode,
           country: venueForm.address.country,
-          location: {},
         },
         capacity: venueForm.capacity,
         price: venueForm.price,
@@ -354,7 +392,6 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
             state: "",
             zipCode: "",
             country: "USA",
-            location: {},
           },
           amenities: [],
           capacity: {
@@ -639,76 +676,137 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="street">{t("business.common.address")}*</Label>
+                    <AddressAutocomplete
+                      onAddressSelect={(address) => {
+                        setVenueForm({
+                          ...venueForm,
+                          address: {
+                            street: address.street || "",
+                            city: address.city || "",
+                            state: address.state || "",
+                            zipCode: address.zipCode || "",
+                            country: address.country || "",
+                          }
+                        })
+                      }}
+                      defaultAddress={{
+                        street: venueForm.address.street,
+                        city: venueForm.address.city,
+                        state: venueForm.address.state,
+                        zipCode: venueForm.address.zipCode,
+                        country: venueForm.address.country,
+                      }}
+                      disabled={false}
+                      key={`${venueForm.address.street}-${venueForm.address.city}-${venueForm.address.state}-${venueForm.address.zipCode}-${venueForm.address.country}`}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="street" className="flex items-center gap-2">
+                        {t("business.common.street")}
+                      </Label>
                     <Input
                         id="street"
-                        value={venueForm.address.street}
-                        onChange={(e) =>
-                            setVenueForm({ ...venueForm, address: { ...venueForm.address, street: e.target.value } })
-                        }
+                        name="street"
+                        value={venueForm.address.street || ""}
+                        onChange={(e) => {
+                          const newStreet = e.target.value;
+                          setVenueForm(prev => ({
+                            ...prev,
+                            address: {
+                              ...prev.address,
+                              street: newStreet
+                            }
+                          }));
+                        }}
                         placeholder={t("business.venueNew.addressPlaceholder")}
                         required
                     />
                   </div>
-
-                  <div className="grid gap-4 sm:grid-cols-3">
                     <div className="space-y-2">
-                      <Label htmlFor="city">{t("business.common.city")}*</Label>
+                      <Label htmlFor="city">{t("business.common.city")}</Label>
                       <Input
                           id="city"
-                          value={venueForm.address.city}
-                          onChange={(e) =>
-                              setVenueForm({ ...venueForm, address: { ...venueForm.address, city: e.target.value } })
-                          }
+                        name="city"
+                        value={venueForm.address.city || ""}
+                        onChange={(e) => {
+                          const newCity = e.target.value;
+                          setVenueForm(prev => ({
+                            ...prev,
+                            address: {
+                              ...prev.address,
+                              city: newCity
+                            }
+                          }));
+                        }}
                           placeholder={t("business.venueNew.cityPlaceholder")}
                           required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="state">{t("business.common.state")}*</Label>
+                      <Label htmlFor="state">{t("business.common.state")}</Label>
                       <Input
                           id="state"
-                          value={venueForm.address.state}
-                          onChange={(e) =>
-                              setVenueForm({ ...venueForm, address: { ...venueForm.address, state: e.target.value } })
-                          }
+                        name="state"
+                        value={venueForm.address.state || ""}
+                        onChange={(e) => {
+                          const newState = e.target.value;
+                          setVenueForm(prev => ({
+                            ...prev,
+                            address: {
+                              ...prev.address,
+                              state: newState
+                            }
+                          }));
+                        }}
                           placeholder={t("business.venueNew.statePlaceholder")}
                           required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="zip">{t("business.common.zip")}*</Label>
+                      <Label htmlFor="zipCode">{t("profile.zipCode") || "ZIP/Postal Code"}</Label>
                       <Input
-                          id="zip"
-                          value={venueForm.address.zipCode}
-                          onChange={(e) =>
-                              setVenueForm({ ...venueForm, address: { ...venueForm.address, zipCode: e.target.value } })
-                          }
+                        id="zipCode"
+                        name="zipCode"
+                        value={venueForm.address.zipCode || ""}
+                        onChange={(e) => {
+                          const newZipCode = e.target.value;
+                          setVenueForm(prev => ({
+                            ...prev,
+                            address: {
+                              ...prev.address,
+                              zipCode: newZipCode
+                            }
+                          }));
+                        }}
                           placeholder={t("business.venueNew.zipPlaceholder")}
+                          required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="country">{t("profile.country") || "Country"}</Label>
+                      <Input
+                          id="country"
+                        name="country"
+                        value={venueForm.address.country || ""}
+                        onChange={(e) => {
+                          const newCountry = e.target.value;
+                          setVenueForm(prev => ({
+                            ...prev,
+                            address: {
+                              ...prev.address,
+                              country: newCountry
+                            }
+                          }));
+                        }}
+                          placeholder={t("business.venueNew.countryPlaceholder")}
                           required
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="location">{t("business.venueNew.location")}*</Label>
-                    <Input
-                        id="location"
-                        placeholder="e.g. Manhattan, NY"
-                        onChange={(e) => {
-                          // Just store the location as a string, we'll handle it in the API call
-                          const location = e.target.value
-                          setVenueForm({
-                            ...venueForm,
-                            address: {
-                              ...venueForm.address,
-                              location: { location },
-                            },
-                          })
-                        }}
-                        required
-                    />
-                  </div>
+        
 
                   <div className="grid gap-4 sm:grid-cols-3">
                     <div className="space-y-2">
@@ -882,7 +980,7 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
                         <SelectContent>
                           {Object.values(PricingType).map((type) => (
                               <SelectItem key={type} value={type}>
-                                {t(`common.${type.toLowerCase()}`) || type.replace("_", " ")}
+                                {t(`business.pricing.${type}`) || type.replace("_", " ")}
                               </SelectItem>
                           ))}
                         </SelectContent>

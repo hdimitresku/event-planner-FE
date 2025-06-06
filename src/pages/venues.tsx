@@ -48,7 +48,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext
 import type { CarouselApi } from "@/components/ui/carousel"
 
 // Define price type interface
-type PriceType = "hourly" | "perPerson" | "fixed" | "custom"
+type PriceType = "hourly" | "perPerson" | "fixed"
 
 // Updated venue types to match API data
 const VENUE_TYPES = {
@@ -364,8 +364,6 @@ export default function VenuesPage() {
     [PricingType.HOURLY]: false,
     [PricingType.PER_PERSON]: false,
     [PricingType.FIXED]: false,
-    [PricingType.CUSTOM]: false,
-    [PricingType.PER_DAY]: false,
   })
   const [amenities, setAmenities] = useState<Record<string, boolean>>({
     wifi: false,

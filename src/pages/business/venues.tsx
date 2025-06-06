@@ -49,9 +49,44 @@ import { VenueNewModal } from "./venue-new"
 import { format, isAfter, isBefore, isSameDay, addDays } from "date-fns"
 import * as venueService from "../../services/venueService"
 import { type Venue, VenueType, VenueAmenity } from "../../models/venue"
-import { PricingType } from "../../models/common"
+import { PricingType, type Address } from "../../models/common"
 import { toast } from "../../components/ui/use-toast"
 import { LoadingSpinner } from "../../components/ui/loading-spinner"
+import { AddressAutocomplete } from "../../components/address-autocomplete"
+
+interface EditForm {
+  name: {
+    en: string;
+    sq: string;
+  };
+  description: {
+    en: string;
+    sq: string;
+  };
+  type: VenueType;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+    location?: {
+      latitude: number;
+      longitude: number;
+    };
+  };
+  amenities: VenueAmenity[];
+  capacity: {
+    min: number;
+    max: number;
+    recommended: number;
+  };
+  price: {
+    amount: number;
+    currency: string;
+    type: PricingType;
+  };
+}
 
 export default function BusinessVenuesPage() {
   const { t, language } = useLanguage()
@@ -76,10 +111,9 @@ export default function BusinessVenuesPage() {
   const [blockingMode, setBlockingMode] = useState<"block" | "unblock">("block")
   const [isUpdatingAvailability, setIsUpdatingAvailability] = useState(false)
 
-  const [editForm, setEditForm] = useState({
+  const [editForm, setEditForm] = useState<EditForm>({
     name: { en: "", sq: "" },
     description: { en: "", sq: "" },
-    location: { en: "", sq: "" },
     type: VenueType.OTHER,
     address: {
       street: "",
@@ -87,8 +121,9 @@ export default function BusinessVenuesPage() {
       state: "",
       zipCode: "",
       country: "",
+      location: undefined
     },
-    amenities: [] as VenueAmenity[],
+    amenities: [],
     capacity: {
       min: 0,
       max: 0,
@@ -101,10 +136,9 @@ export default function BusinessVenuesPage() {
     },
   })
 
-  const [originalEditForm, setOriginalEditForm] = useState({
+  const [originalEditForm, setOriginalEditForm] = useState<EditForm>({
     name: { en: "", sq: "" },
     description: { en: "", sq: "" },
-    location: { en: "", sq: "" },
     type: VenueType.OTHER,
     address: {
       street: "",
@@ -112,8 +146,9 @@ export default function BusinessVenuesPage() {
       state: "",
       zipCode: "",
       country: "",
+      location: undefined
     },
-    amenities: [] as VenueAmenity[],
+    amenities: [],
     capacity: {
       min: 0,
       max: 0,
@@ -261,22 +296,31 @@ export default function BusinessVenuesPage() {
 
   const handleEditVenue = (venue: Venue) => {
     setSelectedVenue(venue)
-    // Initialize form with venue data
-    const formData = {
+    const newEditForm: EditForm = {
       name: { ...venue.name },
       description: { ...venue.description },
-      location: {
-        en: `${venue.address.city}, ${venue.address.state}`,
-        sq: `${venue.address.city}, ${venue.address.state}`,
-      },
       type: venue.type,
-      address: { ...venue.address },
+      address: {
+        street: venue.address.street,
+        city: venue.address.city,
+        state: venue.address.state,
+        zipCode: venue.address.zipCode,
+        country: venue.address.country,
+        location: venue.address.location ? {
+          latitude: venue.address.location.lat,
+          longitude: venue.address.location.lng
+        } : undefined
+      },
       amenities: [...venue.amenities],
-      capacity: { ...venue.capacity },
+      capacity: {
+        min: venue.capacity.minimum,
+        max: venue.capacity.maximum,
+        recommended: venue.capacity.recommended
+      },
       price: { ...venue.price },
     }
-    setEditForm(formData)
-    setOriginalEditForm(JSON.parse(JSON.stringify(formData))) // Deep copy
+    setEditForm(newEditForm)
+    setOriginalEditForm(newEditForm)
     setIsEditModalOpen(true)
   }
 
@@ -563,6 +607,34 @@ export default function BusinessVenuesPage() {
     fetchVenues()
   }
 
+  const handleAddressSelect = (address: Address) => {
+    setEditForm(prev => ({
+      ...prev,
+      address: {
+        street: address.street || "",
+        city: address.city || "",
+        state: address.state || "",
+        zipCode: address.zipCode || "",
+        country: address.country || "",
+        location: address.location ? {
+          latitude: address.location.lat,
+          longitude: address.location.lng
+        } : undefined
+      }
+    }))
+  }
+
+  // Add this new function to handle individual field changes
+  const handleAddressFieldChange = (field: keyof typeof editForm.address, value: string) => {
+    setEditForm(prev => ({
+      ...prev,
+      address: {
+        ...prev.address,
+        [field]: value
+      }
+    }))
+  }
+
   if (error) {
     return (
         <BusinessLayout>
@@ -688,7 +760,7 @@ export default function BusinessVenuesPage() {
                           <div>
                             <span className="font-medium">{getPriceDisplay(selectedVenue)}</span>
                             <Badge variant="outline" className="ml-2 text-xs">
-                              {t(`venues.filters.priceType.${selectedVenue.price.type}`) || selectedVenue.price.type}
+                              {t(`business.pricing.${selectedVenue.price.type}`) || selectedVenue.price.type}
                             </Badge>
                           </div>
                         </div>
@@ -854,6 +926,85 @@ export default function BusinessVenuesPage() {
             </DialogHeader>
 
             <div className="grid gap-4 py-4">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <AddressAutocomplete
+                    onAddressSelect={handleAddressSelect}
+                    defaultAddress={{
+                      street: editForm.address.street,
+                      city: editForm.address.city,
+                      state: editForm.address.state,
+                      zipCode: editForm.address.zipCode,
+                      country: editForm.address.country,
+                      location: editForm.address.location ? {
+                        lat: editForm.address.location.latitude,
+                        lng: editForm.address.location.longitude
+                      } : undefined
+                    }}
+                    disabled={false}
+                    key={`${editForm.address.street}-${editForm.address.city}-${editForm.address.state}-${editForm.address.zipCode}-${editForm.address.country}`}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="street">{t("business.common.street")}</Label>
+                    <Input
+                      id="street"
+                      name="street"
+                      value={editForm.address.street || ""}
+                      onChange={(e) => handleAddressFieldChange("street", e.target.value)}
+                      placeholder={t("business.venueNew.addressPlaceholder")}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="city">{t("business.common.city")}</Label>
+                    <Input
+                      id="city"
+                      name="city"
+                      value={editForm.address.city || ""}
+                      onChange={(e) => handleAddressFieldChange("city", e.target.value)}
+                      placeholder={t("business.venueNew.cityPlaceholder")}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="state">{t("business.common.state")}</Label>
+                    <Input
+                      id="state"
+                      name="state"
+                      value={editForm.address.state || ""}
+                      onChange={(e) => handleAddressFieldChange("state", e.target.value)}
+                      placeholder={t("business.venueNew.statePlaceholder")}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="zipCode">{t("profile.zipCode") || "ZIP/Postal Code"}</Label>
+                    <Input
+                      id="zipCode"
+                      name="zipCode"
+                      value={editForm.address.zipCode || ""}
+                      onChange={(e) => handleAddressFieldChange("zipCode", e.target.value)}
+                      placeholder={t("business.venueNew.zipPlaceholder")}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="country">{t("profile.country") || "Country"}</Label>
+                    <Input
+                      id="country"
+                      name="country"
+                      value={editForm.address.country || ""}
+                      onChange={(e) => handleAddressFieldChange("country", e.target.value)}
+                      placeholder={t("business.venueNew.countryPlaceholder")}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 gap-2">
                 <Label htmlFor="name-en">{t("business.venues.name")} (English)</Label>
                 <Input
@@ -941,7 +1092,7 @@ export default function BusinessVenuesPage() {
                     <SelectContent>
                       {Object.values(PricingType).map((type) => (
                           <SelectItem key={type} value={type}>
-                            {t(`venues.filters.priceType.${type}`) || type.replace("_", " ")}
+                            {t(`business.pricing.${type}`) || type.replace("_", " ")}
                           </SelectItem>
                       ))}
                     </SelectContent>
@@ -1266,7 +1417,7 @@ export default function BusinessVenuesPage() {
                                 <div className="text-right">
                                   <span className="font-medium">{getPriceDisplay(venue)}</span>
                                   <Badge variant="secondary" className="ml-2 text-xs">
-                                    {t(`venues.filters.priceType.${venue.price.type}`) || venue.price.type}
+                                    {t(`business.pricing.${venue.price.type}`) || venue.price.type}
                                   </Badge>
                                 </div>
                               </div>
@@ -1475,7 +1626,6 @@ export default function BusinessVenuesPage() {
                                 ) : (
                                     <Trash className="h-4 w-4" />
                                 )}
-
                                 <span className="sr-only">{t("business.common.delete")}</span>
                               </Button>
                             </CardFooter>

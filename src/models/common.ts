@@ -16,11 +16,7 @@ export interface MultilingualText {
 export enum PricingType {
   FIXED = "fixed",
   HOURLY = "hourly",
-  PER_DAY = "per_day",
-  WEEKLY = "weekly",
-  MONTHLY = "monthly",
   PER_PERSON = "perPerson",
-  CUSTOM = "custom"
 }
 
 /**
