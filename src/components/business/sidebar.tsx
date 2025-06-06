@@ -16,6 +16,8 @@ import {
   Menu,
   X,
   LogOut,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 
 interface SidebarProps {
@@ -26,6 +28,7 @@ export function BusinessSidebar({ className }: SidebarProps) {
   const { t } = useLanguage()
   const location = useLocation()
   const [isOpen, setIsOpen] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
   const routes = [
     {
@@ -105,16 +108,27 @@ export function BusinessSidebar({ className }: SidebarProps) {
       />
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-card shadow-lg text-card-foreground transition-transform duration-200 md:translate-x-0 ${
+        className={`sticky top-0 left-0 z-40 bg-card shadow-lg text-card-foreground transition-all duration-200 md:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } ${className}`}
+        } ${isCollapsed ? "w-16" : "w-64"} ${className}`}
       >
-        <div className="flex h-full flex-col">
-          <div className="flex h-16 items-center border-b border-border/50 px-6">
-            <Link to="/business" className="flex items-center gap-2 font-bold text-xl">
-              <span className="text-primary">Venue</span>
-              <span className="text-secondary">Space</span>
-            </Link>
+        <div className="flex h-screen flex-col">
+          <div className="flex h-16 items-center justify-between border-b border-border/50 px-4">
+            {!isCollapsed && (
+              <Link to="/business" className="flex items-center gap-2 font-bold text-xl">
+                <span className="text-secondary">{t("business.sidebar.business")}</span>
+                <span className="text-primary">{t("business.sidebar.header.settings")}</span>
+              </Link>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="ml-auto"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+            >
+              {isCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+              <span className="sr-only">Toggle sidebar</span>
+            </Button>
           </div>
           <div className="flex-1 overflow-auto py-6">
             <nav className="grid gap-2 px-3">
@@ -130,7 +144,7 @@ export function BusinessSidebar({ className }: SidebarProps) {
                   }`}
                 >
                   <route.icon className={`h-5 w-5 ${route.active ? "text-primary" : "text-foreground/70"}`} />
-                  {route.label}
+                  {!isCollapsed && route.label}
                 </Link>
               ))}
             </nav>
@@ -143,7 +157,7 @@ export function BusinessSidebar({ className }: SidebarProps) {
             >
               <Link to="/">
                 <LogOut className="mr-2 h-5 w-5" />
-                {t("business.sidebar.logout") || "Logout"}
+                {!isCollapsed && (t("business.sidebar.logout") || "Logout")}
               </Link>
             </Button>
           </div>

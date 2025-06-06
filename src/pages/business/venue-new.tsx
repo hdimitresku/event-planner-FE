@@ -51,7 +51,7 @@ interface VenueForm {
     recommended: number;
   };
   price: {
-    amount: number;
+    amount: number | undefined;
     currency: string;
     type: PricingType;
   };
@@ -94,7 +94,7 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
       recommended: 50,
     },
     price: {
-      amount: 0,
+      amount: undefined,
       currency: "USD",
       type: PricingType.HOURLY,
     },
@@ -176,7 +176,7 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
     }
 
     // Validate pricing
-    if (venueForm.price.amount <= 0) {
+    if (venueForm.price.amount !== undefined && venueForm.price.amount <= 0) {
       errors["price.amount"] = "Price must be greater than 0"
     }
 
@@ -400,7 +400,7 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
             recommended: 50,
           },
           price: {
-            amount: 0,
+            amount: undefined,
             currency: "USD",
             type: PricingType.HOURLY,
           },
@@ -930,7 +930,7 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
                     {/* Add validation to the price input in the pricing tab
                   // Replace the price input with: */}
                     <div className="space-y-2">
-                      <Label htmlFor="basePrice" className="flex items-center gap-1">
+                      <Label htmlFor="price" className="flex items-center gap-1">
                         {t("business.common.price")}*
                         {fieldTouched["price.amount"] && !fieldErrors["price.amount"] && (
                             <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -945,23 +945,17 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
                         <Input
-                            id="basePrice"
+                            id="price"
                             type="number"
-                            min="0"
-                            step="0.01"
-                            className={`pl-7 ${fieldErrors["price.amount"] ? "border-red-500 focus:border-red-500" : fieldTouched["price.amount"] && !fieldErrors["price.amount"] ? "border-green-500" : ""}`}
-                            placeholder="0.00"
-                            value={venueForm.price.amount}
-                            onChange={(e) => {
-                              const value = Number.parseFloat(e.target.value)
-                              setVenueForm({
-                                ...venueForm,
-                                price: { ...venueForm.price, amount: value },
-                              })
-                              validateField("price.amount", value)
-                            }}
-                            onBlur={() => handleFieldTouch("price.amount")}
-                            required
+                            placeholder={t("business.common.enterPrice") || "Enter price"}
+                            value={venueForm.price.amount || ""}
+                            onChange={(e) => setVenueForm(prev => ({
+                              ...prev,
+                              price: {
+                                ...prev.price,
+                                amount: e.target.value ? Number(e.target.value) : undefined
+                              }
+                            }))}
                         />
                       </div>
                       <FieldError error={fieldTouched["price.amount"] ? fieldErrors["price.amount"] : undefined} />

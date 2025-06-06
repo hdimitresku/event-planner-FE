@@ -170,11 +170,11 @@ export function SiteFooter() {
         {/* Footer Bottom */}
         <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center gap-2 font-bold text-2xl mb-4 md:mb-0">
-            <span className="text-primary">Venue</span>
-            <span className="text-secondary">Space</span>
+            <span className="text-primary">Rezervo</span>
+            <span className="text-secondary">Ambientin</span>
           </div>
           <div className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} VenueSpace. {t("footer.allRights") || "All rights reserved."}
+            &copy; {new Date().getFullYear()} RezervoAmbientin. {t("footer.allRights") || "All rights reserved."}
           </div>
         </div>
       </div>

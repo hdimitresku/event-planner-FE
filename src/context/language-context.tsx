@@ -1085,7 +1085,10 @@ const translations: Translations = {
     "help.faqTitle3": "Account Management",
     "help.faqTitle4": "Venue Support",
     "help.faqTitle5": "Other Questions",
-    "help.viewMore": "View More Help"
+    "help.viewMore": "View More Help",
+    "business.sidebar.business": "Business",
+    "business.sidebar.header.settings": "Settings",
+    
 
     // ...
   },
@@ -2082,7 +2085,9 @@ const translations: Translations = {
     "help.faqTitle3": "Menaxhimi i Llogarisë",
     "help.faqTitle4": "Mbështetje për Hapësira",
     "help.faqTitle5": "Pyetje të Tjera",
-    "help.viewMore": "Shiko më shumë ndihmë"
+    "help.viewMore": "Shiko më shumë ndihmë",
+    "business.sidebar.business": "Cilesimet e",
+    "business.sidebar.header.settings": "Biznesit",
   }
 }
 

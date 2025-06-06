@@ -83,7 +83,7 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
         name: { en: "", sq: "" },
         description: { en: "", sq: "" },
         price: {
-          amount: 0,
+          amount: undefined,
           currency: "USD",
           type: PricingType.FIXED,
         },
@@ -117,7 +117,7 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
           name: { en: "", sq: "" },
           description: { en: "", sq: "" },
           price: {
-            amount: 0,
+            amount: undefined,
             currency: "USD",
             type: PricingType.FIXED,
           },
@@ -190,8 +190,8 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
       if (!option.name.sq.trim()) {
         errors[`option.${index}.name.sq`] = "Albanian option name is required"
       }
-      if (option.price.amount <= 0) {
-        errors[`option.${index}.price`] = "Price must be greater than 0"
+      if (option.price.amount === undefined) {
+        errors[`option.${index}.price`] = "Price must be entered"
       }
     })
 
@@ -317,7 +317,7 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
             name: { en: "", sq: "" },
             description: { en: "", sq: "" },
             price: {
-              amount: 0,
+              amount: undefined,
               currency: "USD",
               type: PricingType.FIXED,
             },
@@ -612,25 +612,19 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
                         </div>
                       </div>
 
+                      <div className="grid gap-4 sm:grid-cols-1 gap-2">
+                        <Label htmlFor="price">{t("business.common.price")}</Label>
+                        <Input
+                          id="price"
+                          type="number"
+                          placeholder={t("business.common.enterPrice") || "Enter price"}
+                          value={option.price.amount || ""}
+                          onChange={(e) => updateOption(index, "price.amount", e.target.value ? Number(e.target.value) : undefined)}
+                        />
+                        <FieldError error={fieldErrors[`option.${index}.price`]} />
+                      </div>
+
                       <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label>Price*</Label>
-                          <div className="relative">
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
-                          $
-                        </span>
-                            <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={option.price.amount}
-                                onChange={(e) => updateOption(index, "price.amount", Number.parseFloat(e.target.value) || 0)}
-                                className="pl-7"
-                                placeholder="0.00"
-                                required
-                            />
-                          </div>
-                        </div>
                         <div className="space-y-2">
                           <Label>Pricing Type*</Label>
                           <Select
