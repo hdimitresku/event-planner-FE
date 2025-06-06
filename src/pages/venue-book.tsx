@@ -1593,18 +1593,6 @@ export default function VenueBookPage() {
                         {selectedOptionDetails.service.description[language]}
                       </span>
                         </div>
-                        {/* Operating Hours */}
-                        <div>
-                          <span className="font-medium">{t("venueBook.operatingHours")}: </span>
-                          <div className="text-muted-foreground text-xs mt-1">
-                            {Object.entries(selectedOptionDetails.service.dayAvailability).map(([day, hours]) => (
-                                <div key={day} className="flex justify-between">
-                                  <span className="capitalize">{day}:</span>
-                                  <span>{hours || t("venueBook.closed")}</span>
-                                </div>
-                            ))}
-                          </div>
-                        </div>
                       </div>
                     </div>
 

@@ -219,7 +219,7 @@ const VenueCard = ({ venue, language, t }) => {
 
   // Get venue type icon component
   const VenueTypeIcon = getVenueTypeIcon(venue.type)
-  console.log("image", formatImageUrl(venue.media[0]?.url))
+
 
 
   return (
@@ -284,7 +284,7 @@ const VenueCard = ({ venue, language, t }) => {
             className="bg-secondary text-secondary-foreground border-none font-medium shadow-lg px-3 py-1 hover:bg-secondary/80 transition-colors flex items-center gap-1.5"
           >
             <VenueTypeIcon className="h-3.5 w-3.5" />
-            {getVenueTypeDisplay(venue.type)}
+            {t(`business.venueTypes.${venue.type}`)}
           </Badge>
         </div>
 
