@@ -7,6 +7,7 @@
 // Base API config
 // const API_BASE_URL = process.env.VITE_API_URL || 'https://api.eventspace.com/v1';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+console.log(import.meta.env.VITE_API_URL, 'API_BASE_URL');
 const API_TIMEOUT = 10000; // 10 seconds
 
 // Default headers
@@ -22,7 +23,7 @@ export const USE_MOCK_DATA = false;
 
 export const setAuthToken = (token: string | null) => {
   authToken = token;
-  if (token) {
+  if (token) {``
     localStorage.setItem('accessToken', token);
   } else {
     localStorage.removeItem('accessToken');
