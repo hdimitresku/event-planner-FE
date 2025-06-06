@@ -923,17 +923,17 @@ export default function VenuesPage() {
 
           {/* No Results */}
           {!loading && filteredVenues.length === 0 && (
-            <div className="text-center py-16 bg-muted/30 rounded-xl border border-dashed">
-              <div className="h-16 w-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Search className="h-8 w-8 text-primary" />
+            <div className="text-center py-16 bg-white/90 dark:bg-slate-800/90 rounded-xl border border-gray-200/80 dark:border-slate-700 backdrop-blur-sm shadow-lg">
+              <div className="h-16 w-16 mx-auto rounded-full bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center mb-4">
+                <Search className="h-8 w-8 text-sky-600 dark:text-sky-400" />
               </div>
-              <h3 className="text-lg font-medium text-foreground mb-2">{t("venues.noResults") || "No venues found"}</h3>
-              <p className="text-muted-foreground mb-6">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-50 mb-2">{t("venues.noResults") || "No venues found"}</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 {t("venues.tryAdjusting") || "Try adjusting your filters or search criteria"}
               </p>
               <Button
                 variant="outline"
-                className="border-primary text-primary hover:bg-primary/10"
+                className="border-sky-600 text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-900/20 shadow-sm hover:shadow-md transition-all duration-200"
                 onClick={clearAllFilters}
               >
                 {t("venues.filters.clearAll") || "Clear all filters"}
