@@ -15,16 +15,19 @@ RUN pnpm install --frozen-lockfile
 # Copy source code and env files
 COPY . .
 
-# Build the application with environment variables
+# Accept build arguments for Vite environment variables
 ARG VITE_API_URL
 ARG VITE_API_IMAGE_URL
 ARG VITE_APP_ENV
 ARG VITE_APP_NAME
+
+# Optionally set as ENV (not strictly needed for Vite, but can help with debugging)
 ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_API_IMAGE_URL=$VITE_API_IMAGE_URL
 ENV VITE_APP_ENV=$VITE_APP_ENV
 ENV VITE_APP_NAME=$VITE_APP_NAME
 
+# Build the app (Vite will pick up the ARGs if you also have a .env.production file)
 RUN pnpm build
 
 # Production stage
