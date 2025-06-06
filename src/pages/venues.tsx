@@ -874,7 +874,7 @@ export default function VenuesPage() {
         {/* Results Section */}
         <div className="space-y-6">
           {/* Results Header */}
-          <div className="flex items-center justify-between bg-card rounded-xl border shadow-soft p-6">
+          <div className="flex items-center justify-between bg-white/95 dark:bg-slate-800 rounded-xl border border-gray-200/80 dark:border-slate-700 shadow-xl backdrop-blur-sm p-6">
             <div>
               <h1 className="text-2xl font-bold text-card-foreground">{t("venues.title") || "Venues"}</h1>
               <p className="text-sm text-muted-foreground mt-1">
