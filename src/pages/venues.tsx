@@ -219,6 +219,8 @@ const VenueCard = ({ venue, language, t }) => {
 
   // Get venue type icon component
   const VenueTypeIcon = getVenueTypeIcon(venue.type)
+  console.log("image", formatImageUrl(venue.media[0]?.url))
+
 
   return (
     <div className="flex flex-col h-[400px] bg-card rounded-xl overflow-hidden venue-card group transition-all duration-300">
