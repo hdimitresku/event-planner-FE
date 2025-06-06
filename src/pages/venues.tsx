@@ -876,8 +876,8 @@ export default function VenuesPage() {
           {/* Results Header */}
           <div className="flex items-center justify-between bg-white/95 dark:bg-slate-800 rounded-xl border border-gray-200/80 dark:border-slate-700 shadow-xl backdrop-blur-sm p-6">
             <div>
-              <h1 className="text-2xl font-bold text-card-foreground">{t("venues.title") || "Venues"}</h1>
-              <p className="text-sm text-muted-foreground mt-1">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">{t("venues.title") || "Venues"}</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Showing {venues.length > 0 ? (currentPage - 1) * venuesPerPage + 1 : 0}-
                 {Math.min(currentPage * venuesPerPage, totalVenues)} of {totalVenues} venues
               </p>
