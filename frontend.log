@@ -3,7 +3,13 @@ $ vite
 Port 5432 is in use, trying another one...
 Port 5433 is in use, trying another one...
 
-  VITE v5.4.19  ready in 483 ms
+  VITE v5.4.19  ready in 48312:22:23 AM [vite] hmr update /src/pages/venues.tsx, /src/index.css
+12:23:04 AM [vite] Pre-transform error: /app/src/pages/venues.tsx: Unterminated JSX contents. (972:10)
 
-  ➜  Local:   http://localhost:5434/
-  ➜  Network: http://10.64.136.50:5434/
+  970 |         </div>
+  971 |       </div>
+> 972 |     </div>
+      |           ^
+  973 |   )
+  974 | }
+  975 |
