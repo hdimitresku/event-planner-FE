@@ -618,13 +618,13 @@ export default function VenuesPage() {
 
       <div className="container relative px-4 md:px-8 py-8 md:py-12 z-10">
       <div className="mb-8 md:mb-12">
-        <div className="inline-flex items-center px-4 py-2 text-sm font-medium text-primary bg-primary/10 rounded-full mb-3">
+        <div className="inline-flex items-center px-4 py-2 text-sm font-medium text-sky-700 dark:text-sky-400 bg-gradient-to-r from-sky-100 to-sky-50 dark:bg-sky-900/40 rounded-full mb-3 border border-sky-200/60 dark:border-sky-700/50">
           <span>{t("venues.discover") || "Discover"}</span>
         </div>
-        <h1 className="text-4xl font-bold tracking-tight text-foreground mb-3">
+        <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-50 mb-3">
           {t("venues.heading") || "Find Your Perfect Venue"}
         </h1>
-        <p className="text-muted-foreground text-lg max-w-3xl">
+        <p className="text-gray-700 dark:text-gray-300 text-lg max-w-3xl">
           {t("venues.subheading") || "Browse our curated selection of unique venues for your next event"}
         </p>
       </div>
