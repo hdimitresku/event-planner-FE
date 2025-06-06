@@ -21,7 +21,10 @@ export default defineConfig(({ mode }) => {
     },
     // Expose env variables to the client
     define: {
-      'process.env': env
+      'import.meta.env.VITE_API_URL': JSON.stringify(env.VITE_API_URL),
+      'import.meta.env.VITE_API_IMAGE_URL': JSON.stringify(env.VITE_API_IMAGE_URL),
+      'import.meta.env.VITE_APP_ENV': JSON.stringify(env.VITE_APP_ENV),
+      'import.meta.env.VITE_APP_NAME': JSON.stringify(env.VITE_APP_NAME)
     }
   }
 })
