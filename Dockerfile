@@ -12,23 +12,11 @@ COPY package.json pnpm-lock.yaml ./
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Copy source code and env files
+# Copy all source files (including .env.production)
 COPY . .
 
-# Accept build arguments for Vite environment variables
-ARG VITE_API_URL
-ARG VITE_API_IMAGE_URL
-ARG VITE_APP_ENV
-ARG VITE_APP_NAME
-
-# Optionally set as ENV (not strictly needed for Vite, but can help with debugging)
-ENV VITE_API_URL=$VITE_API_URL
-ENV VITE_API_IMAGE_URL=$VITE_API_IMAGE_URL
-ENV VITE_APP_ENV=$VITE_APP_ENV
-ENV VITE_APP_NAME=$VITE_APP_NAME
-
-# Build the app (Vite will pick up the ARGs if you also have a .env.production file)
-RUN pnpm build
+# Use .env.production for vite build
+RUN cp .env.production .env && pnpm build
 
 # Production stage
 FROM nginx:alpine
@@ -36,18 +24,11 @@ FROM nginx:alpine
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built assets from builder stage
+# Copy built assets
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Create a script to replace environment variables at runtime
-RUN echo '#!/bin/sh\n\
-envsubst < /usr/share/nginx/html/index.html > /usr/share/nginx/html/index.html.tmp\n\
-mv /usr/share/nginx/html/index.html.tmp /usr/share/nginx/html/index.html\n\
-nginx -g "daemon off;"' > /docker-entrypoint.sh \
-&& chmod +x /docker-entrypoint.sh
-
-# Expose port 80
+# Expose port
 EXPOSE 80
 
-# Start Nginx with environment variable replacement
-CMD ["/docker-entrypoint.sh"] 
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
