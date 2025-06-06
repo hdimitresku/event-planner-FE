@@ -712,7 +712,7 @@ export default function VenuesPage() {
           </div>
 
           {/* Filters Card */}
-          <div className="card-hover bg-card rounded-xl border shadow-soft p-6">
+          <div className="bg-white/95 dark:bg-slate-800 rounded-xl border border-gray-200/80 dark:border-slate-700 shadow-xl backdrop-blur-sm p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-semibold text-lg text-card-foreground flex items-center">
                 <Filter className="mr-2 h-5 w-5 text-primary" />
