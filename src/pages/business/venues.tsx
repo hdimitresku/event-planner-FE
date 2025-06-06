@@ -53,6 +53,7 @@ import { PricingType, type Address } from "../../models/common"
 import { toast } from "../../components/ui/use-toast"
 import { LoadingSpinner } from "../../components/ui/loading-spinner"
 import { AddressAutocomplete } from "../../components/address-autocomplete"
+import { json } from "stream/consumers"
 
 interface EditForm {
   name: {
@@ -376,7 +377,9 @@ export default function BusinessVenuesPage() {
 
     setIsSaving(true)
     try {
-      const result = await venueService.updateVenue(selectedVenue.id, editForm)
+      let formData = new FormData()
+      formData.append("data", JSON.stringify(editForm))
+      const result = await venueService.updateVenue(selectedVenue.id, formData)
       if (result.success) {
         toast({
           title: t("common.success") || "Success",
