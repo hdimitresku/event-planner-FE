@@ -1,13 +1,31 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Search, MapPin, Calendar, Users, ArrowRight, Star, ChevronRight } from 'lucide-react'
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useLanguage } from "../context/language-context"
 
 export default function HomePage() {
   const { t } = useLanguage()
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useState({
+    location: "",
+    date: "",
+    guests: ""
+  })
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    const queryParams = new URLSearchParams()
+    
+    if (searchParams.location) queryParams.append("location", searchParams.location)
+    if (searchParams.date) queryParams.append("date", searchParams.date)
+    if (searchParams.guests) queryParams.append("guests", searchParams.guests)
+    
+    navigate(`/venues?${queryParams.toString()}`)
+  }
 
   return (
       <>
@@ -37,13 +55,15 @@ export default function HomePage() {
                     {t("hero.subtitle")}
                   </p>
                 </div>
-                <div className="bg-white/95 dark:bg-slate-800 rounded-xl p-6 shadow-xl border border-gray-200/80 dark:border-slate-700 backdrop-blur-sm">
+                <form onSubmit={handleSearch} className="bg-white/95 dark:bg-slate-800 rounded-xl p-6 shadow-xl border border-gray-200/80 dark:border-slate-700 backdrop-blur-sm">
                   <div className="grid gap-4">
                     <div className="flex items-center gap-2 border border-gray-200 dark:border-slate-600 rounded-md p-3 bg-gray-50/80 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 focus-within:border-sky-300 dark:focus-within:border-sky-500 transition-all">
                       <MapPin className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                       <Input
                           className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-gray-800 dark:text-gray-200"
                           placeholder={t("search.location")}
+                          value={searchParams.location}
+                          onChange={(e) => setSearchParams(prev => ({ ...prev, location: e.target.value }))}
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -53,6 +73,8 @@ export default function HomePage() {
                             className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-gray-800 dark:text-gray-200"
                             type="date"
                             placeholder={t("search.date")}
+                            value={searchParams.date}
+                            onChange={(e) => setSearchParams(prev => ({ ...prev, date: e.target.value }))}
                         />
                       </div>
                       <div className="flex items-center gap-2 border border-gray-200 dark:border-slate-600 rounded-md p-3 bg-gray-50/80 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 focus-within:border-sky-300 dark:focus-within:border-sky-500 transition-all">
@@ -61,14 +83,16 @@ export default function HomePage() {
                             className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-gray-800 dark:text-gray-200"
                             type="number"
                             placeholder={t("search.guests")}
+                            value={searchParams.guests}
+                            onChange={(e) => setSearchParams(prev => ({ ...prev, guests: e.target.value }))}
                         />
                       </div>
                     </div>
-                    <Button className="w-full bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white shadow-lg shadow-sky-500/25 transition-all duration-200 hover:shadow-xl hover:shadow-sky-500/30">
+                    <Button type="submit" className="w-full bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white shadow-lg shadow-sky-500/25 transition-all duration-200 hover:shadow-xl hover:shadow-sky-500/30">
                       <Search className="mr-2 h-4 w-4" /> {t("search.button")}
                     </Button>
                   </div>
-                </div>
+                </form>
               </div>
               <div className="relative">
                 <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-to-br from-emerald-400/30 to-emerald-500/20 dark:bg-emerald-400/10 rounded-lg blur-xl"></div>
