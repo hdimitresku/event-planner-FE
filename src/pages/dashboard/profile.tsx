@@ -178,13 +178,13 @@ export default function ProfilePage() {
         </div>
 
         <Tabs defaultValue="personal" className="w-full">
-          <TabsList className="grid grid-cols-6 md:w-full">
-            <TabsTrigger value="personal">{t("profile.tabs.personal") || "Personal"}</TabsTrigger>
-            <TabsTrigger value="security">{t("profile.tabs.security") || "Security"}</TabsTrigger>
-            <TabsTrigger value="notifications">{t("profile.tabs.notifications") || "Notifications"}</TabsTrigger>
-            <TabsTrigger value="payment">{t("profile.tabs.payment") || "Payment"}</TabsTrigger>
-            <TabsTrigger value="language">{t("settings.language") || "Language"}</TabsTrigger>
-            <TabsTrigger value="theme">{t("settings.theme") || "Theme"}</TabsTrigger>
+          <TabsList className="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-4 w-full overflow-x-auto">
+            <TabsTrigger value="personal" className="whitespace-nowrap">{t("profile.tabs.personal") || "Personal"}</TabsTrigger>
+            <TabsTrigger value="security" className="whitespace-nowrap">{t("profile.tabs.security") || "Security"}</TabsTrigger>
+            <TabsTrigger value="notifications" className="whitespace-nowrap">{t("profile.tabs.notifications") || "Notifications"}</TabsTrigger>
+            <TabsTrigger value="payment" className="whitespace-nowrap">{t("profile.tabs.payment") || "Payment"}</TabsTrigger>
+            <TabsTrigger value="language" className="whitespace-nowrap">{t("settings.language") || "Language"}</TabsTrigger>
+            <TabsTrigger value="theme" className="whitespace-nowrap">{t("settings.theme") || "Theme"}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="personal" className="mt-6">
@@ -201,7 +201,7 @@ export default function ProfilePage() {
                     <div className="grid gap-3">
                       <Label htmlFor="firstName" className="flex items-center gap-2">
                         <User className="h-4 w-4 text-muted-foreground" />
-                        {t("profile.firstName") || "First Name"}
+                        {t("signup.firstName") || "First Name"}
                       </Label>
                       <Input
                         id="firstName"
@@ -214,7 +214,7 @@ export default function ProfilePage() {
                     <div className="grid gap-3">
                       <Label htmlFor="lastName" className="flex items-center gap-2">
                         <User className="h-4 w-4 text-muted-foreground" />
-                        {t("profile.lastName") || "Last Name"}
+                        {t("signup.lastName") || "Last Name"}
                       </Label>
                       <Input
                         id="lastName"
@@ -261,7 +261,7 @@ export default function ProfilePage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="street" className="flex items-center gap-2">
-                          {t("profile.street") || "Street"}
+                          {t("business.common.street") || "Street"}
                         </Label>
                         <Input
                           id="street"
@@ -272,7 +272,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="city">{t("profile.city") || "City"}</Label>
+                        <Label htmlFor="city">{t("business.common.city") || "City"}</Label>
                         <Input
                           id="city"
                           name="city"
@@ -282,7 +282,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="state">{t("profile.state") || "State/Province"}</Label>
+                        <Label htmlFor="state">{t("business.common.state") || "State/Province"}</Label>
                         <Input
                           id="state"
                           name="state"

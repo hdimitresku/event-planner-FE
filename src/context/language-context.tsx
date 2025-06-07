@@ -903,6 +903,8 @@ const translations: Translations = {
     "checkout.serviceFee": "Service Fee",
     "checkout.total": "Total",
     "checkout.cancellationPolicy": "Cancellation Policy",
+    "profile.description": "Overview of your account information",  
+    "dashboard.all": "All",
 
     // Dashboard translations
     "dashboard.myBookings": "My Bookings",
@@ -1117,6 +1119,8 @@ const translations: Translations = {
     "signup.title": "Regjistrohu",
     "signup.description": "Krijo një llogari për të filluar të eksplorosh dhe rezervosh vende për ngjarjet e tua.",
     "signup.firstName": "Emri",
+    "profile.description": "Permbledhje e të dhënave tuaja",
+    "dashboard.all": "Të Gjitha",
     "signup.lastName": "Mbiemri",
     "signup.email": "Email",
     "signup.emailPlaceholder": "m@example.com",

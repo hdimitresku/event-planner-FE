@@ -268,7 +268,7 @@ export default function VenueBookPage() {
   const [startDate, setStartDate] = useState<Date | undefined>(parseDate(initialStartDate) || new Date())
   const [endDate, setEndDate] = useState<Date | undefined>(parseDate(initialEndDate) || addHours(new Date(), 3))
   const [guests, setGuests] = useState(initialGuests || 50)
-  const [selectedServices, setSelectedServices] = useState<Record<string, string[]>>(initialSelectedServices || {})
+  const [selectedServices, setSelectedServices] = useState<Record<string, string[]>>({})
   const [services, setServices] = useState<Service[]>([])
   const [serviceTypes, setServiceTypes] = useState<Record<string, ServiceType>>({})
   const [venue, setVenue] = useState<Venue | null>(null)
@@ -581,99 +581,47 @@ export default function VenueBookPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSubmitting(true)
+    const errors = validateAllFields()
+    if (Object.keys(errors).length > 0) {
+      // Show first error
+      const firstError = Object.values(errors)[0]
+      toast.error(firstError)
+      return
+    }
+
+    if (!venue) {
+      toast.error(t("booking.errors.venueNotFound") || "Venue not found")
+      return
+    }
 
     try {
-      // Validate all fields
-      const errors = validateAllFields()
-
-      if (Object.keys(errors).length > 0) {
-        setValidationErrors(errors)
-
-        // Find the first error and scroll to it
-        const errorFields = Object.keys(errors)
-        const firstErrorField = errorFields[0]
-
-        toast.error(t("common.error"), {
-          description: t("venueBook.validation.pleaseFixErrors") || "Please fix the errors below",
-          icon: <AlertCircle className="h-4 w-4" />,
-        })
-
-        // Scroll to the first error field
-        scrollToField(firstErrorField)
-        return
-      }
-
-      // Use form values from state
-      const { firstName, lastName, email, phone } = formValues
-      const specialRequests = (document.getElementById("special-requests") as HTMLTextAreaElement).value
-
-      // Format dates and times
-      const formattedStartDate = startDate ? format(startDate, "yyyy-MM-dd") : ""
-      const formattedEndDate = endDate ? format(endDate, "yyyy-MM-dd") : ""
-      const formattedStartTime = startDate ? format(startDate, "HH:mm") : ""
-      const formattedEndTime = endDate ? format(endDate, "HH:mm") : ""
-
-      // Collect all selected service option IDs
-      const serviceOptionIds = Object.values(selectedServices).flat()
-
-      // Prepare booking data
       const bookingData = {
-        venueId: id || "",
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        startTime: formattedStartTime,
-        endTime: formattedEndTime,
-        numberOfGuests: guests,
-        serviceOptionIds,
-        specialRequests,
-        eventType,
-        metadata: {
-          contactDetails: {
-            firstName,
-            lastName,
-            email,
-            phone,
-          },
-        },
+        venueId: venue.id,
+        eventType: eventType,
+        startDate: startDate ? format(startDate, "yyyy-MM-dd") : "",
+        endDate: endDate ? format(endDate, "yyyy-MM-dd") : "",
+        guests: parseInt(guests.toString()),
+        firstName: formValues.firstName,
+        lastName: formValues.lastName,
+        email: formValues.email,
+        phone: formValues.phone,
+        selectedServices: selectedServices.map(service => ({
+          serviceId: service.id,
+          optionId: service.selectedOptionId,
+          quantity: service.quantity || 1
+        })),
+        totalAmount: calculateTotal(),
+        venueType: venue.type // Ensure venue type is included
       }
 
       const response = await bookingService.createBooking(bookingData)
-
-      if (response.success && response.bookingId) {
-        toast.success(t("common.success"), {
-          description: t("venueBook.bookingCreated"),
-          icon: <CheckCircle className="h-4 w-4" />,
-        })
-
-        // Redirect to dashboard with success state
-        navigate("/dashboard", {
-          state: {
-            bookingId: response.bookingId,
-            bookingSuccess: true,
-            ...bookingData,
-          },
-        })
-      } else {
-        throw new Error(response.error || t("venueBook.bookingFailed"))
+      if (response) {
+        toast.success(t("booking.success") || "Booking created successfully")
+        navigate(`/booking-confirmation/${response.id}`)
       }
-    } catch (error: any) {
-      console.error("Error creating booking:", error)
-
-      // Extract error message from response
-      let errorMessage = t("venueBook.bookingFailed")
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message
-      } else if (error.message) {
-        errorMessage = error.message
-      }
-
-      toast.error(t("common.error"), {
-        description: errorMessage,
-        icon: <AlertCircle className="h-4 w-4" />,
-      })
-    } finally {
-      setIsSubmitting(false)
+    } catch (error) {
+      console.error("Booking error:", error)
+      toast.error(t("booking.errors.createFailed") || "Failed to create booking")
     }
   }
 

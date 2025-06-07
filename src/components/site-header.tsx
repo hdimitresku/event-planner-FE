@@ -55,9 +55,9 @@ export function SiteHeader() {
 
   return (
     <header className="border-b border-border bg-background/80 sticky top-0 z-50 backdrop-blur-md">
-      <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+      <div className="container max-w-7xl mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 font-bold text-2xl">
+        <Link to="/" className="flex items-center gap-2 font-bold text-xl md:text-2xl">
           <span className="text-primary">Rezervo</span>
           <span className="text-secondary">Ambientin</span>
         </Link>
@@ -76,7 +76,7 @@ export function SiteHeader() {
         </nav>
 
         {/* Header Actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           <LanguageSwitcher />
           <ThemeToggle />
           

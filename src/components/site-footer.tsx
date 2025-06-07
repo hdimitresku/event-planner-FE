@@ -8,14 +8,14 @@ export function SiteFooter() {
 
   return (
     <footer className="bg-card border-t border-border">
-      <div className="container px-4 md:px-6 py-12 md:py-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+      <div className="container max-w-7xl mx-auto px-4 py-8 md:py-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {/* About */}
           <div>
-            <h3 className="text-lg font-semibold mb-6 text-card-foreground">
+            <h3 className="text-base md:text-lg font-semibold mb-4 md:mb-6 text-card-foreground">
               {t("footer.about") || "About"}
             </h3>
-            <ul className="space-y-4">
+            <ul className="space-y-3 md:space-y-4">
               <li>
                 <Link
                   to="/about"
@@ -53,10 +53,10 @@ export function SiteFooter() {
 
           {/* Support */}
           <div>
-            <h3 className="text-lg font-semibold mb-6 text-card-foreground">
+            <h3 className="text-base md:text-lg font-semibold mb-4 md:mb-6 text-card-foreground">
               {t("footer.support") || "Support"}
             </h3>
-            <ul className="space-y-4">
+            <ul className="space-y-3 md:space-y-4">
               <li>
                 <Link
                   to="/help"
@@ -94,10 +94,10 @@ export function SiteFooter() {
 
           {/* Hosting */}
           <div>
-            <h3 className="text-lg font-semibold mb-6 text-card-foreground">
+            <h3 className="text-base md:text-lg font-semibold mb-4 md:mb-6 text-card-foreground">
               {t("footer.hosting") || "Hosting"}
             </h3>
-            <ul className="space-y-4">
+            <ul className="space-y-3 md:space-y-4">
               <li>
                 <Link
                   to="/host"
@@ -135,10 +135,10 @@ export function SiteFooter() {
 
           {/* Legal */}
           <div>
-            <h3 className="text-lg font-semibold mb-6 text-card-foreground">
+            <h3 className="text-base md:text-lg font-semibold mb-4 md:mb-6 text-card-foreground">
               {t("footer.legal") || "Legal"}
             </h3>
-            <ul className="space-y-4">
+            <ul className="space-y-3 md:space-y-4">
               <li>
                 <Link
                   to="/terms"
@@ -168,12 +168,12 @@ export function SiteFooter() {
         </div>
 
         {/* Footer Bottom */}
-        <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <div className="flex items-center gap-2 font-bold text-2xl mb-4 md:mb-0">
+        <div className="border-t border-border mt-8 md:mt-12 pt-6 md:pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-2 font-bold text-xl md:text-2xl">
             <span className="text-primary">Rezervo</span>
             <span className="text-secondary">Ambientin</span>
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground text-center md:text-left">
             &copy; {new Date().getFullYear()} RezervoAmbientin. {t("footer.allRights") || "All rights reserved."}
           </div>
         </div>

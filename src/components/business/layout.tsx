@@ -7,11 +7,13 @@ interface BusinessLayoutProps {
 
 export function BusinessLayout({ children }: BusinessLayoutProps) {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen pt-16 md:pt-0">
       <BusinessSidebar />
-      <div className="flex-1 md:ml-16">
-        <div className="container py-4">{children}</div>
-      </div>
+      <main className="flex-1 md:ml-16">
+        <div className="container max-w-7xl mx-auto px-4 py-6">
+          {children}
+        </div>
+      </main>
     </div>
   )
 }

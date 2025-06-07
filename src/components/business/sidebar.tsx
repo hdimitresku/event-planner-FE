@@ -93,7 +93,7 @@ export function BusinessSidebar({ className }: SidebarProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="fixed top-4 left-4 z-50 md:hidden"
+        className="fixed top-20 left-4 z-50 md:hidden"
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -108,22 +108,22 @@ export function BusinessSidebar({ className }: SidebarProps) {
       />
 
       <aside
-        className={`sticky top-0 left-0 z-40 bg-card shadow-lg text-card-foreground transition-all duration-200 md:translate-x-0 ${
+        className={`fixed md:sticky top-16 md:top-0 left-0 z-40 h-[calc(100vh-4rem)] bg-card shadow-lg text-card-foreground transition-all duration-200 md:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } ${isCollapsed ? "w-16" : "w-64"} ${className}`}
       >
-        <div className="flex h-screen flex-col">
+        <div className="flex h-full flex-col">
           <div className="flex h-16 items-center justify-between border-b border-border/50 px-4">
             {!isCollapsed && (
               <Link to="/business" className="flex items-center gap-2 font-bold text-xl">
-                <span className="text-secondary">{t("business.sidebar.business")}</span>
-                <span className="text-primary">{t("business.sidebar.header.settings")}</span>
+                <span className="text-primary">Venue</span>
+                <span className="text-secondary">Space</span>
               </Link>
             )}
             <Button
               variant="ghost"
               size="icon"
-              className="ml-auto"
+              className="ml-auto hidden md:flex"
               onClick={() => setIsCollapsed(!isCollapsed)}
             >
               {isCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
