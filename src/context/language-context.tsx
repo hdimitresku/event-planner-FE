@@ -27,7 +27,7 @@
  */
 
 import type React from "react"
-import { createContext, useContext, useState } from "react"
+import { createContext, useContext, useState, useEffect } from "react"
 
 // Define the available languages
 type Language = "en" | "sq"
@@ -1125,8 +1125,8 @@ const translations: Translations = {
     "business.sidebar.business": "Business",
     "business.sidebar.header.settings": "Settings",
 
-
-    // ...
+    // Add title translation
+    "common.title": "Book your dream events",
   },
   "sq": {
     // Navigation
@@ -1635,7 +1635,7 @@ const translations: Translations = {
     "services.music.option1": "DJ Profesionist",
     "services.music.option1.description": "DJ me përvojë me pajisje të plota zëri për të gjitha rastet",
 
-    "services.music.option2": "Bandë Live",
+    "services.music.option2": "Live Band",
     "services.music.option2.description": "Shto energji në ngjarjen tënde me një performancë live",
 
     "services.music.option3": "Marrja me Qira e Sistemit të Zërit",
@@ -1660,9 +1660,9 @@ const translations: Translations = {
 
     "services.additional.photography": "Fotografi",
     "services.additional.videography": "Videografi",
-    "services.additional.transportation": "Transport",
-    "services.additional.security": "Siguri",
-    "services.additional.staffing": "Staf",
+    "services.additional.transportation": "Transportation",
+    "services.additional.security": "Security",
+    "services.additional.staffing": "Staffing",
 
     // Call to Action
     "services.cta.title": "Gati për të ngritur ngjarjen tënde në një nivel tjetër?",
@@ -2159,7 +2159,7 @@ const translations: Translations = {
     "help.weekends": "Fundjavë",
     "help.chat": "Bisedë Live",
     "help.faq": "Pyetje të Shpeshta",
-    "help.subtitle": "Si mund t’ju ndihmojmë?",
+    "help.subtitle": "Si mund t'ju ndihmojmë?",
     "help.faqTitle1": "Çështje me Rezervimet",
     "help.faqTitle2": "Pyetje mbi Pagesat",
     "help.faqTitle3": "Menaxhimi i Llogarisë",
@@ -2168,6 +2168,9 @@ const translations: Translations = {
     "help.viewMore": "Shiko më shumë ndihmë",
     "business.sidebar.business": "Cilesimet e",
     "business.sidebar.header.settings": "Biznesit",
+
+    // Add title translation
+    "common.title": "Realizo eventin tuaj të ëndrrave",
   }
 }
 
@@ -2189,6 +2192,11 @@ const LanguageContext = createContext<LanguageContextType>({
 // Provider component that wraps your app and makes the language context available
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>("en")
+
+  // Update document title when language changes
+  useEffect(() => {
+    document.title = `RezervoAmbientin - ${translations[language]["common.title"]}`
+  }, [language])
 
   // Translation function that accepts optional parameters for interpolation
   const t = (key: string, params?: Record<string, string | number>): string => {
