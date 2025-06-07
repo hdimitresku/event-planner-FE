@@ -35,6 +35,7 @@ import {
   CheckCircle,
   Loader2,
   X,
+  ChevronUp,
 } from "lucide-react"
 import { useLanguage } from "../context/language-context"
 import { cn } from "../lib/utils"
@@ -295,6 +296,7 @@ export default function VenueBookPage() {
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({})
   const [blockedDates, setBlockedDates] = useState<Date[]>([])
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
   const handleViewOptionDetails = (service: Service, option: ServiceOption) => {
     setSelectedOptionDetails({ service, option })
@@ -936,6 +938,7 @@ export default function VenueBookPage() {
     if (!venue || !venue.metadata || !venue.metadata.blockedDates) return []
 
     return venue.metadata.blockedDates.map((date) => {
+      // Handle both string and ISO date formats
       const startDate =
         typeof date.startDate === "string"
           ? date.startDate.includes("T")
@@ -946,6 +949,13 @@ export default function VenueBookPage() {
       return startDate
     })
   }
+
+  // Update useEffect to set blocked dates
+  useEffect(() => {
+    if (venue) {
+      setBlockedDates(getBlockedDates())
+    }
+  }, [venue])
 
   if (isLoading || !venue) {
     return (
@@ -1093,24 +1103,17 @@ export default function VenueBookPage() {
                             mode="single"
                             selected={startDate}
                             onSelect={handleStartDateSelect}
-                            disabled={(date) => !isDateAvailable(date)}
-                            modifiers={{
-                              blocked: getBlockedDates(),
-                              available: (date) => isDateAvailable(date)
-                            }}
-                            modifiersStyles={{
-                              blocked: { 
-                                color: 'hsl(var(--destructive))',
-                                textDecoration: 'line-through',
-                                opacity: 0.5
-                              },
-                              available: { 
-                                color: 'hsl(var(--success))',
-                                fontWeight: 'bold'
-                              }
-                            }}
                             initialFocus
-                            defaultMonth={startDate}
+                            modifiers={{
+                              available: isDateAvailable,
+                              unavailable: (date) => !isDateAvailable(date),
+                            }}
+                            modifiersClassNames={{
+                              available: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50",
+                              unavailable: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
+                            }}
+                            disabled={(date) => !isDateAvailable(date)}
+                            className="rounded-md border"
                           />
                           <div className="p-3 border-t">
                             <Input
@@ -1157,24 +1160,17 @@ export default function VenueBookPage() {
                             mode="single"
                             selected={endDate}
                             onSelect={handleEndDateSelect}
-                            disabled={(date) => !isDateAvailable(date)}
-                            modifiers={{
-                              blocked: getBlockedDates(),
-                              available: (date) => isDateAvailable(date)
-                            }}
-                            modifiersStyles={{
-                              blocked: { 
-                                color: 'hsl(var(--destructive))',
-                                textDecoration: 'line-through',
-                                opacity: 0.5
-                              },
-                              available: { 
-                                color: 'hsl(var(--success))',
-                                fontWeight: 'bold'
-                              }
-                            }}
                             initialFocus
-                            defaultMonth={endDate}
+                            modifiers={{
+                              available: isDateAvailable,
+                              unavailable: (date) => !isDateAvailable(date),
+                            }}
+                            modifiersClassNames={{
+                              available: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50",
+                              unavailable: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
+                            }}
+                            disabled={(date) => !isDateAvailable(date)}
+                            className="rounded-md border"
                           />
                           <div className="p-3 border-t">
                             <Input
@@ -1270,26 +1266,34 @@ export default function VenueBookPage() {
                                     className="service-type-header p-4 bg-gray-50 dark:bg-gray-800/50 flex items-center justify-between cursor-pointer"
                                     onClick={() => toggleTypeExpansion(type)}
                                 >
-                                  <div className="flex items-center">
-                                    <div className="h-10 w-10 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center mr-3">
-                                      <IconComponent className="h-5 w-5 text-sky-500 dark:text-sky-400" />
+                                  <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center space-x-2">
+                                      <div className="h-10 w-10 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center">
+                                        {React.createElement(getIconByName(serviceType.icon), {
+                                          className: "h-5 w-5 text-sky-500 dark:text-sky-400"
+                                        })}
+                                      </div>
+                                      <h3 className="font-medium">{serviceTypeNames[type]?.[language] || type}</h3>
                                     </div>
-                                    <div>
-                                      <h3 className="font-medium">{typeDisplayName}</h3>
-                                      <p className="text-xs text-muted-foreground">
-                                        {uniqueProviders} {t("venueBook.providersAvailable")}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center">
-                                    {selectedCount > 0 && (
-                                        <Badge className="mr-3 bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-400">
-                                          {selectedCount} {t("venueBook.selected")}
+                                    <div className="flex items-center space-x-2 min-w-[100px] justify-end">
+                                      {countSelectedOptionsForType(type) > 0 && (
+                                        <Badge variant="secondary" className="text-xs">
+                                          {countSelectedOptionsForType(type)} {t("venueBook.selected")}
                                         </Badge>
-                                    )}
-                                    <ChevronRight
-                                        className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${isTypeExpanded ? "rotate-90" : ""}`}
-                                    />
+                                      )}
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => toggleTypeExpansion(type)}
+                                        className="h-8 w-8 p-0"
+                                      >
+                                        {expandedTypes.includes(type) ? (
+                                          <ChevronUp className="h-4 w-4" />
+                                        ) : (
+                                          <ChevronDown className="h-4 w-4" />
+                                        )}
+                                      </Button>
+                                    </div>
                                   </div>
                                 </div>
 
@@ -1349,11 +1353,6 @@ export default function VenueBookPage() {
                                                     </div>
                                                   </div>
                                                   <div className="flex items-center">
-                                                    {totalSelectedForProvider > 0 && (
-                                                        <Badge className="mr-2 text-xs bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-400">
-                                                          {totalSelectedForProvider} {t("venueBook.selected")}
-                                                        </Badge>
-                                                    )}
                                                     <Button variant="outline" size="sm" className="text-xs">
                                                       <MessageSquare className="h-3 w-3 mr-1" />
                                                       {t("venueBook.contactProvider")}
@@ -1377,14 +1376,14 @@ export default function VenueBookPage() {
 
                                                         {/* Service Options */}
                                                         {service.options && service.options.length > 0 ? (
-                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                               {service.options.map((option) => {
                                                                 const isSelected = selectedServices[service.id]?.includes(option.id)
                                                                 return (
                                                                     <div
                                                                         key={option.id}
                                                                         className={cn(
-                                                                            "service-option flex flex-col p-3 relative rounded-lg border-2 border-transparent hover:border-sky-200 dark:hover:border-sky-800 transition-all duration-200",
+                                                                            "service-option flex flex-col p-3 relative rounded-lg border-2 border-transparent hover:border-sky-200 dark:hover:border-sky-800 transition-all duration-200 h-[140px]",
                                                                             isSelected
                                                                                 ? "bg-sky-50 dark:bg-sky-900/30 border-sky-200 dark:border-sky-800"
                                                                                 : "bg-gray-50 dark:bg-slate-800/50 hover:bg-gray-100 dark:hover:bg-slate-700/70",
@@ -1393,41 +1392,39 @@ export default function VenueBookPage() {
                                                                       {isSelected && (
                                                                           <Check className="h-4 w-4 text-primary absolute top-2 right-2" />
                                                                       )}
-                                                                      <div className="flex flex-col items-start flex-1">
-                                                        <span className="font-medium text-sm mb-2">
-                                                          {option.name[language]}
-                                                        </span>
+                                                                      <div className="flex-1 min-h-0">
+                                                                        <span className="font-medium text-sm mb-2 line-clamp-1 block">
+                                                                          {option.name[language]}
+                                                                        </span>
                                                                         <div className="flex items-center mb-3">
                                                                           <Badge
-                                                                              className={`text-xs ${getPriceTypeBadge(option.price.type).bgColor} mr-2`}
+                                                                            className={`text-xs ${getPriceTypeBadge(option.price.type).bgColor} mr-2`}
                                                                           >
                                                                             {getPriceTypeBadge(option.price.type).text}
                                                                           </Badge>
                                                                           <span className="font-medium">${option.price.amount}</span>
                                                                         </div>
-                                                                        <div className="flex gap-2 w-full">
-                                                                          <button
-                                                                              type="button"
-                                                                              onClick={() => toggleService(service.id, option.id)}
-                                                                              className={cn(
-                                                                                  "flex-1 px-3 py-2 text-xs rounded-md transition-colors",
-                                                                                  isSelected
-                                                                                      ? "bg-sky-500 text-white hover:bg-sky-600"
-                                                                                      : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600",
-                                                                              )}
-                                                                          >
-                                                                            {isSelected
-                                                                                ? t("venueBook.selected")
-                                                                                : t("venueBook.select")}
-                                                                          </button>
-                                                                          <button
-                                                                              type="button"
-                                                                              onClick={() => handleViewOptionDetails(service, option)}
-                                                                              className="px-3 py-2 text-xs rounded-md bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                                                                          >
-                                                                            <Info className="h-3 w-3" />
-                                                                          </button>
-                                                                        </div>
+                                                                      </div>
+                                                                      <div className="flex gap-2 mt-auto">
+                                                                        <button
+                                                                          type="button"
+                                                                          onClick={() => toggleService(service.id, option.id)}
+                                                                          className={cn(
+                                                                              "flex-1 px-3 py-2 text-xs rounded-md transition-colors",
+                                                                              isSelected
+                                                                                  ? "bg-sky-500 text-white hover:bg-sky-600"
+                                                                                  : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600",
+                                                                          )}
+                                                                        >
+                                                                          {isSelected ? t("venueBook.selected") : t("venueBook.select")}
+                                                                        </button>
+                                                                        <button
+                                                                          type="button"
+                                                                          onClick={() => handleViewOptionDetails(service, option)}
+                                                                          className="px-3 py-2 text-xs rounded-md bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                                                                        >
+                                                                          <Info className="h-3 w-3" />
+                                                                        </button>
                                                                       </div>
                                                                     </div>
                                                                 )

@@ -33,6 +33,7 @@ import {
   Trees,
   Mountain,
   Bath,
+  ChevronDown,
 } from "lucide-react"
 import { Link, useSearchParams, useNavigate } from "react-router-dom"
 import { useLanguage } from "../context/language-context"
@@ -46,6 +47,11 @@ import * as venueService from "../services/venueService"
 import { useFavorites } from "../context/favorites-context"
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel"
 import type { CarouselApi } from "@/components/ui/carousel"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 
 // Define price type interface
 type PriceType = "hourly" | "perPerson" | "fixed"
@@ -386,6 +392,8 @@ export default function VenuesPage() {
   const venuesPerPage = 9
 
   const [date, setDate] = React.useState<Date>()
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
+  const [sortBy, setSortBy] = useState("recommended")
 
   // Initialize filters from URL parameters on component mount
   useEffect(() => {
@@ -494,6 +502,37 @@ export default function VenuesPage() {
 
     return true
   })
+
+  // Sort venues based on selected option
+  const sortVenues = (venues: VenueSummary[]) => {
+    const sortedVenues = [...venues]
+    
+    switch (sortBy) {
+      case "price-low":
+        return sortedVenues.sort((a, b) => a.price.amount - b.price.amount)
+      case "price-high":
+        return sortedVenues.sort((a, b) => b.price.amount - a.price.amount)
+      case "capacity-low":
+        return sortedVenues.sort((a, b) => (a.capacity?.min || 0) - (b.capacity?.min || 0))
+      case "capacity-high":
+        return sortedVenues.sort((a, b) => (b.capacity?.max || 0) - (a.capacity?.max || 0))
+      case "recommended":
+      default:
+        // Sort by rating first, then by number of reviews
+        return sortedVenues.sort((a, b) => {
+          const ratingA = getVenueRating(a)
+          const ratingB = getVenueRating(b)
+          
+          if (ratingA.average !== ratingB.average) {
+            return ratingB.average - ratingA.average
+          }
+          return ratingB.count - ratingA.count
+        })
+    }
+  }
+
+  // Update the filtered venues to use sorting
+  const filteredAndSortedVenues = sortVenues(filteredVenues)
 
   const handleVenueTypeChange = (type: string, checked: boolean) => {
     setVenueTypes((prev) => ({ ...prev, [type]: checked }))
@@ -701,164 +740,186 @@ export default function VenuesPage() {
             </div>
           </div>
 
-          {/* Filters Card */}
-          <div className="card-hover bg-card rounded-xl border shadow-soft p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-semibold text-lg text-card-foreground flex items-center">
+          {/* Filters Card - Collapsible */}
+          <Collapsible
+            open={isFiltersOpen}
+            onOpenChange={setIsFiltersOpen}
+            className="card-hover bg-card rounded-xl border shadow-soft"
+          >
+            <CollapsibleTrigger className="w-full p-6 flex items-center justify-between">
+              <div className="flex items-center">
                 <Filter className="mr-2 h-5 w-5 text-primary" />
-                {t("venues.filters.title") || "Filters"}
-              </h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-primary hover:text-primary/80"
-                onClick={clearAllFilters}
-              >
-                {t("venues.filters.clearAll") || "Clear All"}
-              </Button>
-            </div>
-
-            <div className="space-y-6">
-              {/* Price Range */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-card-foreground">
-                    {t("venues.filters.priceRange") || "Price Range"}
-                  </h3>
-                  <Checkbox
-                    id="use-price-filter"
-                    checked={usePriceFilter}
-                    onCheckedChange={setUsePriceFilter}
-                    className="checkbox-modern"
+                <h2 className="font-semibold text-lg text-card-foreground">
+                  {t("venues.filters.title") || "Filters"}
+                </h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-primary hover:text-primary/80 md:hidden"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    clearAllFilters()
+                  }}
+                >
+                  {t("venues.filters.clearAll") || "Clear All"}
+                </Button>
+                <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${isFiltersOpen ? "transform rotate-180" : ""}`} />
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="p-6 pt-0">
+              <div className="space-y-6">
+                {/* Price Range */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium text-card-foreground">
+                      {t("venues.filters.priceRange") || "Price Range"}
+                    </h3>
+                    <Checkbox
+                      id="use-price-filter"
+                      checked={usePriceFilter}
+                      onCheckedChange={setUsePriceFilter}
+                      className="checkbox-modern"
+                    />
+                  </div>
+                  <Slider
+                    value={priceRange}
+                    onValueChange={setPriceRange}
+                    max={1000}
+                    step={10}
+                    className="py-2"
+                    disabled={!usePriceFilter}
                   />
-                </div>
-                <Slider
-                  value={priceRange}
-                  onValueChange={setPriceRange}
-                  max={1000}
-                  step={10}
-                  className="py-2"
-                  disabled={!usePriceFilter}
-                />
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <div className="font-medium">$0</div>
-                  <div className={`font-medium ${usePriceFilter ? "text-primary" : "text-muted-foreground"}`}>
-                    ${priceRange[0]}
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <div className="font-medium">$0</div>
+                    <div className={`font-medium ${usePriceFilter ? "text-primary" : "text-muted-foreground"}`}>
+                      ${priceRange[0]}
+                    </div>
+                    <div className="font-medium">$1000</div>
                   </div>
-                  <div className="font-medium">$1000</div>
                 </div>
-              </div>
 
-              {/* Price Type Filter */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-medium text-card-foreground">
-                  {t("venues.filters.priceType") || "Price Type"}
-                </h3>
+                {/* Price Type Filter */}
                 <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="price-type-hourly"
-                      checked={priceTypes[PricingType.HOURLY]}
-                      onCheckedChange={(checked) => handlePriceTypeChange(PricingType.HOURLY, checked === true)}
-                      className="checkbox-modern"
-                    />
-                    <label
-                      htmlFor="price-type-hourly"
-                      className="flex items-center text-sm font-medium text-card-foreground hover:text-primary transition-colors cursor-pointer"
-                    >
-                      <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                      {t("business.serviceNew.hourly")}
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="price-type-perPerson"
-                      checked={priceTypes[PricingType.PER_PERSON]}
-                      onCheckedChange={(checked) => handlePriceTypeChange(PricingType.PER_PERSON, checked === true)}
-                      className="checkbox-modern"
-                    />
-                    <label
-                      htmlFor="price-type-perPerson"
-                      className="flex items-center text-sm font-medium text-card-foreground hover:text-primary transition-colors cursor-pointer"
-                    >
-                      <User className="mr-2 h-4 w-4 text-muted-foreground" />
-                      {t("business.serviceNew.perPerson")}
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="price-type-fixed"
-                      checked={priceTypes[PricingType.FIXED]}
-                      onCheckedChange={(checked) => handlePriceTypeChange(PricingType.FIXED, checked === true)}
-                      className="checkbox-modern"
-                    />
-                    <label
-                      htmlFor="price-type-fixed"
-                      className="flex items-center text-sm font-medium text-card-foreground hover:text-primary transition-colors cursor-pointer"
-                    >
-                      <DollarSign className="mr-2 h-4 w-4 text-muted-foreground" />
-                      {t("business.serviceNew.flatFee")}
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Venue Types */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-medium text-card-foreground">{t("venues.venueType") || "Venue Type"}</h3>
-                <div className="space-y-3">
-                  {Object.entries(VENUE_TYPES).map(([type, label]) => {
-                    const TypeIcon = getVenueTypeIcon(type)
-                    return (
-                      <div key={type} className="flex items-center space-x-3">
-                        <Checkbox
-                          id={`type-${type}`}
-                          checked={venueTypes[type]}
-                          onCheckedChange={(checked) => handleVenueTypeChange(type, checked === true)}
-                          className="checkbox-modern"
-                        />
-                        <label
-                          htmlFor={`type-${type}`}
-                          className="flex items-center text-sm font-medium text-card-foreground hover:text-primary transition-colors cursor-pointer"
-                        >
-                          <TypeIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                          {label}
-                        </label>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Amenities */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-medium text-card-foreground">{t("venues.amenities") || "Amenities"}</h3>
-                <div className="space-y-3">
-                  {Object.entries(VENUE_AMENITIES).map(([key, { label, icon: Icon }]) => (
-                    <div key={key} className="flex items-center space-x-3">
+                  <h3 className="text-sm font-medium text-card-foreground">
+                    {t("venues.filters.priceType") || "Price Type"}
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
                       <Checkbox
-                        id={`amenity-${key}`}
-                        checked={amenities[key]}
-                        onCheckedChange={(checked) => handleAmenityChange(key, checked === true)}
+                        id="price-type-hourly"
+                        checked={priceTypes[PricingType.HOURLY]}
+                        onCheckedChange={(checked) => handlePriceTypeChange(PricingType.HOURLY, checked === true)}
                         className="checkbox-modern"
                       />
                       <label
-                        htmlFor={`amenity-${key}`}
+                        htmlFor="price-type-hourly"
                         className="flex items-center text-sm font-medium text-card-foreground hover:text-primary transition-colors cursor-pointer"
                       >
-                        <Icon className="mr-2 h-4 w-4 text-muted-foreground" />
-                        {label}
+                        <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                        {t("business.serviceNew.hourly")}
                       </label>
                     </div>
-                  ))}
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id="price-type-perPerson"
+                        checked={priceTypes[PricingType.PER_PERSON]}
+                        onCheckedChange={(checked) => handlePriceTypeChange(PricingType.PER_PERSON, checked === true)}
+                        className="checkbox-modern"
+                      />
+                      <label
+                        htmlFor="price-type-perPerson"
+                        className="flex items-center text-sm font-medium text-card-foreground hover:text-primary transition-colors cursor-pointer"
+                      >
+                        <User className="mr-2 h-4 w-4 text-muted-foreground" />
+                        {t("business.serviceNew.perPerson")}
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id="price-type-fixed"
+                        checked={priceTypes[PricingType.FIXED]}
+                        onCheckedChange={(checked) => handlePriceTypeChange(PricingType.FIXED, checked === true)}
+                        className="checkbox-modern"
+                      />
+                      <label
+                        htmlFor="price-type-fixed"
+                        className="flex items-center text-sm font-medium text-card-foreground hover:text-primary transition-colors cursor-pointer"
+                      >
+                        <DollarSign className="mr-2 h-4 w-4 text-muted-foreground" />
+                        {t("business.serviceNew.flatFee")}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Venue Types */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-card-foreground">{t("venues.venueType") || "Venue Type"}</h3>
+                  <div className="space-y-3">
+                    {Object.entries(VENUE_TYPES).map(([type, label]) => {
+                      const TypeIcon = getVenueTypeIcon(type)
+                      return (
+                        <div key={type} className="flex items-center space-x-3">
+                          <Checkbox
+                            id={`type-${type}`}
+                            checked={venueTypes[type]}
+                            onCheckedChange={(checked) => handleVenueTypeChange(type, checked === true)}
+                            className="checkbox-modern"
+                          />
+                          <label
+                            htmlFor={`type-${type}`}
+                            className="flex items-center text-sm font-medium text-card-foreground hover:text-primary transition-colors cursor-pointer"
+                          >
+                            <TypeIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                            {label}
+                          </label>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Amenities */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-card-foreground">{t("venues.amenities") || "Amenities"}</h3>
+                  <div className="space-y-3">
+                    {Object.entries(VENUE_AMENITIES).map(([key, { label, icon: Icon }]) => (
+                      <div key={key} className="flex items-center space-x-3">
+                        <Checkbox
+                          id={`amenity-${key}`}
+                          checked={amenities[key]}
+                          onCheckedChange={(checked) => handleAmenityChange(key, checked === true)}
+                          className="checkbox-modern"
+                        />
+                        <label
+                          htmlFor={`amenity-${key}`}
+                          className="flex items-center text-sm font-medium text-card-foreground hover:text-primary transition-colors cursor-pointer"
+                        >
+                          <Icon className="mr-2 h-4 w-4 text-muted-foreground" />
+                          {label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Button className="w-full btn-primary" onClick={handleSearch}>
+                    <Filter className="mr-2 h-4 w-4" /> {t("venues.filters.applyFilters") || "Apply Filters"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full md:hidden"
+                    onClick={clearAllFilters}
+                  >
+                    {t("venues.filters.clearAll") || "Clear All"}
+                  </Button>
                 </div>
               </div>
-
-              <Button className="w-full btn-primary" onClick={handleSearch}>
-                <Filter className="mr-2 h-4 w-4" /> {t("venues.filters.applyFilters") || "Apply Filters"}
-              </Button>
-            </div>
-          </div>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
 
         {/* Results Section */}
@@ -868,12 +929,12 @@ export default function VenuesPage() {
             <div>
               <h1 className="text-2xl font-bold text-card-foreground">{t("venues.title") || "Venues"}</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Showing {venues.length > 0 ? (currentPage - 1) * venuesPerPage + 1 : 0}-
+                Showing {filteredAndSortedVenues.length > 0 ? (currentPage - 1) * venuesPerPage + 1 : 0}-
                 {Math.min(currentPage * venuesPerPage, totalVenues)} of {totalVenues} venues
               </p>
             </div>
             <div>
-              <Select defaultValue="recommended">
+              <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-[180px] form-input">
                   <SelectValue placeholder={t("venues.sortBy") || "Sort by"} />
                 </SelectTrigger>
@@ -881,7 +942,8 @@ export default function VenuesPage() {
                   <SelectItem value="recommended">{t("venues.sort.recommended") || "Recommended"}</SelectItem>
                   <SelectItem value="price-low">{t("venues.sort.priceLowToHigh") || "Price: Low to High"}</SelectItem>
                   <SelectItem value="price-high">{t("venues.sort.priceHighToLow") || "Price: High to Low"}</SelectItem>
-                  <SelectItem value="rating">{t("venues.sort.topRated") || "Top Rated"}</SelectItem>
+                  <SelectItem value="capacity-low">{t("venues.sort.capacityLowToHigh") || "Capacity: Low to High"}</SelectItem>
+                  <SelectItem value="capacity-high">{t("venues.sort.capacityHighToLow") || "Capacity: High to Low"}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -903,7 +965,7 @@ export default function VenuesPage() {
           {/* Venue Grid */}
           {!loading && (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredVenues.map((venue) => (
+              {filteredAndSortedVenues.map((venue) => (
                 <Link to={`/venues/${venue.id}`} key={venue.id} className="group">
                   <VenueCard venue={venue} language={language} t={t} />
                 </Link>
@@ -912,7 +974,7 @@ export default function VenuesPage() {
           )}
 
           {/* No Results */}
-          {!loading && filteredVenues.length === 0 && (
+          {!loading && filteredAndSortedVenues.length === 0 && (
             <div className="text-center py-16 bg-muted/30 rounded-xl border border-dashed">
               <div className="h-16 w-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <Search className="h-8 w-8 text-primary" />
@@ -932,7 +994,7 @@ export default function VenuesPage() {
           )}
 
           {/* Pagination */}
-          {!loading && filteredVenues.length > 0 && totalPages > 1 && (
+          {!loading && filteredAndSortedVenues.length > 0 && totalPages > 1 && (
             <div className="flex items-center justify-center space-x-2 mt-8">
               <Button
                 variant="outline"

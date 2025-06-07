@@ -1166,6 +1166,7 @@ export default function VenueDetailPage() {
                               "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
                           }}
                           disabled={(date) => !isDateAvailable(date)}
+                          className="rounded-md border"
                         />
                         <div className="p-3 border-t border-border">
                           <div className="space-y-2">
@@ -1238,6 +1239,7 @@ export default function VenueDetailPage() {
                               "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
                           }}
                           disabled={(date) => !isDateAvailable(date)}
+                          className="rounded-md border"
                         />
                         <div className="p-3 border-t border-border">
                           <div className="space-y-2">
