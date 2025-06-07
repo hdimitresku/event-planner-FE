@@ -234,7 +234,6 @@ export const getSimilarVenues = async (
     const test = await apiRequest<{ venues: Venue[] }>(
       `/venues/${venueId}/similar?criteria=${criteriaParam}&limit=${limit}`
     );
-    console.log(test)
     return test;
   } catch (error) {
     console.error('Error fetching similar venues:', error);

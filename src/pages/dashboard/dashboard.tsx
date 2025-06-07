@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { Button } from "../../components/ui/button"
 import { Badge } from "../../components/ui/badge"
 import { Link } from "react-router-dom"
-import { Clock, Calendar, MapPin, CreditCard, CalendarPlus, FileText, AlertTriangle } from "lucide-react"
+import { Clock, Calendar, MapPin, CreditCard, CalendarPlus, FileText, AlertTriangle, Eye, Pencil } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 import { useLanguage } from "../../context/language-context"
 import * as bookingService from "../../services/bookingService"
@@ -255,13 +255,13 @@ export default function Dashboard() {
         <div className="border-l-4 border-primary">
           <CardHeader className="grid grid-cols-[1fr_auto] items-start gap-4 p-4">
             <div>
-              <CardTitle>{venue?.name?.[language] || "Venue"}</CardTitle>
-              <CardDescription>{formatDateTime(`${booking.startDate}T${booking.startTime}`)}</CardDescription>
+              <CardTitle className="text-base sm:text-lg">{venue?.name?.[language] || "Venue"}</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">{formatDateTime(`${booking.startDate}T${booking.startTime}`)}</CardDescription>
             </div>
             <div className="flex flex-col items-end gap-2">
               {getStatusBadge(booking.status as BookingStatus)}
               {hasServiceIssues && (
-                <Badge variant="outline" className="border-red-500 text-red-500">
+                <Badge variant="outline" className="border-red-500 text-red-500 text-xs sm:text-sm">
                   <AlertTriangle className="mr-1 h-3 w-3" />
                   {serviceIssueStatus === "rejected" ? "Service Rejected" : "Service Issues"}
                 </Badge>
@@ -270,48 +270,50 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="grid gap-2">
-              <div className="flex items-center text-sm text-muted-foreground">
+              <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
                 <Calendar className="mr-2 h-4 w-4" />
                 <span>{formatDateTime(`${booking.startDate}T${booking.startTime}`)}</span>
               </div>
-              <div className="flex items-center text-sm text-muted-foreground">
+              <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
                 <Clock className="mr-2 h-4 w-4" />
                 <span>
                   {booking.numberOfGuests} {t("common.guests") || "guests"}
                 </span>
               </div>
-              <div className="flex items-center text-sm text-muted-foreground">
+              <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
                 <MapPin className="mr-2 h-4 w-4" />
                 <span>
                   {venue?.address?.city}, {venue?.address?.country}
                 </span>
               </div>
-              <div className="flex items-center text-sm">
+              <div className="flex items-center text-xs sm:text-sm">
                 <CreditCard className="mr-2 h-4 w-4" />
                 <span className="mr-2 font-medium">${booking.totalAmount}</span>
                 <span className="text-xs text-muted-foreground">(Service Fee: ${booking.serviceFee})</span>
               </div>
             </div>
-            <div className="mt-4 flex flex-wrap items-center gap-2 justify-between">
-              <div>
+            <div className="mt-4 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 justify-between">
+              <div className="w-full sm:w-auto">
                 {booking.id && (
-                  <Badge variant="outline" className="mr-2">
+                  <Badge variant="outline" className="text-xs sm:text-sm">
                     <FileText className="mr-1 h-3 w-3" />
                     {booking.id.slice(0, 8)}
                   </Badge>
                 )}
               </div>
-              <div className="flex gap-2">
-                <Button size="sm" onClick={() => handleViewBooking(booking)}>
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                <Button size="sm" className="flex-1 sm:flex-none" onClick={() => handleViewBooking(booking)}>
+                  <Eye className="mr-2 h-4 w-4" />
                   {t("dashboard.viewDetails") || "View Details"}
                 </Button>
                 {(booking.status === "pending" || booking.status === "confirmed") && (
-                  <Button size="sm" variant="outline" onClick={() => handleEditBooking(booking)}>
+                  <Button size="sm" variant="outline" className="flex-1 sm:flex-none" onClick={() => handleEditBooking(booking)}>
+                    <Pencil className="mr-2 h-4 w-4" />
                     {t("dashboard.modifyBooking") || "Modify Booking"}
                   </Button>
                 )}
                 {booking.status === "pending" && (
-                  <Button size="sm" variant="outline" onClick={() => openCancelDialog(booking.id)}>
+                  <Button size="sm" variant="outline" className="flex-1 sm:flex-none border-red-500 text-red-500 hover:bg-red-500 hover:text-white" onClick={() => openCancelDialog(booking.id)}>
                     {t("dashboard.cancel") || "Cancel"}
                   </Button>
                 )}

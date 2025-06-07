@@ -184,6 +184,17 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
     return Info
   }
 
+  const formatImageUrl = (url: string) => {
+    if (!url) return "/placeholder.svg"
+
+    // If it's already an absolute URL, return it as is
+    if (url.startsWith("http")) return url
+
+    // If it's a relative path, prepend the API URL
+    const apiUrl = import.meta.env.VITE_API_IMAGE_URL || process.env.REACT_APP_API_IMAGE_URL || ""
+    return `${apiUrl}/${url.replace(/\\/g, "/")}`
+  }
+
   // Calculate venue price based on pricing type
   const calculateVenuePrice = () => {
     if (!booking.venue?.price.amount) return 0
@@ -312,6 +323,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
   if (!booking) return null
 
   const venue = booking.venue
+  console.log("venue", venue)
   const venuePrice = calculateVenuePrice()
   const serviceOptionsTotal = calculateServiceOptionsTotal()
   const totalPrice = calculateTotalPrice()
@@ -400,7 +412,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
               <div className="mb-4 flex items-center gap-4">
                 <div className="h-16 w-16 overflow-hidden rounded-md">
                   <img
-                    src={venue?.media?.[0]?.url || "/placeholder.svg?height=64&width=64"}
+                    src={formatImageUrl(venue?.media?.[0]?.url) || "/placeholder.svg?height=64&width=64"}
                     alt={venue?.name?.[language] || "Venue"}
                     className="h-full w-full object-cover"
                   />
