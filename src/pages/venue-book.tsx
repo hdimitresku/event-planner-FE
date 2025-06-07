@@ -5,7 +5,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Textarea } from "../components/ui/textarea"
-import { format, addHours, isValid, parseISO } from "date-fns"
+import { format, addHours, isValid, parseISO, parse, set, isBefore, isAfter, addDays } from "date-fns"
 import {
   CalendarIcon,
   Clock,
@@ -47,6 +47,9 @@ import * as bookingService from "../services/bookingService"
 import { EventType } from "@/models"
 import * as userService from "../services/userService"
 import { useAuth } from "../context/auth-context"
+import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover"
+import { Calendar } from "../components/ui/calendar"
+import { Label } from "../components/ui/label"
 
 // Define interfaces for the API data structure
 interface LocalizedText {
@@ -268,7 +271,7 @@ export default function VenueBookPage() {
   const [startDate, setStartDate] = useState<Date | undefined>(parseDate(initialStartDate) || new Date())
   const [endDate, setEndDate] = useState<Date | undefined>(parseDate(initialEndDate) || addHours(new Date(), 3))
   const [guests, setGuests] = useState(initialGuests || 50)
-  const [selectedServices, setSelectedServices] = useState<Record<string, string[]>>(initialSelectedServices || {})
+  const [selectedServices, setSelectedServices] = useState<Record<string, string[]>>({})
   const [services, setServices] = useState<Service[]>([])
   const [serviceTypes, setServiceTypes] = useState<Record<string, ServiceType>>({})
   const [venue, setVenue] = useState<Venue | null>(null)
@@ -291,6 +294,7 @@ export default function VenueBookPage() {
   })
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({})
+  const [blockedDates, setBlockedDates] = useState<Date[]>([])
 
   const handleViewOptionDetails = (service: Service, option: ServiceOption) => {
     setSelectedOptionDetails({ service, option })
@@ -727,32 +731,22 @@ export default function VenueBookPage() {
     }
   }
 
+  // Update the toggleService function to allow deselection
   const toggleService = (serviceId: string, optionId: string) => {
     setSelectedServices((prev) => {
       const newServices = { ...prev }
-
-      // Initialize array if it doesn't exist
-      if (!newServices[serviceId]) {
-        newServices[serviceId] = []
+      
+      // If this option is already selected, deselect it
+      if (newServices[serviceId]?.includes(optionId)) {
+        delete newServices[serviceId]
+        return newServices
       }
-
-      // Check if option is already selected
-      const optionIndex = newServices[serviceId].indexOf(optionId)
-
-      if (optionIndex === -1) {
-        // Add option if not selected
-        newServices[serviceId] = [...newServices[serviceId], optionId]
-      } else {
-        // Remove option if already selected
-        newServices[serviceId] = newServices[serviceId].filter((opt) => opt !== optionId)
-
-        // Remove service entry if no options left
-        if (newServices[serviceId].length === 0) {
-          delete newServices[serviceId]
-        }
+      
+      // Otherwise, select only this option for this service
+      return {
+        ...newServices,
+        [serviceId]: [optionId]
       }
-
-      return { ...newServices }
     })
   }
 
@@ -853,6 +847,105 @@ export default function VenueBookPage() {
       return () => clearInterval(interval)
     }
   }, [selectedOptionDetails])
+
+  // Helper function to check if date is available
+  const isDateAvailable = (date: Date) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return (
+      date >= today &&
+      !blockedDates.some(
+        (blockedDate) =>
+          blockedDate.getDate() === date.getDate() &&
+          blockedDate.getMonth() === date.getMonth() &&
+          blockedDate.getFullYear() === date.getFullYear(),
+      )
+    )
+  }
+
+  // Helper function to check if time is within operating hours
+  const isTimeWithinOperatingHours = (date: Date) => {
+    if (!venue?.dayAvailability) return true
+
+    const dayName = date.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase()
+    const operatingHours = venue.dayAvailability[dayName]
+    if (!operatingHours || operatingHours === "Closed") return false
+
+    const [openTimeStr, closeTimeStr] = operatingHours.split(" - ")
+    const baseDate = new Date()
+    const openTime = parse(openTimeStr, "h:mm a", baseDate)
+    let closeTime = parse(closeTimeStr, "h:mm a", baseDate)
+
+    if (closeTimeStr === "12:00 AM") {
+      closeTime = set(closeTime, { hours: 0, minutes: 0 })
+      closeTime.setDate(closeTime.getDate() + 1)
+    }
+
+    const selectedTime = set(baseDate, {
+      hours: date.getHours(),
+      minutes: date.getMinutes(),
+      seconds: 0,
+      milliseconds: 0,
+    })
+
+    if (isBefore(closeTime, openTime)) {
+      return (
+        isAfter(selectedTime, openTime) ||
+        selectedTime.getTime() === openTime.getTime() ||
+        isBefore(selectedTime, closeTime) ||
+        selectedTime.getTime() === closeTime.getTime()
+      )
+    } else {
+      return (
+        (isAfter(selectedTime, openTime) || selectedTime.getTime() === openTime.getTime()) &&
+        (isBefore(selectedTime, closeTime) || selectedTime.getTime() === closeTime.getTime())
+      )
+    }
+  }
+
+  // Update date selection handlers
+  const handleStartDateSelect = (date: Date | undefined) => {
+    // If trying to deselect, set to earliest available date
+    if (!date) {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const earliestDate = isDateAvailable(today) ? today : addDays(today, 1)
+      setStartDate(earliestDate)
+      return
+    }
+    setStartDate(date)
+    if (date) {
+      setValidationErrors((prev) => ({ ...prev, startDate: undefined, startTime: undefined }))
+    }
+  }
+
+  const handleEndDateSelect = (date: Date | undefined) => {
+    // If trying to deselect, set to start date + 3 hours
+    if (!date && startDate) {
+      setEndDate(addHours(startDate, 3))
+      return
+    }
+    setEndDate(date)
+    if (date) {
+      setValidationErrors((prev) => ({ ...prev, endDate: undefined, endTime: undefined }))
+    }
+  }
+
+  // Get blocked dates from venue metadata
+  const getBlockedDates = () => {
+    if (!venue || !venue.metadata || !venue.metadata.blockedDates) return []
+
+    return venue.metadata.blockedDates.map((date) => {
+      const startDate =
+        typeof date.startDate === "string"
+          ? date.startDate.includes("T")
+            ? parseISO(date.startDate)
+            : new Date(date.startDate)
+          : date.startDate
+
+      return startDate
+    })
+  }
 
   if (isLoading || !venue) {
     return (
@@ -975,52 +1068,134 @@ export default function VenueBookPage() {
                     )}
                   </div>
 
-                  <div ref={dateRangeRef} className="space-y-4">
-                    <label className="text-sm font-semibold text-foreground">
-                      {t("venueBook.dateRange")} <span className="text-red-500">*</span>
-                    </label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Start Date Display */}
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-muted-foreground">{t("venueBook.from")}</label>
-                        <div
+                  <div className="grid gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="start-date" className="flex items-center gap-2">
+                        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                        {t("business.bookings.startDate") || "Start Date & Time"}
+                      </Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
                             className={cn(
-                                "flex items-center border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50",
-                                validationErrors.startDate ? "border-red-500" : "",
+                              "w-full justify-start text-left font-normal",
+                              !startDate && "text-muted-foreground",
+                              validationErrors.startDate && "border-destructive"
                             )}
-                        >
-                          <CalendarIcon className="h-4 w-4 text-muted-foreground mr-2" />
-                          <span>{startDate ? format(startDate, "PPP p") : t("venueBook.startDateTime")}</span>
-                        </div>
-                      </div>
-
-                      {/* End Date Display */}
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-muted-foreground">{t("venueBook.to")}</label>
-                        <div
-                            className={cn(
-                                "flex items-center border rounded-md p-3 bg-gray-50 dark:bg-slate-700/50",
-                                validationErrors.endDate ? "border-red-500" : "",
-                            )}
-                        >
-                          <Clock className="h-4 w-4 text-muted-foreground mr-2" />
-                          <span>{endDate ? format(endDate, "PPP p") : t("venueBook.endDateTime")}</span>
-                        </div>
-                      </div>
-                    </div>
-                    {(validationErrors.startDate || validationErrors.endDate) && (
-                        <p className="text-sm text-red-500 flex items-center">
-                          <AlertCircle className="h-4 w-4 mr-1" />
-                          {validationErrors.startDate || validationErrors.endDate}
-                        </p>
-                    )}
-                    <p className="text-xs font-medium text-muted-foreground">
-                      {duration > 0 && (
-                          <span>
-                        {t("venueBook.duration")}: {duration} {t("venueBook.hours")}
-                      </span>
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {startDate ? format(startDate, "PPP p") : <span>{t("venueBook.selectDate") || "Select date"}</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={startDate}
+                            onSelect={handleStartDateSelect}
+                            disabled={(date) => !isDateAvailable(date)}
+                            modifiers={{
+                              blocked: getBlockedDates(),
+                              available: (date) => isDateAvailable(date)
+                            }}
+                            modifiersStyles={{
+                              blocked: { 
+                                color: 'hsl(var(--destructive))',
+                                textDecoration: 'line-through',
+                                opacity: 0.5
+                              },
+                              available: { 
+                                color: 'hsl(var(--success))',
+                                fontWeight: 'bold'
+                              }
+                            }}
+                            initialFocus
+                            defaultMonth={startDate}
+                          />
+                          <div className="p-3 border-t">
+                            <Input
+                              type="time"
+                              value={startDate ? format(startDate, "HH:mm") : ""}
+                              onChange={(e) => {
+                                if (startDate) {
+                                  const [hours, minutes] = e.target.value.split(":")
+                                  const newDate = new Date(startDate)
+                                  newDate.setHours(parseInt(hours), parseInt(minutes))
+                                  handleStartDateSelect(newDate)
+                                }
+                              }}
+                            />
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                      {validationErrors.startDate && (
+                        <p className="text-sm text-destructive">{validationErrors.startDate}</p>
                       )}
-                    </p>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="end-date" className="flex items-center gap-2">
+                        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                        {t("business.bookings.endDate") || "End Date & Time"}
+                      </Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !endDate && "text-muted-foreground",
+                              validationErrors.endDate && "border-destructive"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {endDate ? format(endDate, "PPP p") : <span>{t("venueBook.selectDate") || "Select date"}</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={endDate}
+                            onSelect={handleEndDateSelect}
+                            disabled={(date) => !isDateAvailable(date)}
+                            modifiers={{
+                              blocked: getBlockedDates(),
+                              available: (date) => isDateAvailable(date)
+                            }}
+                            modifiersStyles={{
+                              blocked: { 
+                                color: 'hsl(var(--destructive))',
+                                textDecoration: 'line-through',
+                                opacity: 0.5
+                              },
+                              available: { 
+                                color: 'hsl(var(--success))',
+                                fontWeight: 'bold'
+                              }
+                            }}
+                            initialFocus
+                            defaultMonth={endDate}
+                          />
+                          <div className="p-3 border-t">
+                            <Input
+                              type="time"
+                              value={endDate ? format(endDate, "HH:mm") : ""}
+                              onChange={(e) => {
+                                if (endDate) {
+                                  const [hours, minutes] = e.target.value.split(":")
+                                  const newDate = new Date(endDate)
+                                  newDate.setHours(parseInt(hours), parseInt(minutes))
+                                  handleEndDateSelect(newDate)
+                                }
+                              }}
+                            />
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                      {validationErrors.endDate && (
+                        <p className="text-sm text-destructive">{validationErrors.endDate}</p>
+                      )}
+                    </div>
                   </div>
 
                   <div ref={guestsRef} className="space-y-3">
@@ -1073,18 +1248,17 @@ export default function VenueBookPage() {
                   {/* Scrollable Services Container */}
                   <div className="services-container max-h-[500px] overflow-y-auto pr-2 space-y-6">
                     {/* Render services grouped by type */}
-                    {Object.keys(servicesByType).length > 0 ? (
-                        Object.entries(servicesByType).map(([type, servicesOfType]) => {
+                    {Object.keys(serviceTypes).length > 0 ? (
+                        Object.entries(serviceTypes).map(([type, serviceType]) => {
                           const isTypeExpanded = expandedTypes.includes(type)
                           const selectedCount = countSelectedOptionsForType(type)
                           const typeDisplayName = serviceTypeNames[type]?.[language] || type
 
                           // Get the icon from the service type data
-                          const serviceTypeData = serviceTypes[type]
-                          const IconComponent = serviceTypeData ? getIconByName(serviceTypeData.icon) : Info
+                          const IconComponent = getIconByName(serviceType.icon)
 
                           // Count unique providers
-                          const uniqueProviders = new Set(servicesOfType.map((service) => service.provider.id)).size
+                          const uniqueProviders = new Set(services.filter((s) => s.type === type).map((s) => s.provider.id)).size
 
                           return (
                               <div
@@ -1126,12 +1300,14 @@ export default function VenueBookPage() {
                                       {(() => {
                                         // Group services by provider
                                         const servicesByProvider: Record<string, Service[]> = {}
-                                        servicesOfType.forEach((service) => {
-                                          const providerId = service.provider.id
-                                          if (!servicesByProvider[providerId]) {
-                                            servicesByProvider[providerId] = []
+                                        services.forEach((service) => {
+                                          if (service.type === type) {
+                                            const providerId = service.provider.id
+                                            if (!servicesByProvider[providerId]) {
+                                              servicesByProvider[providerId] = []
+                                            }
+                                            servicesByProvider[providerId].push(service)
                                           }
-                                          servicesByProvider[providerId].push(service)
                                         })
 
                                         return Object.entries(servicesByProvider).map(([providerId, providerServices]) => {
@@ -1686,7 +1862,7 @@ export default function VenueBookPage() {
                                   ))}
                                 </div>
                             )}
-                            <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                            <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full text-sm">
                               {currentImageIndex + 1} / {selectedOptionDetails.service.media.length}
                             </div>
                           </div>

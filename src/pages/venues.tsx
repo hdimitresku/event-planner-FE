@@ -100,6 +100,7 @@ const getVenueRating = (venue: VenueSummary) => {
 const isDateBlocked = (venue: VenueSummary, dateStr: string) => {
   if (!venue.metadata?.blockedDates || !dateStr) return false
 
+
   // Convert the date string to a Date object for comparison
   const selectedDate = new Date(dateStr)
   selectedDate.setHours(0, 0, 0, 0) // Normalize to start of day
@@ -292,11 +293,10 @@ const VenueCard = ({ venue, language, t }) => {
         <Button
           variant="ghost"
           size="icon"
-          className={`absolute right-3 top-3 h-8 w-8 rounded-full z-10 shadow-lg transition-all duration-200 ${
-            isFavorite(venue.id)
+          className={`absolute right-3 top-3 h-8 w-8 rounded-full z-10 shadow-lg transition-all duration-200 ${isFavorite(venue.id)
               ? "bg-white text-red-500 hover:text-red-600 hover:bg-white"
               : "bg-white/90 text-muted-foreground hover:text-red-500 hover:bg-white"
-          }`}
+            }`}
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()
@@ -435,6 +435,7 @@ export default function VenuesPage() {
 
       const result = await venueService.getVenues(filters)
       setVenues(result.data || result)
+
       setTotalVenues(result.total || result.length)
       setTotalPages(Math.ceil((result.total || result.length) / venuesPerPage))
       setCurrentPage(page)
