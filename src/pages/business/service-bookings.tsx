@@ -66,7 +66,7 @@ import {
 import { Checkbox } from "../../components/ui/checkbox"
 import type { ServiceType } from "@/models"
 import { iconMap } from "@/services"
-
+import { format } from "date-fns"
 // Helper function to get the appropriate icon based on service type
 const iconComponents: Record<string, React.ElementType> = {
   Utensils,
@@ -188,6 +188,24 @@ export default function ServiceBookingsPage() {
 
   // Get unique statuses from bookings
   const uniqueStatuses = [...new Set(bookings.map((booking) => booking.status))].filter(Boolean)
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString)
+      return format(date, "dd/MM")
+    } catch (error) {
+      return dateString
+    }
+  }
+
+  const formatTime = (timeString: string) => {
+    try {
+      return timeString.slice(0, 5)
+    } catch (error) {
+      return timeString
+    }
+  }
+
 
   // Fetch service bookings
   const fetchServiceBookings = async () => {
@@ -1417,8 +1435,7 @@ export default function ServiceBookingsPage() {
                         <div>
                           <h4 className="font-medium">{t("business.bookings.date")}</h4>
                           <p>
-                            {selectedBooking.startDate}{" "}
-                            {selectedBooking.endDate !== selectedBooking.startDate && `- ${selectedBooking.endDate}`}
+                            {formatDate(selectedBooking.startDate)} - {formatDate(selectedBooking.endDate)}
                           </p>
                         </div>
                       </div>
@@ -1428,7 +1445,7 @@ export default function ServiceBookingsPage() {
                         <div>
                           <h4 className="font-medium">{t("business.bookings.time")}</h4>
                           <p>
-                            {selectedBooking.startTime} - {selectedBooking.endTime}
+                            {formatTime(selectedBooking.startTime)} - {formatTime(selectedBooking.endTime)}
                           </p>
                         </div>
                       </div>
@@ -1580,18 +1597,7 @@ export default function ServiceBookingsPage() {
                           </Button>
                         </>
                     )}
-                    {(selectedBooking.status === "confirmed" || selectedBooking.status === "pending") && (
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                              setIsViewModalOpen(false)
-                              handleEditBooking(selectedBooking)
-                            }}
-                        >
-                          <PencilLine className="mr-1 h-4 w-4" />
-                          {t("business.common.edit") || "Edit"}
-                        </Button>
-                    )}
+                    
                     <Button onClick={() => setIsViewModalOpen(false)}>{t("business.common.close") || "Close"}</Button>
                   </div>
                 </div>
@@ -1770,9 +1776,9 @@ export default function ServiceBookingsPage() {
                                   <CalendarDays className="h-4 w-4 text-blue-500" />
                                 </div>
                                 <div>
-                                  <p className="text-sm font-medium text-foreground">{booking.startDate}</p>
+                                  <p className="text-sm font-medium text-foreground">{formatDate(booking.startDate)} - {formatDate(booking.endDate)}</p>
                                   <p className="text-xs text-muted-foreground">
-                                    {booking.startTime} - {booking.endTime}
+                                    {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
                                   </p>
                                 </div>
                               </div>
@@ -1846,12 +1852,6 @@ export default function ServiceBookingsPage() {
                               <Button variant="outline" size="sm" onClick={() => handleViewBooking(booking)}>
                                 {t("business.common.view") || "View"}
                               </Button>
-                              {(booking.status === "confirmed" || booking.status === "pending") && (
-                                  <Button variant="outline" size="sm" onClick={() => handleEditBooking(booking)}>
-                                    <PencilLine className="mr-1 h-3 w-3" />
-                                    {t("business.common.edit") || "Edit"}
-                                  </Button>
-                              )}
                             </div>
                           </div>
                         </div>

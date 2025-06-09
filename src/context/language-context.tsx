@@ -143,6 +143,13 @@ const translations: Translations = {
     "venues.searchBar.button": "Search Venues",
     "venues.noResults": "No results found",
     "venues.tryAdjusting": "Try adjusting your filters or search terms",
+    "business.bookings.startTime": "Start Time",
+    "business.bookings.endTime": "End Time",
+    "business.bookings.numberOfGuests": "Number of Guests",
+    "business.bookings.eventType": "Event Type",
+    "business.bookings.customerName": "Customer Name",
+    "business.bookings.customerEmail": "Customer Email",
+    "business.bookings.customerPhone": "Customer Phone",
 
     "venues.filters.title": "Filter Results",
     "venues.filters.clearAll": "Clear All",
@@ -1130,6 +1137,10 @@ const translations: Translations = {
     "help.viewMore": "View More Help",
     "business.sidebar.business": "Business",
     "business.sidebar.header.settings": "Settings",
+    "business.venueBookings.basePrice": "Venue Price",
+    "venues.searchBar.reset": "Reset Search",
+
+
 
     // Add title translation
     "common.title": "Book your dream events",
@@ -1220,6 +1231,7 @@ const translations: Translations = {
     "venues.venueType.other3": "Tjetër",
     "venues.venueType.other4": "Tjetër",
     "venues.venueType.gardenOutdoor": "Kopsht / Ambient i Jashtëm",
+    "business.venueBookings.basePrice": "Cmimi i hapesires",
 
 
     // Common elements across the business section
@@ -2180,7 +2192,14 @@ const translations: Translations = {
     "business.serviceBookings.confirmDeclineDescription": "A jeni i sigurt që dëshironi të refuzoni këtë rezervim shërbimi?",
     "business.serviceBookings.rejectionReason": "Arsyeja e Refuzimit",
     "business.serviceBookings.rejectionReasonPlaceholder": "Ju lutem jepni një arsye për refuzimin",
-
+    "business.bookings.startTime": "Ora e Fillimit",
+    "business.bookings.endTime": "Ora e Mbarimit",
+    "business.bookings.numberOfGuests": "Numri i të Ftuarve",
+    "business.bookings.eventType": "Lloji i Eventit",
+    "business.bookings.customerName": "Emri i Klientit",
+    "business.bookings.customerEmail": "Emaili i Klientit",
+    "business.bookings.customerPhone": "Telefoni i Klientit",
+    "venues.searchBar.reset": "Pastro Kerkimin",
     // Add title translation
     "common.title": "Realizo eventin tuaj të ëndrrave",
   }

@@ -44,7 +44,6 @@ export default function SettingsPage() {
     // Fetch current user for dashboard layout
     const fetchUser = async () => {
       const userModel = await userService.getLoggedInUser()
-      console.log("Fetched user model:", userModel)
       setCurrentUser(userModel)
       if (userModel) {
         setUserData({
@@ -97,7 +96,6 @@ export default function SettingsPage() {
     await userService.updateUserProfile(updatedUser)
     setIsEditing(false)
     // Show success message
-    console.log("Profile data to save:", userData)
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

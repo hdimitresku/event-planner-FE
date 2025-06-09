@@ -357,7 +357,7 @@ export default function VenuesPage() {
   const navigate = useNavigate()
 
   // Initialize state from URL parameters
-  const [priceRange, setPriceRange] = useState<number[]>([1000])
+  const [priceRange, setPriceRange] = useState<number[]>([0, 1000])
   const [usePriceFilter, setUsePriceFilter] = useState(false)
   const [venueTypes, setVenueTypes] = useState<Record<string, boolean>>({
     meetingRoom: false,
@@ -401,6 +401,7 @@ export default function VenuesPage() {
     const dateParam = searchParams.get("date") || ""
     const guests = searchParams.get("guests") || ""
 
+    // Update search filters state
     setSearchFilters({
       location,
       date: dateParam,
@@ -411,97 +412,32 @@ export default function VenuesPage() {
       setDate(new Date(dateParam))
     }
 
-    fetchVenues()
-  }, [searchParams])
-
-  const fetchVenues = async (page = 1) => {
-    setLoading(true)
-    try {
-      const selectedVenueTypes = Object.entries(venueTypes)
-        .filter(([_, selected]) => selected)
-        .map(([type]) => type)
-
-      const selectedPriceTypes = Object.entries(priceTypes)
-        .filter(([_, selected]) => selected)
-        .map(([type]) => type as PricingType)
-
-      const selectedAmenities = Object.entries(amenities)
-        .filter(([_, selected]) => selected)
-        .map(([amenity]) => amenity)
-
-      const filters = {
-        priceMax: usePriceFilter ? priceRange[0] : undefined,
-        venueTypes: selectedVenueTypes.length > 0 ? selectedVenueTypes : undefined,
-        priceTypes: selectedPriceTypes.length > 0 ? selectedPriceTypes : undefined,
-        amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
-        location: searchFilters.location || undefined,
-        guests: searchFilters.guests ? Number.parseInt(searchFilters.guests) : undefined,
-        date: searchFilters.date || undefined,
-        page: page,
-        limit: venuesPerPage,
-      }
-
-      const result = await venueService.getVenues(filters)
-      setVenues(result.data || result)
-
-      setTotalVenues(result.total || result.length)
-      setTotalPages(Math.ceil((result.total || result.length) / venuesPerPage))
-      setCurrentPage(page)
-    } catch (error) {
-      console.error("Error fetching venues:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Filter venues based on selected filters (client-side filtering for immediate feedback)
-  const filteredVenues = venues.filter((venue) => {
-    // Price filter - only apply if user has enabled it
-    if (usePriceFilter && venue.price.amount > priceRange[0]) return false
-
-    // Venue type filter
-    const selectedTypes = Object.entries(venueTypes)
-      .filter(([_, selected]) => selected)
-      .map(([type]) => type)
-    if (selectedTypes.length > 0 && !selectedTypes.includes(venue.type)) return false
-
-    // Price type filter
-    const selectedPriceTypes = Object.entries(priceTypes)
-      .filter(([_, selected]) => selected)
-      .map(([type]) => type as PricingType)
-    if (selectedPriceTypes.length > 0 && !selectedPriceTypes.includes(venue.price.type)) return false
-
-    // Amenities filter
-    const selectedAmenities = Object.entries(amenities)
-      .filter(([_, selected]) => selected)
-      .map(([amenity]) => amenity)
-    if (selectedAmenities.length > 0 && !selectedAmenities.every((amenity) => venue.amenities.includes(amenity)))
-      return false
-
-    // Search filters
-    if (
-      searchFilters.location &&
-      venue.address &&
-      !venue.address.city.toLowerCase().includes(searchFilters.location.toLowerCase()) &&
-      !venue.address.country.toLowerCase().includes(searchFilters.location.toLowerCase())
-    )
-      return false
-
-    // Guest capacity filter
-    if (searchFilters.guests) {
-      const guestCount = Number.parseInt(searchFilters.guests)
-      if (venue.capacity && (guestCount < venue.capacity.min || guestCount > venue.capacity.max)) {
-        return false
+    // Fetch venues with URL parameters
+    const fetchInitialVenues = async () => {
+      setLoading(true)
+      try {
+        const filters = {
+          location: location || undefined,
+          guests: guests ? Number.parseInt(guests) : undefined,
+          date: dateParam || undefined,
+          page: 1,
+          limit: venuesPerPage,
+        }
+        
+        const result = await venueService.getVenues(filters)
+        setVenues(Array.isArray(result) ? result : result.data)
+        setTotalVenues(Array.isArray(result) ? result.length : result.total)
+        setTotalPages(Math.ceil((Array.isArray(result) ? result.length : result.total) / venuesPerPage))
+        setCurrentPage(1)
+      } catch (error) {
+        console.error("Error fetching venues:", error)
+      } finally {
+        setLoading(false)
       }
     }
 
-    // Date filter - check if the date is blocked
-    if (searchFilters.date && isDateBlocked(venue, searchFilters.date)) {
-      return false
-    }
-
-    return true
-  })
+    fetchInitialVenues()
+  }, [searchParams]) // Re-run when URL parameters change
 
   // Sort venues based on selected option
   const sortVenues = (venues: VenueSummary[]) => {
@@ -531,8 +467,34 @@ export default function VenuesPage() {
     }
   }
 
-  // Update the filtered venues to use sorting
-  const filteredAndSortedVenues = sortVenues(filteredVenues)
+  // Update the filtered venues to use sorting and frontend filters
+  const filteredAndSortedVenues = sortVenues(venues).filter((venue) => {
+    // Apply venue type filter
+    const selectedVenueTypes = Object.entries(venueTypes)
+      .filter(([_, selected]) => selected)
+      .map(([type]) => type)
+    if (selectedVenueTypes.length > 0 && !selectedVenueTypes.includes(venue.type)) {
+      return false
+    }
+
+    // Apply price type filter
+    const selectedPriceTypes = Object.entries(priceTypes)
+      .filter(([_, selected]) => selected)
+      .map(([type]) => type as PricingType)
+    if (selectedPriceTypes.length > 0 && !selectedPriceTypes.includes(venue.price.type)) {
+      return false
+    }
+
+    // Apply amenities filter
+    const selectedAmenities = Object.entries(amenities)
+      .filter(([_, selected]) => selected)
+      .map(([amenity]) => amenity)
+    if (selectedAmenities.length > 0 && !selectedAmenities.every(amenity => venue.amenities.includes(amenity))) {
+      return false
+    }
+
+    return true
+  })
 
   const handleVenueTypeChange = (type: string, checked: boolean) => {
     setVenueTypes((prev) => ({ ...prev, [type]: checked }))
@@ -579,7 +541,7 @@ export default function VenuesPage() {
   }
 
   const clearAllFilters = () => {
-    setPriceRange([1000])
+    setPriceRange([0, 1000])
     setUsePriceFilter(false)
     setVenueTypes({
       meetingRoom: false,
@@ -592,8 +554,6 @@ export default function VenuesPage() {
       [PricingType.HOURLY]: false,
       [PricingType.PER_PERSON]: false,
       [PricingType.FIXED]: false,
-      [PricingType.CUSTOM]: false,
-      [PricingType.PER_DAY]: false,
     })
     setAmenities({
       wifi: false,
@@ -612,6 +572,8 @@ export default function VenuesPage() {
     setCurrentPage(1)
     // Clear URL parameters
     setSearchParams({})
+    // Fetch all venues without any filters
+    fetchVenues(1)
   }
 
   // Generate pagination buttons
@@ -642,6 +604,46 @@ export default function VenuesPage() {
     }
 
     return buttons
+  }
+
+  const fetchVenues = async (page = 1) => {
+    setLoading(true)
+    try {
+      const selectedVenueTypes = Object.entries(venueTypes)
+        .filter(([_, selected]) => selected)
+        .map(([type]) => type)
+
+      const selectedPriceTypes = Object.entries(priceTypes)
+        .filter(([_, selected]) => selected)
+        .map(([type]) => type as PricingType)
+
+      const selectedAmenities = Object.entries(amenities)
+        .filter(([_, selected]) => selected)
+        .map(([amenity]) => amenity)
+
+      const filters = {
+        priceMin: usePriceFilter && priceRange[0] > 0 ? priceRange[0] : undefined,
+        priceMax: usePriceFilter && priceRange[1] < 1000 ? priceRange[1] : undefined,
+        venueTypes: selectedVenueTypes.length > 0 ? selectedVenueTypes : undefined,
+        priceTypes: selectedPriceTypes.length > 0 ? selectedPriceTypes : undefined,
+        amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
+        location: searchFilters.location || undefined,
+        guests: searchFilters.guests ? Number.parseInt(searchFilters.guests) : undefined,
+        date: searchFilters.date || undefined,
+        page: page,
+        limit: venuesPerPage,
+      }
+
+      const result = await venueService.getVenues(filters)
+      setVenues(Array.isArray(result) ? result : result.data)
+      setTotalVenues(Array.isArray(result) ? result.length : result.total)
+      setTotalPages(Math.ceil((Array.isArray(result) ? result.length : result.total) / venuesPerPage))
+      setCurrentPage(page)
+    } catch (error) {
+      console.error("Error fetching venues:", error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -734,9 +736,68 @@ export default function VenuesPage() {
                 </div>
               </div>
 
-              <Button className="w-full btn-primary" onClick={handleSearch}>
-                <Search className="mr-2 h-4 w-4" /> {t("venues.searchBar.button") || "Search"}
-              </Button>
+              {/* Price Range */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-card-foreground" htmlFor="price-range">
+                    {t("venues.filters.priceRange") || "Price Range"}
+                  </label>
+                  <Checkbox
+                    id="use-price-filter"
+                    checked={usePriceFilter}
+                    onCheckedChange={(checked) => setUsePriceFilter(checked === true)}
+                    className="checkbox-modern"
+                  />
+                </div>
+                <div className="px-2">
+                  <Slider
+                    value={priceRange}
+                    onValueChange={setPriceRange}
+                    max={1000}
+                    step={10}
+                    className="py-2"
+                    disabled={!usePriceFilter}
+                  />
+                  <div className="flex items-center justify-between text-sm text-muted-foreground mt-2">
+                    <div className="font-medium">$0</div>
+                    <div className={`font-medium ${usePriceFilter ? "text-primary" : "text-muted-foreground"}`}>
+                      {priceRange[0] === 0 && priceRange[1] === 1000 ? (
+                        "Any price"
+                      ) : (
+                        <>
+                          {priceRange[0] > 0 && priceRange[1] === 1000 && `From $${priceRange[0]}`}
+                          {priceRange[0] === 0 && priceRange[1] < 1000 && `Up to $${priceRange[1]}`}
+                          {priceRange[0] > 0 && priceRange[1] < 1000 && `$${priceRange[0]} - $${priceRange[1]}`}
+                        </>
+                      )}
+                    </div>
+                    <div className="font-medium">$1000</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Button className="w-full btn-primary" onClick={handleSearch}>
+                  <Search className="mr-2 h-4 w-4" /> {t("venues.searchBar.button") || "Search"}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setSearchFilters({
+                      location: "",
+                      date: "",
+                      guests: "",
+                    })
+                    setDate(undefined)
+                    setPriceRange([0, 1000])
+                    setUsePriceFilter(false)
+                    fetchVenues(1)
+                  }}
+                >
+                  {t("venues.searchBar.reset") || "Reset Search"}
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -757,10 +818,29 @@ export default function VenuesPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-primary hover:text-primary/80 md:hidden"
+                  className="text-primary hover:text-primary/80"
                   onClick={(e) => {
                     e.stopPropagation()
-                    clearAllFilters()
+                    setVenueTypes({
+                      meetingRoom: false,
+                      ballroom: false,
+                      loft: false,
+                      garden: false,
+                      rooftop: false,
+                    })
+                    setPriceTypes({
+                      [PricingType.HOURLY]: false,
+                      [PricingType.PER_PERSON]: false,
+                      [PricingType.FIXED]: false,
+                    })
+                    setAmenities({
+                      wifi: false,
+                      parking: false,
+                      sound_system: false,
+                      kitchen: false,
+                      av_equipment: false,
+                      bathroom: false,
+                    })
                   }}
                 >
                   {t("venues.filters.clearAll") || "Clear All"}
@@ -770,36 +850,6 @@ export default function VenuesPage() {
             </CollapsibleTrigger>
             <CollapsibleContent className="p-6 pt-0">
               <div className="space-y-6">
-                {/* Price Range */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-card-foreground">
-                      {t("venues.filters.priceRange") || "Price Range"}
-                    </h3>
-                    <Checkbox
-                      id="use-price-filter"
-                      checked={usePriceFilter}
-                      onCheckedChange={setUsePriceFilter}
-                      className="checkbox-modern"
-                    />
-                  </div>
-                  <Slider
-                    value={priceRange}
-                    onValueChange={setPriceRange}
-                    max={1000}
-                    step={10}
-                    className="py-2"
-                    disabled={!usePriceFilter}
-                  />
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <div className="font-medium">$0</div>
-                    <div className={`font-medium ${usePriceFilter ? "text-primary" : "text-muted-foreground"}`}>
-                      ${priceRange[0]}
-                    </div>
-                    <div className="font-medium">$1000</div>
-                  </div>
-                </div>
-
                 {/* Price Type Filter */}
                 <div className="space-y-3">
                   <h3 className="text-sm font-medium text-card-foreground">
@@ -904,19 +954,6 @@ export default function VenuesPage() {
                     ))}
                   </div>
                 </div>
-
-                <div className="flex flex-col gap-2">
-                  <Button className="w-full btn-primary" onClick={handleSearch}>
-                    <Filter className="mr-2 h-4 w-4" /> {t("venues.filters.applyFilters") || "Apply Filters"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full md:hidden"
-                    onClick={clearAllFilters}
-                  >
-                    {t("venues.filters.clearAll") || "Clear All"}
-                  </Button>
-                </div>
               </div>
             </CollapsibleContent>
           </Collapsible>
@@ -983,13 +1020,7 @@ export default function VenuesPage() {
               <p className="text-muted-foreground mb-6">
                 {t("venues.tryAdjusting") || "Try adjusting your filters or search criteria"}
               </p>
-              <Button
-                variant="outline"
-                className="border-primary text-primary hover:bg-primary/10"
-                onClick={clearAllFilters}
-              >
-                {t("venues.filters.clearAll") || "Clear all filters"}
-              </Button>
+
             </div>
           )}
 

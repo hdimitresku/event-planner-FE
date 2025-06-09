@@ -106,6 +106,17 @@ export default function Dashboard() {
     }
   }
 
+  const formatImageUrl = (url: string) => {
+    if (!url) return "/placeholder.svg"
+
+    // If it's already an absolute URL, return it as is
+    if (url.startsWith("http")) return url
+
+    // If it's a relative path, prepend the API URL
+    const apiUrl = import.meta.env.VITE_API_IMAGE_URL || process.env.REACT_APP_API_IMAGE_URL || ""
+    return `${apiUrl}/${url.replace(/\\/g, "/")}`
+  }
+
   const getStatusBadge = (status: BookingStatus) => {
     switch (status) {
       case BookingStatus.CONFIRMED:
@@ -175,7 +186,7 @@ export default function Dashboard() {
   const formatDateTime = (dateTimeString: string) => {
     try {
       const date = new Date(dateTimeString)
-      return format(date, "MMM d, yyyy 'at' h:mm a")
+      return format(date, "dd/MM HH:mm")
     } catch (error) {
       return dateTimeString
     }
@@ -256,7 +267,10 @@ export default function Dashboard() {
           <CardHeader className="grid grid-cols-[1fr_auto] items-start gap-4 p-4">
             <div>
               <CardTitle className="text-base sm:text-lg">{venue?.name?.[language] || "Venue"}</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">{formatDateTime(`${booking.startDate}T${booking.startTime}`)}</CardDescription>
+              <div className="flex items-center gap-2">
+              <img src={formatImageUrl(venue?.media[0]?.url)} alt={venue?.name?.[language] || "Venue"} className="w-10 h-10 rounded-full" />
+              <span className="text-xs sm:text-sm">{t(`venueBook.${booking.eventType}`)}</span>
+              </div>
             </div>
             <div className="flex flex-col items-end gap-2">
               {getStatusBadge(booking.status as BookingStatus)}

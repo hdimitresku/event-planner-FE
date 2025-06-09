@@ -139,15 +139,17 @@ export default function VenueDetailPage() {
   const isDateAvailable = (date: Date) => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    return (
-      date >= today &&
-      !blockedDates.some(
-        (blockedDate) =>
-          blockedDate.getDate() === date.getDate() &&
-          blockedDate.getMonth() === date.getMonth() &&
-          blockedDate.getFullYear() === date.getFullYear(),
-      )
-    )
+    
+    if (date < today) return false
+
+    // Check if the date falls within any blocked range
+    return !blockedDates.some(({ start, end }) => {
+      const startDate = new Date(start)
+      const endDate = new Date(end)
+      startDate.setHours(0, 0, 0, 0)
+      endDate.setHours(23, 59, 59, 999)
+      return date >= startDate && date <= endDate
+    })
   }
 
   // Helper function to check if time is within operating hours
@@ -564,14 +566,22 @@ export default function VenueDetailPage() {
 
     return venue.metadata.blockedDates.map((date) => {
       // Handle both string and ISO date formats
-      const startDate =
-        typeof date.startDate === "string"
-          ? date.startDate.includes("T")
-            ? parseISO(date.startDate)
-            : new Date(date.startDate)
-          : date.startDate
+      const startDate = typeof date.startDate === "string"
+        ? date.startDate.includes("T")
+          ? parseISO(date.startDate)
+          : new Date(date.startDate)
+        : date.startDate
 
-      return startDate
+      const endDate = typeof date.endDate === "string"
+        ? date.endDate.includes("T")
+          ? parseISO(date.endDate)
+          : new Date(date.endDate)
+        : date.endDate
+
+      return {
+        start: startDate,
+        end: endDate || startDate // If no end date, use start date as end date
+      }
     })
   }
 
@@ -1006,19 +1016,31 @@ export default function VenueDetailPage() {
                                   return (
                                     date >= today &&
                                     !blockedDates.some(
-                                      (blockedDate) =>
-                                        blockedDate.getDate() === date.getDate() &&
-                                        blockedDate.getMonth() === date.getMonth() &&
-                                        blockedDate.getFullYear() === date.getFullYear(),
+                                      ({ start, end }) => {
+                                        const startDate = new Date(start)
+                                        const endDate = new Date(end)
+                                        startDate.setHours(0, 0, 0, 0)
+                                        endDate.setHours(23, 59, 59, 999)
+                                        return date >= startDate && date <= endDate
+                                      }
                                     )
                                   )
                                 },
-                                unavailable: blockedDates,
+                                unavailable: (date) => {
+                                  return blockedDates.some(
+                                    ({ start, end }) => {
+                                      const startDate = new Date(start)
+                                      const endDate = new Date(end)
+                                      startDate.setHours(0, 0, 0, 0)
+                                      endDate.setHours(23, 59, 59, 999)
+                                      return date >= startDate && date <= endDate
+                                    }
+                                  )
+                                }
                               }}
                               modifiersClassNames={{
                                 available: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-                                unavailable:
-                                  "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through",
+                                unavailable: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through",
                               }}
                             />
                             <div className="flex items-center justify-center mt-4 space-x-4 text-sm">

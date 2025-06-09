@@ -107,7 +107,6 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
             rejectionReason: option.rejectionReason || "No reason provided",
             loading: true,
           }
-          console.log("cancelledService", cancelledService)
           cancelledServicesData.push(cancelledService)
 
           // Fetch service details
@@ -128,7 +127,6 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
           cancelledService.loading = false
         }
       }
-      console.log("cancelledServicesData", cancelledServicesData)
       setCancelledServices(cancelledServicesData)
     } catch (error) {
       console.error("Error fetching cancelled service details:", error)
@@ -314,16 +312,26 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
   const formatDateTime = (dateTimeString: string) => {
     try {
       const date = new Date(dateTimeString)
-      return format(date, "MMM d, yyyy 'at' h:mm a")
+      return format(date, "dd/MM")
     } catch (error) {
       return dateTimeString
     }
   }
 
+  const formatTime = (timeString: string) => {
+    try {
+      return timeString.slice(0, 5)
+    } catch (error) {
+      return timeString
+    }
+  }
+
+  console.log(booking.startTime)
+  console.log(booking.endTime)
+
   if (!booking) return null
 
   const venue = booking.venue
-  console.log("venue", venue)
   const venuePrice = calculateVenuePrice()
   const serviceOptionsTotal = calculateServiceOptionsTotal()
   const totalPrice = calculateTotalPrice()
@@ -431,12 +439,12 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
               <div className="grid gap-2">
                 <div className="flex items-center text-sm">
                   <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span>{formatDateTime(`${booking.startDate}T${booking.startTime}`)}</span>
+                  <span>{formatDateTime(`${booking.startDate}`) + " - " + formatDateTime(`${booking.endDate}`)}</span>
                 </div>
                 <div className="flex items-center text-sm">
                   <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
                   <span>
-                    {booking.startTime} - {booking.endTime}
+                    {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
                   </span>
                 </div>
                 <div className="flex items-center text-sm">

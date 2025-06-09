@@ -52,6 +52,7 @@ import {
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu"
 import { Checkbox } from "../../components/ui/checkbox"
+import { format } from "date-fns"
 
 type SortOption = {
   field: string
@@ -142,10 +143,10 @@ export default function BusinessBookingsPage() {
     const type = priceType.toUpperCase()
     if (type === "PER_PERSON" || type === "PERPERSON") {
       return t("business.serviceNew.perPerson") || "Per Person"
-    } else if (type === "PER_HOUR" || type === "PERHOUR") {
+    } else if (type === "hourly" || type === "HOURLY") {
       return t("business.serviceNew.perHour") || "Per Hour"
     }
-    return t("business.bookings.fixedRate") || "Fixed Rate"
+    return t("business.pricing.fixed") || "Fixed Price"
   }
 
   // Fetch venues and their bookings
@@ -531,6 +532,23 @@ export default function BusinessBookingsPage() {
       guestCount: {},
     })
     setSortOption({ field: "startDate", direction: "desc" })
+  }
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString)
+      return format(date, "dd/MM")
+    } catch (error) {
+      return dateString
+    }
+  }
+
+  const formatTime = (timeString: string) => {
+    try {
+      return timeString.slice(0, 5)
+    } catch (error) {
+      return timeString
+    }
   }
 
   return (
@@ -1133,8 +1151,7 @@ export default function BusinessBookingsPage() {
                         <div>
                           <h4 className="font-medium">{t("business.bookings.date")}</h4>
                           <p>
-                            {selectedBooking.startDate}{" "}
-                            {selectedBooking.endDate !== selectedBooking.startDate && `- ${selectedBooking.endDate}`}
+                            {formatDate(selectedBooking.startDate)} - {formatDate(selectedBooking.endDate)}
                           </p>
                         </div>
                       </div>
@@ -1144,7 +1161,7 @@ export default function BusinessBookingsPage() {
                         <div>
                           <h4 className="font-medium">{t("business.bookings.time")}</h4>
                           <p>
-                            {selectedBooking.startTime} - {selectedBooking.endTime}
+                            {formatTime(selectedBooking.startTime)} - {formatTime(selectedBooking.endTime)}
                           </p>
                         </div>
                       </div>
@@ -1368,7 +1385,7 @@ export default function BusinessBookingsPage() {
                             </h3>
                             <p className="text-sm text-muted-foreground flex items-center gap-1">
                               <Building2 className="h-3.5 w-3.5" />
-                              {booking.venue?.type || "Venue"} • {booking.venue?.address?.city}
+                              {t(`business.venueTypes.${booking.venue?.type}`)} • {booking.venue?.address?.city}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               {t("business.bookings.bookingId") || "ID"}: {booking.id}
@@ -1413,9 +1430,9 @@ export default function BusinessBookingsPage() {
                             <CalendarDays className="h-4 w-4 text-blue-500" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-foreground">{booking.startDate}</p>
+                            <p className="text-sm font-medium text-foreground">{formatDate(booking.startDate)} - {formatDate(booking.endDate)}</p>
                             <p className="text-xs text-muted-foreground">
-                              {booking.startTime} - {booking.endTime}
+                              {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
                             </p>
                           </div>
                         </div>
@@ -1433,12 +1450,13 @@ export default function BusinessBookingsPage() {
                         </div>
 
                         <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                          <div className="p-2 bg-orange-500/10 rounded-full">
-                            <MapPin className="h-4 w-4 text-orange-500" />
+                        <div className="p-2 bg-orange-500/10 rounded-full">
+                            <DollarSign className="h-4 w-4 text-orange-500" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-foreground">{booking.venue?.address?.city}</p>
+                            <p className="text-sm font-medium text-foreground">{t(`business.venueBookings.basePrice`)}</p>
                             <p className="text-xs text-muted-foreground">
+                              {t(`venues.filters.priceType.${booking.venue?.price?.type}`)}: ${booking.venue?.price?.amount}
                             </p>
                           </div>
                         </div>
@@ -1533,7 +1551,7 @@ export default function BusinessBookingsPage() {
                             </h3>
                             <p className="text-sm text-muted-foreground flex items-center gap-1">
                               <Building2 className="h-3.5 w-3.5" />
-                              {booking.venue?.type || "Venue"} • {booking.venue?.address?.city}
+                              {t(`business.venueTypes.${booking.venue?.type}`)} • {booking.venue?.address?.city}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               {t("business.bookings.bookingId") || "ID"}: {booking.id}
@@ -1549,7 +1567,7 @@ export default function BusinessBookingsPage() {
                               ${Number.parseFloat(calculateVenuePrice(booking)).toFixed(2)}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              {getPriceTypeDisplay(booking.venuePrice?.type)}
+                              {t("business.venueBookings.totalPrice") || "Total Price"}
                             </div>
                           </div>
                         </div>
@@ -1572,9 +1590,9 @@ export default function BusinessBookingsPage() {
                             <CalendarDays className="h-4 w-4 text-blue-500" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-foreground">{booking.startDate}</p>
+                            <p className="text-sm font-medium text-foreground">{formatDate(booking.startDate)} - {formatDate(booking.endDate)}</p>
                             <p className="text-xs text-muted-foreground">
-                              {booking.startTime} - {booking.endTime}
+                              {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
                             </p>
                           </div>
                         </div>
@@ -1592,12 +1610,13 @@ export default function BusinessBookingsPage() {
                         </div>
 
                         <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                          <div className="p-2 bg-orange-500/10 rounded-full">
-                            <MapPin className="h-4 w-4 text-orange-500" />
+                        <div className="p-2 bg-orange-500/10 rounded-full">
+                            <DollarSign className="h-4 w-4 text-orange-500" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-foreground">{booking.venue?.address?.city}</p>
+                            <p className="text-sm font-medium text-foreground">{t(`business.venueBookings.basePrice`)}</p>
                             <p className="text-xs text-muted-foreground">
+                              {t(`venues.filters.priceType.${booking.venue?.price?.type}`)}: ${booking.venue?.price?.amount}
                             </p>
                           </div>
                         </div>
@@ -1650,7 +1669,7 @@ export default function BusinessBookingsPage() {
                             </h3>
                             <p className="text-sm text-muted-foreground flex items-center gap-1">
                               <Building2 className="h-3.5 w-3.5" />
-                              {booking.venue?.type || "Venue"} • {booking.venue?.address?.city}
+                              {t(`business.venueTypes.${booking.venue?.type}`)} • {booking.venue?.address?.city}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               {t("business.bookings.bookingId") || "ID"}: {booking.id}
@@ -1666,7 +1685,7 @@ export default function BusinessBookingsPage() {
                               ${Number.parseFloat(calculateVenuePrice(booking)).toFixed(2)}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              {getPriceTypeDisplay(booking.venuePrice?.type)}
+                              {t("business.venueBookings.totalPrice") || "Total Price"}
                             </div>
                           </div>
                         </div>
@@ -1689,9 +1708,9 @@ export default function BusinessBookingsPage() {
                             <CalendarDays className="h-4 w-4 text-blue-500" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-foreground">{booking.startDate}</p>
+                            <p className="text-sm font-medium text-foreground">{formatDate(booking.startDate)} - {formatDate(booking.endDate)}</p>
                             <p className="text-xs text-muted-foreground">
-                              {booking.startTime} - {booking.endTime}
+                              {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
                             </p>
                           </div>
                         </div>
@@ -1709,12 +1728,13 @@ export default function BusinessBookingsPage() {
                         </div>
 
                         <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                          <div className="p-2 bg-orange-500/10 rounded-full">
-                            <MapPin className="h-4 w-4 text-orange-500" />
+                        <div className="p-2 bg-orange-500/10 rounded-full">
+                            <DollarSign className="h-4 w-4 text-orange-500" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-foreground">{booking.venue?.address?.city}</p>
+                            <p className="text-sm font-medium text-foreground">{t(`business.venueBookings.basePrice`)}</p>
                             <p className="text-xs text-muted-foreground">
+                              {t(`venues.filters.priceType.${booking.venue?.price?.type}`)}: ${booking.venue?.price?.amount}
                             </p>
                           </div>
                         </div>
@@ -1767,7 +1787,7 @@ export default function BusinessBookingsPage() {
                             </h3>
                             <p className="text-sm text-muted-foreground flex items-center gap-1">
                               <Building2 className="h-3.5 w-3.5" />
-                              {booking.venue?.type || "Venue"} • {booking.venue?.address?.city}
+                              {t(`business.venueTypes.${booking.venue?.type}`)} • {booking.venue?.address?.city}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               {t("business.bookings.bookingId") || "ID"}: {booking.id}
@@ -1789,7 +1809,7 @@ export default function BusinessBookingsPage() {
                               ${Number.parseFloat(calculateVenuePrice(booking)).toFixed(2)}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              {getPriceTypeDisplay(booking.venuePrice?.type)}
+                              {t("business.venueBookings.totalPrice") || "Total Price"}
                             </div>
                           </div>
                         </div>
@@ -1812,9 +1832,9 @@ export default function BusinessBookingsPage() {
                             <CalendarDays className="h-4 w-4 text-blue-500" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-foreground">{booking.startDate}</p>
+                            <p className="text-sm font-medium text-foreground">{formatDate(booking.startDate)} - {formatDate(booking.endDate)}</p>
                             <p className="text-xs text-muted-foreground">
-                              {booking.startTime} - {booking.endTime}
+                              {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
                             </p>
                           </div>
                         </div>
@@ -1833,11 +1853,12 @@ export default function BusinessBookingsPage() {
 
                         <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
                           <div className="p-2 bg-orange-500/10 rounded-full">
-                            <MapPin className="h-4 w-4 text-orange-500" />
+                            <DollarSign className="h-4 w-4 text-orange-500" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-foreground">{booking.venue?.address?.city}</p>
+                            <p className="text-sm font-medium text-foreground">{t(`business.venueBookings.basePrice`)}</p>
                             <p className="text-xs text-muted-foreground">
+                              {t(`venues.filters.priceType.${booking.venue?.price?.type}`)}: ${booking.venue?.price?.amount}
                             </p>
                           </div>
                         </div>

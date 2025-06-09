@@ -850,19 +850,46 @@ export default function VenueBookPage() {
     }
   }, [selectedOptionDetails])
 
+  // Get blocked dates from venue metadata
+  const getBlockedDates = () => {
+    if (!venue || !venue.metadata || !venue.metadata.blockedDates) return []
+
+    return venue.metadata.blockedDates.map((date) => {
+      // Handle both string and ISO date formats
+      const startDate = typeof date.startDate === "string"
+        ? date.startDate.includes("T")
+          ? parseISO(date.startDate)
+          : new Date(date.startDate)
+        : date.startDate
+
+      const endDate = typeof date.endDate === "string"
+        ? date.endDate.includes("T")
+          ? parseISO(date.endDate)
+          : new Date(date.endDate)
+        : date.endDate
+
+      return {
+        start: startDate,
+        end: endDate || startDate // If no end date, use start date as end date
+      }
+    })
+  }
+
   // Helper function to check if date is available
   const isDateAvailable = (date: Date) => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    return (
-      date >= today &&
-      !blockedDates.some(
-        (blockedDate) =>
-          blockedDate.getDate() === date.getDate() &&
-          blockedDate.getMonth() === date.getMonth() &&
-          blockedDate.getFullYear() === date.getFullYear(),
-      )
-    )
+    
+    if (date < today) return false
+
+    // Check if the date falls within any blocked range
+    return !blockedDates.some(({ start, end }) => {
+      const startDate = new Date(start)
+      const endDate = new Date(end)
+      startDate.setHours(0, 0, 0, 0)
+      endDate.setHours(23, 59, 59, 999)
+      return date >= startDate && date <= endDate
+    })
   }
 
   // Helper function to check if time is within operating hours
@@ -931,23 +958,6 @@ export default function VenueBookPage() {
     if (date) {
       setValidationErrors((prev) => ({ ...prev, endDate: undefined, endTime: undefined }))
     }
-  }
-
-  // Get blocked dates from venue metadata
-  const getBlockedDates = () => {
-    if (!venue || !venue.metadata || !venue.metadata.blockedDates) return []
-
-    return venue.metadata.blockedDates.map((date) => {
-      // Handle both string and ISO date formats
-      const startDate =
-        typeof date.startDate === "string"
-          ? date.startDate.includes("T")
-            ? parseISO(date.startDate)
-            : new Date(date.startDate)
-          : date.startDate
-
-      return startDate
-    })
   }
 
   // Update useEffect to set blocked dates

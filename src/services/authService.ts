@@ -1,4 +1,3 @@
-import { da } from "date-fns/locale"
 import type { User } from "../models/user"
 
 interface AuthResponse {
@@ -28,7 +27,6 @@ export const authService = {
    * Login user with email and password
    */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    console.log(API_URL)
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
