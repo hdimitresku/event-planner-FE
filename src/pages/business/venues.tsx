@@ -424,21 +424,27 @@ export default function BusinessVenuesPage() {
   }
 
   // Calendar date selection handlers
-  const handleDateSelect = (date: Date | undefined) => {
-    if (!date) return
+  const handleDateSelect = (dates: Date[] | undefined) => {
+    if (!dates) return
 
-    setSelectedDates((prev) => {
-      // Check if date is already selected
-      const isSelected = prev.some((d) => isSameDay(d, date))
-
-      if (isSelected) {
-        // Remove date if already selected
-        return prev.filter((d) => !isSameDay(d, date))
-      } else {
-        // Add date if not selected
-        return [...prev, date]
-      }
+    // Normalize all dates to start of day to avoid time-related issues
+    const normalizedDates = dates.map(date => {
+      const normalized = new Date(date)
+      normalized.setHours(0, 0, 0, 0)
+      return normalized
     })
+
+    setSelectedDates(normalizedDates)
+  }
+
+  // Handle removing a single date
+  const handleRemoveDate = (dateToRemove: Date) => {
+    setSelectedDates(prev => prev.filter(date => !isSameDay(date, dateToRemove)))
+  }
+
+  // Handle clearing all selected dates
+  const handleClearAllDates = () => {
+    setSelectedDates([])
   }
 
   const handleBlockDates = async () => {
@@ -593,12 +599,23 @@ export default function BusinessVenuesPage() {
 
   // Check if a date is in the blocked dates
   const isDateBlocked = (date: Date) => {
-    const dateStr = format(date, "yyyy-MM-dd")
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    if (date < today) return true
+
     return blockedDates.some((blocked) => {
       const start = new Date(blocked.startDate)
       const end = new Date(blocked.endDate)
-      return !isBefore(date, start) && !isAfter(date, end)
+      start.setHours(0, 0, 0, 0)
+      end.setHours(23, 59, 59, 999)
+      return date >= start && date <= end
     })
+  }
+
+  // Helper function to check if date is available
+  const isDateAvailable = (date: Date) => {
+    return !isDateBlocked(date)
   }
 
   const amenityOptions = Object.values(VenueAmenity).map((amenity) => ({
@@ -816,29 +833,11 @@ export default function BusinessVenuesPage() {
                 <div className="flex flex-col space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold">{t("business.venues.manageAvailability")}</h3>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant={blockingMode === "block" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setBlockingMode("block")}
-                      >
-                        {t("business.venues.blockDates") || "Block Dates"}
-                      </Button>
-                      <Button
-                        variant={blockingMode === "unblock" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setBlockingMode("unblock")}
-                      >
-                        {t("business.venues.unblockDates") || "Unblock Dates"}
-                      </Button>
-                    </div>
                   </div>
 
                   <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
                     <div className="text-sm text-muted-foreground mb-4">
-                      {blockingMode === "block"
-                        ? t("business.venues.blockDatesHelp") || "Select dates to mark as unavailable"
-                        : t("business.venues.unblockDatesHelp") || "Select blocked dates to make them available again"}
+                      {t("business.venues.availabilityHelp") || "Select dates to mark as unavailable"}
                     </div>
 
                     <div className="flex flex-col md:flex-row gap-6">
@@ -846,25 +845,47 @@ export default function BusinessVenuesPage() {
                         <Calendar
                           mode="multiple"
                           selected={selectedDates}
-                          onSelect={(date) => handleDateSelect(date)}
+                          onSelect={handleDateSelect}
                           className="rounded-md border"
                           modifiers={{
-                            blocked: (date) => isDateBlocked(date),
+                            available: isDateAvailable,
+                            blocked: isDateBlocked,
                             selected: (date) => selectedDates.some((d) => isSameDay(d, date)),
                           }}
                           modifiersClassNames={{
-                            blocked: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+                            available: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+                            blocked: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through",
                             selected: "bg-primary text-primary-foreground",
                           }}
-                          disabled={(date) => {
-                            return blockingMode === "block" ? isDateBlocked(date) : !isDateBlocked(date)
-                          }}
+                          disabled={(date) => isDateBlocked(date)}
                         />
+                        <div className="flex items-center justify-center mt-4 space-x-4 text-sm">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-red-400 dark:bg-red-500 mr-2"></div>
+                            <span>{t("business.venues.blocked") || "Blocked"}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-green-400 dark:bg-green-500 mr-2"></div>
+                            <span>{t("business.venues.available") || "Available"}</span>
+                          </div>
+                        </div>
                       </div>
 
                       <div className="flex-1 space-y-4">
                         <div>
-                          <h4 className="font-medium mb-2">{t("business.venues.selectedDates")}</h4>
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium">{t("business.venues.selectedDates")}</h4>
+                            {selectedDates.length > 0 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleClearAllDates}
+                                className="text-muted-foreground hover:text-destructive"
+                              >
+                                {t("common.clearAll") || "Clear All"}
+                              </Button>
+                            )}
+                          </div>
                           {selectedDates.length === 0 ? (
                             <p className="text-sm text-muted-foreground">
                               {t("business.venues.noDatesSelected") || "No dates selected"}
@@ -882,7 +903,7 @@ export default function BusinessVenuesPage() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => handleDateSelect(date)}
+                                      onClick={() => handleRemoveDate(date)}
                                       className="h-6 w-6 p-0"
                                     >
                                       &times;
@@ -903,10 +924,8 @@ export default function BusinessVenuesPage() {
                               <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
                               {t("common.processing") || "Processing..."}
                             </span>
-                          ) : blockingMode === "block" ? (
-                            t("business.venues.confirmBlock") || "Block Selected Dates"
                           ) : (
-                            t("business.venues.confirmUnblock") || "Unblock Selected Dates"
+                            t("business.venues.blockSelectedDates") || "Block Selected Dates"
                           )}
                         </Button>
                       </div>
@@ -1395,11 +1414,6 @@ export default function BusinessVenuesPage() {
                             ? t("business.venues.active") || "Active"
                             : t("business.venues.inactive") || "Inactive"}
                         </Badge>
-                        {venue.featured && (
-                          <Badge className="absolute left-2 top-2 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-400">
-                            {t("business.venues.featured") || "Featured"}
-                          </Badge>
-                        )}
                       </div>
                       <CardHeader className="p-4">
                         <div className="flex items-center gap-2">

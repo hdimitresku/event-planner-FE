@@ -44,15 +44,14 @@ import {
   RefreshCw,
 } from "lucide-react"
 import { Input } from "../components/ui/input"
-import { format, isAfter, isBefore, parseISO, parse, set } from "date-fns"
-import { addHours } from "date-fns"
+import { format, isAfter, isBefore, parseISO, parse, set, addDays, addHours } from "date-fns"
+import { isValid } from "date-fns"
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover"
 import { useFavorites } from "../context/favorites-context"
 import * as venueService from "../services/venueService"
 import * as serviceService from "../services/serviceService"
 import { type Venue, VenueAmenity } from "../models/venue"
 import { PricingType } from "../models/common"
-import { isValid } from "date-fns"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../components/ui/tooltip"
 
 // Define service type interface
@@ -97,7 +96,41 @@ export default function VenueDetailPage() {
     selectedServices: initialSelectedServices,
   } = location.state || {}
 
-  // Parse dates from location state
+  // Define available similarity criteria
+  const availableCriteria: SimilarityCriterion[] = [
+    {
+      id: "type",
+      label: t("venueDetail.similarityType"),
+      icon: <Building2 className="h-4 w-4" />,
+      color: "text-charcoal-500 dark:text-sky-700",
+    },
+    {
+      id: "location",
+      label: t("venueDetail.similarityLocation"),
+      icon: <MapPinIcon className="h-4 w-4" />,
+      color: "text-emerald-700 dark:text-emerald-700",
+    },
+    {
+      id: "capacity",
+      label: t("venueDetail.similarityCapacity"),
+      icon: <Users className="h-4 w-4" />,
+      color: "text-purple-700 dark:text-purple-700",
+    },
+    {
+      id: "amenities",
+      label: t("venueDetail.similarityAmenities"),
+      icon: <PackageIcon className="h-4 w-4" />,
+      color: "text-indigo-700 dark:text-indigo-700",
+    },
+    {
+      id: "price",
+      label: t("venueDetail.similarityPrice"),
+      icon: <DollarSignIcon className="h-4 w-4" />,
+      color: "text-rose-700 dark:text-rose-700",
+    },
+  ]
+
+  // Helper functions
   const parseDate = (dateValue: any): Date | undefined => {
     if (!dateValue) return undefined
 
@@ -112,28 +145,30 @@ export default function VenueDetailPage() {
     }
   }
 
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(parseDate(initialStartDate) || new Date())
-  const [endDate, setEndDate] = useState<Date | undefined>(parseDate(initialEndDate) || addHours(new Date(), 3))
-  const [guests, setGuests] = useState<number | undefined>(initialGuests)
-  const [activeTab, setActiveTab] = useState("overview")
-  const [availableServiceTypes, setAvailableServiceTypes] = useState<ServiceTypeData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [venue, setVenue] = useState<Venue | null>(null)
-  const [selectedServices, setSelectedServices] = useState(initialSelectedServices || {})
-  const [eventType, setEventType] = useState(initialEventType || "")
-  const [similarVenues, setSimilarVenues] = useState<SimilarVenue[]>([])
-  const [loadingSimilarVenues, setLoadingSimilarVenues] = useState(false)
-  const [similarityCriteria, setSimilarityCriteria] = useState<string[]>(["type", "location"])
-  const [refreshingSimilarVenues, setRefreshingSimilarVenues] = useState(false)
+  // Get blocked dates from venue metadata
+  const getBlockedDates = () => {
+    if (!venue || !venue.metadata || !venue.metadata.blockedDates) return []
 
-  // Add validation state
-  const [validationErrors, setValidationErrors] = useState<{
-    startDate?: string
-    endDate?: string
-    startTime?: string
-    endTime?: string
-    guests?: string
-  }>({})
+    return venue.metadata.blockedDates.map((date) => {
+      // Handle both string and ISO date formats
+      const startDate = typeof date.startDate === "string"
+        ? date.startDate.includes("T")
+          ? parseISO(date.startDate)
+          : new Date(date.startDate)
+        : date.startDate
+
+      const endDate = typeof date.endDate === "string"
+        ? date.endDate.includes("T")
+          ? parseISO(date.endDate)
+          : new Date(date.endDate)
+        : date.endDate
+
+      return {
+        start: startDate,
+        end: endDate || startDate // If no end date, use start date as end date
+      }
+    })
+  }
 
   // Helper function to check if date is available
   const isDateAvailable = (date: Date) => {
@@ -152,7 +187,110 @@ export default function VenueDetailPage() {
     })
   }
 
-  // Helper function to check if time is within operating hours
+  // State declarations
+  const [venue, setVenue] = useState<Venue | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [blockedDates, setBlockedDates] = useState<Array<{ start: Date; end: Date }>>([])
+
+  // Helper function to get earliest available date based on blocked dates
+  const getEarliestAvailableDate = () => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    // If today is not blocked, return today
+    if (!blockedDates.some(({ start, end }) => {
+      const startDate = new Date(start)
+      const endDate = new Date(end)
+      startDate.setHours(0, 0, 0, 0)
+      endDate.setHours(23, 59, 59, 999)
+      return today >= startDate && today <= endDate
+    })) {
+      return today
+    }
+
+    // Find the first available date after today
+    let currentDate = addDays(today, 1)
+    while (blockedDates.some(({ start, end }) => {
+      const startDate = new Date(start)
+      const endDate = new Date(end)
+      startDate.setHours(0, 0, 0, 0)
+      endDate.setHours(23, 59, 59, 999)
+      return currentDate >= startDate && currentDate <= endDate
+    })) {
+      currentDate = addDays(currentDate, 1)
+    }
+    return currentDate
+  }
+
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => {
+    const initialDate = parseDate(initialStartDate)
+    if (initialDate) {
+      return initialDate
+    }
+    return getEarliestAvailableDate()
+  })
+
+  const [endDate, setEndDate] = useState<Date | undefined>(() => {
+    const initialDate = parseDate(initialEndDate)
+    if (initialDate) {
+      return initialDate
+    }
+    const startDate = parseDate(initialStartDate) || getEarliestAvailableDate()
+    return addHours(startDate, 3)
+  })
+
+  // Update dates when blocked dates change
+  useEffect(() => {
+    if (blockedDates.length > 0) {
+      const earliestDate = getEarliestAvailableDate()
+      if (!selectedDate || !isDateAvailable(selectedDate)) {
+        setSelectedDate(earliestDate)
+        setEndDate(addHours(earliestDate, 3))
+      }
+    }
+  }, [blockedDates])
+
+  // Update date selection handlers
+  const handleStartDateSelect = (date: Date | undefined) => {
+    // If trying to deselect, set to earliest available date
+    if (!date) {
+      setSelectedDate(getEarliestAvailableDate())
+      return
+    }
+    setSelectedDate(date)
+    if (date) {
+      setValidationErrors((prev) => ({ ...prev, startDate: undefined, startTime: undefined }))
+    }
+  }
+
+  const handleEndDateSelect = (date: Date | undefined) => {
+    // If trying to deselect, set to start date + 3 hours
+    if (!date && selectedDate) {
+      setEndDate(addHours(selectedDate, 3))
+      return
+    }
+    setEndDate(date)
+    if (date) {
+      setValidationErrors((prev) => ({ ...prev, endDate: undefined, endTime: undefined }))
+    }
+  }
+
+  const [guests, setGuests] = useState<number | undefined>(initialGuests)
+  const [activeTab, setActiveTab] = useState("overview")
+  const [availableServiceTypes, setAvailableServiceTypes] = useState<ServiceTypeData[]>([])
+  const [selectedServices, setSelectedServices] = useState(initialSelectedServices || {})
+  const [eventType, setEventType] = useState(initialEventType || "")
+  const [similarVenues, setSimilarVenues] = useState<SimilarVenue[]>([])
+  const [loadingSimilarVenues, setLoadingSimilarVenues] = useState(false)
+  const [similarityCriteria, setSimilarityCriteria] = useState<string[]>(["type", "location"])
+  const [refreshingSimilarVenues, setRefreshingSimilarVenues] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<{
+    startDate?: string
+    endDate?: string
+    startTime?: string
+    endTime?: string
+    guests?: string
+  }>({})
 
   // Updated function to check if a given date/time is within operating hours
   const isTimeWithinOperatingHours = (date: Date) => {
@@ -242,63 +380,13 @@ export default function VenueDetailPage() {
     return Object.keys(errors).length === 0
   }
 
-  // Update date selection handlers
-  const handleStartDateSelect = (date: Date | undefined) => {
-    setSelectedDate(date)
-    if (date) {
-      // Clear validation errors for start date
-      setValidationErrors((prev) => ({ ...prev, startDate: undefined, startTime: undefined }))
-    }
-  }
-
-  const handleEndDateSelect = (date: Date | undefined) => {
-    setEndDate(date)
-    if (date) {
-      // Clear validation errors for end date
-      setValidationErrors((prev) => ({ ...prev, endDate: undefined, endTime: undefined }))
-    }
-  }
-
   const handleGuestsChange = (value: number) => {
     setGuests(value)
     // Clear validation errors for guests
     setValidationErrors((prev) => ({ ...prev, guests: undefined }))
   }
 
-  // Define available similarity criteria
-  const availableCriteria: SimilarityCriterion[] = [
-    {
-      id: "type",
-      label: t("venueDetail.similarityType"),
-      icon: <Building2 className="h-4 w-4" />,
-      color: "text-charcoal-500 dark:text-sky-700",
-    },
-    {
-      id: "location",
-      label: t("venueDetail.similarityLocation"),
-      icon: <MapPinIcon className="h-4 w-4" />,
-      color: "text-emerald-700 dark:text-emerald-700",
-    },
-    {
-      id: "capacity",
-      label: t("venueDetail.similarityCapacity"),
-      icon: <Users className="h-4 w-4" />,
-      color: "text-purple-700 dark:text-purple-700",
-    },
-    {
-      id: "amenities",
-      label: t("venueDetail.similarityAmenities"),
-      icon: <PackageIcon className="h-4 w-4" />,
-      color: "text-indigo-700 dark:text-indigo-700",
-    },
-    {
-      id: "price",
-      label: t("venueDetail.similarityPrice"),
-      icon: <DollarSignIcon className="h-4 w-4" />,
-      color: "text-rose-700 dark:text-rose-700",
-    },
-  ]
-
+  // Effects
   useEffect(() => {
     const fetchVenueData = async () => {
       setLoading(true)
@@ -329,6 +417,21 @@ export default function VenueDetailPage() {
 
     fetchVenueData()
   }, [id, initialGuests])
+
+  // Update blocked dates when venue changes
+  useEffect(() => {
+    if (venue) {
+      setBlockedDates(getBlockedDates())
+      // Update selected date to earliest available if current selection is blocked
+      if (selectedDate && !isDateAvailable(selectedDate)) {
+        setSelectedDate(getEarliestAvailableDate())
+      }
+      // Update end date to 3 hours after start date if current selection is blocked
+      if (endDate && !isDateAvailable(endDate)) {
+        setEndDate(addHours(selectedDate || getEarliestAvailableDate(), 3))
+      }
+    }
+  }, [venue])
 
   // Fetch similar venues when criteria change or when explicitly refreshed
   useEffect(() => {
@@ -560,31 +663,6 @@ export default function VenueDetailPage() {
     }
   }
 
-  // Get blocked dates from venue metadata
-  const getBlockedDates = () => {
-    if (!venue || !venue.metadata || !venue.metadata.blockedDates) return []
-
-    return venue.metadata.blockedDates.map((date) => {
-      // Handle both string and ISO date formats
-      const startDate = typeof date.startDate === "string"
-        ? date.startDate.includes("T")
-          ? parseISO(date.startDate)
-          : new Date(date.startDate)
-        : date.startDate
-
-      const endDate = typeof date.endDate === "string"
-        ? date.endDate.includes("T")
-          ? parseISO(date.endDate)
-          : new Date(date.endDate)
-        : date.endDate
-
-      return {
-        start: startDate,
-        end: endDate || startDate // If no end date, use start date as end date
-      }
-    })
-  }
-
   // Get venue rating from reviews
   const getVenueRating = () => {
     if (!venue || !venue.reviews || venue.reviews.length === 0) {
@@ -688,7 +766,6 @@ export default function VenueDetailPage() {
   }
 
   const rating = getVenueRating()
-  const blockedDates = getBlockedDates()
 
   return (
     <>
@@ -1007,7 +1084,7 @@ export default function VenueDetailPage() {
                             <p className="text-sm text-muted-foreground mb-3">{t("venueDetail.availabilityInfo")}</p>
                             <Calendar
                               mode="single"
-                              selected={new Date()}
+                              selected={undefined}
                               className="rounded-md border"
                               modifiers={{
                                 available: (date) => {

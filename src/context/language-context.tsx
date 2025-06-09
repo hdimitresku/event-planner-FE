@@ -1139,7 +1139,18 @@ const translations: Translations = {
     "business.sidebar.header.settings": "Settings",
     "business.venueBookings.basePrice": "Venue Price",
     "venues.searchBar.reset": "Reset Search",
-
+    "business.venues.viewVenueDetails": "View Venue Details",
+    "business.venues.details": "Venue Details",
+    "business.venues.manageAvailability": "Manage Availability",
+    "business.venues.blockDates": "Block Dates",
+    "business.venues.unblockDates": "Unblock Dates",
+    "business.venues.blockDatesHelp": "Select the dates you want to block for this venue.",
+    "business.venues.noDatesSelected": "No dates selected",
+    "business.venues.availabilityHelp": "Mark dates as available or blocked to manage venue availability.",
+    "business.venues.blocked": "Blocked",
+    "business.venues.available": "Available",
+    "business.venues.blockSelectedDates": "Block Selected Dates",
+    "common.clearAll": "Clear All",
 
 
     // Add title translation
@@ -2202,6 +2213,18 @@ const translations: Translations = {
     "venues.searchBar.reset": "Pastro Kerkimin",
     // Add title translation
     "common.title": "Realizo eventin tuaj të ëndrrave",
+    "business.venues.viewVenueDetails": "Shiko Detajet e Hapësirës",
+    "business.venues.details": "Detajet e Hapësirës",
+    "business.venues.manageAvailability": "Menaxho Disponueshmërinë",
+    "business.venues.blockDates": "Blloko Datat",
+    "business.venues.unblockDates": "Zhblloko Datat",
+    "business.venues.blockDatesHelp": "Zgjidh datat që dëshiron të bllokosh për këtë hapësirë.",
+    "business.venues.noDatesSelected": "Asnjë datë nuk është zgjedhur",
+    "business.venues.availabilityHelp": "Shëno datat si të disponueshme ose të bllokuara për të menaxhuar disponueshmërinë e hapësirës.",
+    "business.venues.blocked": "E bllokuar",
+    "business.venues.available": "E disponueshme",
+    "business.venues.blockSelectedDates": "Blloko Datat e Zgjedhura",
+    "common.clearAll": "Pastro të gjitha",
   }
 }
 
