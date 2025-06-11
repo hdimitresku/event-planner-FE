@@ -134,6 +134,7 @@ const translations: Translations = {
     "business.categories.other": "Other",
     "venueBook.selectProvider": "Select Provider",
     "venueBook.selectProviderPlaceholder": "Select a provider",
+    "dashboard.eventType": "Event Type",
 
 
     "venues.searchBar.title": "Find Your Ideal Venue",
@@ -377,6 +378,7 @@ const translations: Translations = {
     "business.bookings.declineBooking": "Decline Booking",
     "business.bookings.cancelBooking": "Cancel Booking",
     "business.bookings.bookingDetails": "Booking Details",
+    "venues.filters.priceType.hourly": "Per Hour",
 
     // Business services management
     "business.services.title": "Available Services",
@@ -2285,8 +2287,10 @@ const translations: Translations = {
     "venues.searchBar.venueName": "Emri i Ambientit",
     "venues.searchBar.venueNamePlaceholder": "Vendos emrin e ambientit që kërkon",
     "search.venueName": "Kërko ambientin",
-    "common.success": "Success",
-    "venuebook.bookingCreated": "Booking created successfully",
+    "common.success": "Sukses",
+    "venuebook.bookingCreated": "Rezervimi u krijua me sukses",
+    "dashboard.eventType": "Lloji i Eventit",
+    "venues.filters.priceType.hourly": "Per orë",
   }
 }
 
