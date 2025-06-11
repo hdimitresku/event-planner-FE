@@ -116,6 +116,7 @@ const translations: Translations = {
     // Common pricing types
     "business.pricing.fixed": "Fixed Price",
     "business.pricing.hourly": "Per Hour",
+    "business.pricing.perHour": "Per Hour",
     "business.pricing.perPerson": "Per Person",
     "business.pricing.custom": "Custom",
     "business.pricing.perDay": "Per Day",
@@ -1177,6 +1178,8 @@ const translations: Translations = {
     "business.serviceNew.priceExplanation": "All prices should be entered in USD for consistency. The converted price in your selected currency will be shown below.",
     "business.serviceNew.convertedPrice": "Converted price",
     "business.venueNew.convertedPrice": "Converted price",
+    "common.success": "Success",
+    "venuebook.bookingCreated": "Booking created successfully",
 
     // Add title translation
     "common.title": "Book your dream events",
@@ -2282,6 +2285,8 @@ const translations: Translations = {
     "venues.searchBar.venueName": "Emri i Ambientit",
     "venues.searchBar.venueNamePlaceholder": "Vendos emrin e ambientit që kërkon",
     "search.venueName": "Kërko ambientin",
+    "common.success": "Success",
+    "venuebook.bookingCreated": "Booking created successfully",
   }
 }
 

@@ -340,7 +340,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
 
   const getVenueTypeBadge = (type: string) => {
     return {
-      text: t(`business.venueTypes.${type.toLowerCase()}`) || type,
+      text: t(`business.venueTypes.${type}`) || type,
       bgColor: "bg-primary dark:bg-secondary text-white hover:bg-primary/90 dark:hover:bg-secondary/90",
     }
   }
