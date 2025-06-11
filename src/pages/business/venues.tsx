@@ -568,8 +568,10 @@ export default function BusinessVenuesPage() {
           blockedDates: updatedBlockedDates,
         },
       }
+      const formData = new FormData()
+      formData.append("data", JSON.stringify(venueUpdate))
 
-      const result = await venueService.updateVenue(selectedVenue.id, venueUpdate)
+      const result = await venueService.updateVenue(selectedVenue.id, formData)
 
       if (result.success) {
         setBlockedDates(updatedBlockedDates)
@@ -741,7 +743,7 @@ export default function BusinessVenuesPage() {
                       className="bg-secondary text-secondary-foreground border-none font-medium shadow-lg px-3 py-1 hover:bg-secondary/80 transition-colors flex items-center gap-1.5"
                     >
                       {getVenueTypeIcon(selectedVenue.type)}
-                      {t(`business.venueTypes.${selectedVenue.type.toLowerCase()}`) || selectedVenue.type}
+                      {t(`business.venueTypes.${selectedVenue.type}`) || selectedVenue.type}
                     </Badge>
                   </div>
 

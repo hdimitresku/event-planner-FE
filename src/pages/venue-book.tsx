@@ -399,7 +399,12 @@ export default function VenueBookPage() {
 
       case "startDate":
         if (!value) return t("venueBook.validation.startDateRequired") || "Start date is required"
-        if (value < new Date()) return t("venueBook.validation.startDateFuture") || "Start date must be in the future"
+        // Compare dates without time component
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const selectedDate = new Date(value)
+        selectedDate.setHours(0, 0, 0, 0)
+        if (selectedDate < today) return t("venueBook.validation.startDateFuture") || "Start date must be in the future"
         return undefined
 
       case "endDate":

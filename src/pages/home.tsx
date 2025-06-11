@@ -11,6 +11,7 @@ export default function HomePage() {
   const { t } = useLanguage()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useState({
+    search: "",
     location: "",
     date: "",
     guests: ""
@@ -20,6 +21,7 @@ export default function HomePage() {
     e.preventDefault()
     const queryParams = new URLSearchParams()
     
+    if (searchParams.search) queryParams.append("search", searchParams.search)
     if (searchParams.location) queryParams.append("location", searchParams.location)
     if (searchParams.date) queryParams.append("date", searchParams.date)
     if (searchParams.guests) queryParams.append("guests", searchParams.guests)
@@ -59,6 +61,15 @@ export default function HomePage() {
                 </div>
                 <form onSubmit={handleSearch} className="bg-white/95 dark:bg-slate-800 rounded-xl p-6 shadow-xl border border-gray-200/80 dark:border-slate-700 backdrop-blur-sm">
                   <div className="grid gap-4">
+                    <div className="flex items-center gap-2 border border-gray-200 dark:border-slate-600 rounded-md p-3 bg-gray-50/80 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 focus-within:border-sky-300 dark:focus-within:border-sky-500 transition-all">
+                      <Search className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                      <Input
+                          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-gray-800 dark:text-gray-200"
+                          placeholder={t("search.venueName") || "Search by venue name..."}
+                          value={searchParams.search}
+                          onChange={(e) => setSearchParams(prev => ({ ...prev, search: e.target.value }))}
+                      />
+                    </div>
                     <div className="flex items-center gap-2 border border-gray-200 dark:border-slate-600 rounded-md p-3 bg-gray-50/80 dark:bg-slate-700/50 focus-within:ring-2 focus-within:ring-sky-400 focus-within:border-sky-300 dark:focus-within:border-sky-500 transition-all">
                       <MapPin className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                       <Input
