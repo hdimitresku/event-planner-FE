@@ -33,6 +33,7 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import { useLanguage } from "../../context/language-context"
+import { useCurrency } from "../../context/currency-context"
 import { type Booking, BookingStatus, PaymentStatus } from "../../models/booking"
 import * as serviceService from "../../services/serviceService"
 
@@ -60,6 +61,7 @@ interface CancelledService {
 
 export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetailsModalProps) {
   const { t, language } = useLanguage()
+  const { formatPrice } = useCurrency()
   const [cancelledServices, setCancelledServices] = useState<CancelledService[]>([])
   const [loadingServices, setLoadingServices] = useState(false)
 
@@ -336,6 +338,44 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
   const serviceOptionsTotal = calculateServiceOptionsTotal()
   const totalPrice = calculateTotalPrice()
 
+  const getVenueTypeBadge = (type: string) => {
+    return {
+      text: t(`business.venueTypes.${type.toLowerCase()}`) || type,
+      bgColor: "bg-primary dark:bg-secondary text-white hover:bg-primary/90 dark:hover:bg-secondary/90",
+    }
+  }
+
+  const getEventTypeBadge = (type: string) => {
+    return {
+      text: t(`venueBook.${type.toLowerCase()}`) || type,
+      bgColor: "bg-primary dark:bg-secondary text-white hover:bg-primary/90 dark:hover:bg-secondary/90",
+    }
+  }
+
+  const getPriceTypeBadge = (priceType: string) => {
+    switch (priceType.toLowerCase()) {
+      case "perperson":
+      case "per_person":
+        return {
+          text: t("business.pricing.perPerson") || "Per Person",
+          bgColor: "bg-primary dark:bg-secondary text-white hover:bg-primary/90 dark:hover:bg-secondary/90",
+        }
+      case "hourly":
+      case "perhour":
+      case "per_hour":
+        return {
+          text: t("business.pricing.perHour") || "Per Hour",
+          bgColor: "bg-primary dark:bg-secondary text-white hover:bg-primary/90 dark:hover:bg-secondary/90",
+        }
+      case "fixed":
+      default:
+        return {
+          text: t("business.pricing.fixed") || "Fixed",
+          bgColor: "bg-primary dark:bg-secondary text-white hover:bg-primary/90 dark:hover:bg-secondary/90",
+        }
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-h-[90vh] overflow-y-auto max-w-3xl">
@@ -376,7 +416,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                       )}
                       {service.price && (
                         <div className="mt-1 text-sm text-foreground dark:text-muted-foreground/80">
-                          ${service.price.amount} {service.price.currency} ({service.price.type})
+                          {formatPrice(service.price.amount, service.price.currency)} ({service.price.type})
                         </div>
                       )}
                       <div className="mt-2 rounded-sm p-2 text-sm border border-destructive/50">
@@ -401,7 +441,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
           </div>
         )}
 
-        <div className="grid gap-4">
+        <div className="grid gap-6">
           {/* Booking Status */}
           <div className="flex items-center justify-between">
             <div>
@@ -425,14 +465,21 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <div>
-                  <h4 className="text-lg font-medium">{venue?.name?.[language] || "Venue"}</h4>
-                  <p className="text-sm text-muted-foreground">{venue?.type}</p>
-                  {venue?.price && (
-                    <p className="text-sm text-muted-foreground">
-                      ${venue.price.amount} {venue.price.currency} ({venue.price.type})
-                    </p>
-                  )}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="text-lg font-medium">{venue?.name?.[language] || "Venue"}</h4>
+                    <Badge className={`${getVenueTypeBadge(venue?.type || "").bgColor}`}>
+                      {getVenueTypeBadge(venue?.type || "").text}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className={`${getPriceTypeBadge(venue?.price?.type || "fixed").bgColor}`}>
+                      {getPriceTypeBadge(venue?.price?.type || "fixed").text}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      {formatPrice(venue?.price?.amount || 0, venue?.price?.currency || "USD")}
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -452,6 +499,15 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                   <span>
                     {venue?.address?.street}, {venue?.address?.city}, {venue?.address?.country}
                   </span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <PartyPopper className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2">
+                    <span>{t("dashboard.eventType") || "Event Type"}:</span>
+                    <Badge className={`${getEventTypeBadge(booking.eventType || "").bgColor}`}>
+                      {getEventTypeBadge(booking.eventType || "").text}
+                    </Badge>
+                  </div>
                 </div>
               </div>
             </div>
@@ -567,18 +623,25 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                               </div>
                               {getOptionStatusBadge(optionStatus)}
                             </div>
-                            <div className="text-sm text-muted-foreground">
-                              {option.price?.type === "perPerson"
-                                ? `$${option.price.amount} × ${booking.numberOfGuests} guests`
-                                : `$${option.price?.amount || 0} (${option.price?.type || "fixed"})`}
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge className={`${getPriceTypeBadge(option.price?.type || "fixed").bgColor}`}>
+                                {getPriceTypeBadge(option.price?.type || "fixed").text}
+                              </Badge>
+                              <span className="text-sm text-muted-foreground">
+                                {option.price?.type === "perPerson"
+                                  ? `${formatPrice(option.price.amount, option.price.currency)} × ${booking.numberOfGuests} guests`
+                                  : formatPrice(option.price?.amount || 0, option.price?.currency || "USD")}
+                              </span>
                             </div>
                           </div>
                         </div>
                         <div className="font-medium">
-                          $
-                          {option.price?.type === "perPerson"
-                            ? (option.price.amount * (booking.numberOfGuests || 1)).toFixed(2)
-                            : (option.price?.amount || 0).toFixed(2)}
+                          {formatPrice(
+                            option.price?.type === "perPerson"
+                              ? option.price.amount * (booking.numberOfGuests || 1)
+                              : option.price?.amount || 0,
+                            option.price?.currency || "USD"
+                          )}
                         </div>
                       </div>
                     )
@@ -598,20 +661,22 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                     <DollarSign className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
                     {t("dashboard.venuePrice") || "Venue Price"}
                   </span>
-                  <span className="font-medium">${venuePrice.toFixed(2)}</span>
+                  <span className="font-medium">{formatPrice(venuePrice, venue?.price?.currency || "USD")}</span>
                 </div>
 
                 {serviceOptionsTotal > 0 && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm">{t("dashboard.serviceOptions") || "Service Options"}</span>
-                    <span className="font-medium">${serviceOptionsTotal.toFixed(2)}</span>
+                    <span className="font-medium">{formatPrice(serviceOptionsTotal, venue?.price?.currency || "USD")}</span>
                   </div>
                 )}
 
                 {booking.serviceFee && Number.parseFloat(booking.serviceFee.toString()) > 0 && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm">{t("dashboard.serviceFee") || "Service Fee"}</span>
-                    <span className="font-medium">${Number.parseFloat(booking.serviceFee.toString()).toFixed(2)}</span>
+                    <span className="font-medium">
+                      {formatPrice(Number.parseFloat(booking.serviceFee.toString()), venue?.price?.currency || "USD")}
+                    </span>
                   </div>
                 )}
 
@@ -619,7 +684,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                   <div className="flex items-center justify-between">
                     <span className="text-sm">{t("dashboard.discount") || "Discount"}</span>
                     <span className="font-medium text-emerald-600">
-                      -${Number.parseFloat(booking.discount.toString()).toFixed(2)}
+                      -{formatPrice(Number.parseFloat(booking.discount.toString()), venue?.price?.currency || "USD")}
                     </span>
                   </div>
                 )}
@@ -627,7 +692,7 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                 <Separator />
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{t("dashboard.total") || "Total"}</span>
-                  <span className="text-lg font-bold">${totalPrice.toFixed(2)}</span>
+                  <span className="text-lg font-bold">{formatPrice(totalPrice, venue?.price?.currency || "USD")}</span>
                 </div>
               </div>
             </div>

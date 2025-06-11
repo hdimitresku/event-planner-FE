@@ -8,6 +8,7 @@ import { Link } from "react-router-dom"
 import { Clock, Calendar, MapPin, CreditCard, CalendarPlus, FileText, AlertTriangle, Eye, Pencil } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 import { useLanguage } from "../../context/language-context"
+import { useCurrency, type Currency } from "../../context/currency-context"
 import * as bookingService from "../../services/bookingService"
 import * as userService from "../../services/userService"
 import { type Booking, BookingStatus, PaymentStatus } from "../../models/booking"
@@ -20,6 +21,7 @@ import { BookingDetailsModal } from "../../components/dashboard/booking-details-
 
 export default function Dashboard() {
   const { t, language } = useLanguage()
+  const { formatPrice } = useCurrency()
   const [activeTab, setActiveTab] = useState("upcoming")
   const [bookings, setBookings] = useState<Booking[]>([])
   const [venues, setVenues] = useState<Record<string, Venue | null>>({})
@@ -302,8 +304,8 @@ export default function Dashboard() {
               </div>
               <div className="flex items-center text-xs sm:text-sm">
                 <CreditCard className="mr-2 h-4 w-4" />
-                <span className="mr-2 font-medium">${booking.totalAmount}</span>
-                <span className="text-xs text-muted-foreground">(Service Fee: ${booking.serviceFee})</span>
+                <span className="mr-2 font-medium">{formatPrice(Number.parseFloat(booking.totalAmount), "USD")}</span>
+                <span className="text-xs text-muted-foreground">(Service Fee: {formatPrice(Number.parseFloat(booking.serviceFee), "USD")})</span>
               </div>
             </div>
             <div className="mt-4 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 justify-between">

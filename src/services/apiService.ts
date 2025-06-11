@@ -7,7 +7,7 @@
 // Base API config
 // const API_BASE_URL = process.env.VITE_API_URL || 'https://api.eventspace.com/v1';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-const API_TIMEOUT = 10000; // 10 seconds
+const API_TIMEOUT = 30000; // 30 seconds
 
 // Default headers
 const defaultHeaders = {

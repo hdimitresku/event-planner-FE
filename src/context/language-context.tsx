@@ -1151,6 +1151,8 @@ const translations: Translations = {
     "business.venues.available": "Available",
     "business.venues.blockSelectedDates": "Block Selected Dates",
     "common.clearAll": "Clear All",
+    "dashboard.cancelledServices": "Cancelled Services",
+    "dashboard.reason": "Reason",
 
 
     // Add title translation
@@ -2225,6 +2227,9 @@ const translations: Translations = {
     "business.venues.available": "E disponueshme",
     "business.venues.blockSelectedDates": "Blloko Datat e Zgjedhura",
     "common.clearAll": "Pastro të gjitha",
+    "dashboard.cancelledServices": "Shërbime të Anuluara",
+    "dashboard.reason": "Arsyeja",
+
   }
 }
 

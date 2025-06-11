@@ -78,7 +78,7 @@ export interface Booking {
   startTime: string
   endTime: string
   numberOfGuests: number
-  totalAmount: string
+  totalAmount: number
   serviceFee: number
   serviceFeePercentage: string
   status: string
@@ -93,6 +93,12 @@ export interface Booking {
       email: string
       phone: string
     }
+    options?: Array<{
+      id: string
+      serviceId: string
+      status: string
+      rejectionReason?: string
+    }>
   }
   createdAt: string
   updatedAt: string

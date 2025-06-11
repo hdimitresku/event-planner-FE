@@ -42,8 +42,13 @@ import {
   Music,
   Camera,
   Palette,
+  Building2,
+  Warehouse,
+  Trees,
+  Mountain,
 } from "lucide-react"
 import { useLanguage } from "../../context/language-context"
+import { useCurrency, type Currency } from "../../context/currency-context"
 import { BusinessLayout } from "../../components/business/layout"
 import { VenueNewModal } from "./venue-new"
 import { format, isAfter, isBefore, isSameDay, addDays } from "date-fns"
@@ -91,6 +96,7 @@ interface EditForm {
 
 export default function BusinessVenuesPage() {
   const { t, language } = useLanguage()
+  const { formatPrice } = useCurrency()
   const [activeTab, setActiveTab] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedVenueTypes, setSelectedVenueTypes] = useState<string[]>([])
@@ -219,7 +225,7 @@ export default function BusinessVenuesPage() {
     const matchesVenueType = selectedVenueTypes.length === 0 || selectedVenueTypes.includes(venue.type.toLowerCase())
 
     const matchesPriceType =
-      selectedPriceTypes.length === 0 || selectedPriceTypes.includes(venue.price.type.toLowerCase())
+      selectedPriceTypes.length === 0 || selectedPriceTypes.includes(venue.price.type.toLowerCase().replace('_', ''))
 
     const matchesStatus =
       selectedStatuses.length === 0 || selectedStatuses.includes(venue.isActive ? "active" : "inactive")
@@ -253,38 +259,32 @@ export default function BusinessVenuesPage() {
   })
 
   const venueTypeIcons: Record<string, React.ElementType> = {
+    MEETING_ROOM: Building2,
+    BALLROOM: Warehouse,
+    LOFT: Home,
+    GARDEN: Trees,
+    ROOFTOP: Mountain,
     RESTAURANT: Utensils,
-    HOTEL: Building,
-    CONFERENCE_HALL: Building,
+    HOTEL: Building2,
+    CONFERENCE_HALL: Building2,
     WEDDING_HALL: Home,
-    OUTDOOR_SPACE: TreePine,
+    OUTDOOR_SPACE: Trees,
     ENTERTAINMENT: Music,
     STUDIO: Camera,
     GALLERY: Palette,
-    OTHER: Building,
+    OTHER: Building2,
   }
 
   const getVenueTypeIcon = (type: string) => {
-    const SelectedIcon = venueTypeIcons[type] || Building
+    const SelectedIcon = venueTypeIcons[type.toUpperCase()] || Building2
     return <SelectedIcon className="h-6 w-6 text-primary" />
   }
 
   // Get price display based on price type
   const getPriceDisplay = (venue: Venue) => {
     const price = venue.price.amount
-    const currency = venue.price.currency
-    const type = venue.price.type.toLowerCase()
-
-    switch (type) {
-      case "hourly":
-        return `${currency} ${price}/${t("business.pricing.hourly") || "hr"}`
-      case "daily":
-        return `${currency} ${price}/${t("business.pricing.daily") || "day"}`
-      case "fixed":
-        return `${currency} ${price} ${t("business.pricing.fixed") || "fixed"}`
-      default:
-        return `${currency} ${price}`
-    }
+    const currency = venue.price.currency as Currency
+    return formatPrice(price, currency)
   }
 
   const handleViewVenue = (venue: Venue) => {
@@ -736,8 +736,11 @@ export default function BusinessVenuesPage() {
 
                   <div>
                     <h3 className="font-medium mb-2">{t("business.venues.venueType")}</h3>
-                    <Badge className="bg-secondary text-secondary-foreground">
-                      {getVenueTypeIcon(selectedVenue.type)}{" "}
+                    <Badge
+                      variant="secondary"
+                      className="bg-secondary text-secondary-foreground border-none font-medium shadow-lg px-3 py-1 hover:bg-secondary/80 transition-colors flex items-center gap-1.5"
+                    >
+                      {getVenueTypeIcon(selectedVenue.type)}
                       {t(`business.venueTypes.${selectedVenue.type.toLowerCase()}`) || selectedVenue.type}
                     </Badge>
                   </div>
@@ -1305,7 +1308,7 @@ export default function BusinessVenuesPage() {
               <div>
                 <h3 className="font-medium mb-2">{t("business.common.price")}</h3>
                 <div className="space-y-2">
-                  {["hourly", "daily", "fixed"].map((priceType) => (
+                  {["hourly", "perPerson", "fixed"].map((priceType) => (
                     <div key={priceType} className="flex items-center space-x-2 group">
                       <Checkbox
                         id={`price-${priceType}`}
@@ -1425,14 +1428,14 @@ export default function BusinessVenuesPage() {
                         <CardDescription className="line-clamp-2 mt-2">{venue.description[language]}</CardDescription>
                       </CardHeader>
                       <CardContent className="p-4 pt-0">
-                        <div className="flex items-center justify-between mb-3">
-                          <Badge variant="outline">{t(`business.venueTypes.${venue.type}`)}</Badge>
-                          <div className="text-right">
-                            <span className="font-medium">{getPriceDisplay(venue)}</span>
-                            <Badge variant="secondary" className="ml-2 text-xs">
-                              {t(`business.pricing.${venue.price.type}`) || venue.price.type}
-                            </Badge>
-                          </div>
+                        <div className="flex justify-center mb-3">
+                          <Badge
+                            variant="secondary"
+                            className="bg-secondary text-secondary-foreground border-none font-medium shadow-lg px-3 py-1 hover:bg-secondary/80 transition-colors flex items-center gap-1.5"
+                          >
+                            {getVenueTypeIcon(venue.type)}
+                            {t(`business.venueTypes.${venue.type}`)}
+                          </Badge>
                         </div>
 
                         <div className="space-y-2">
@@ -1448,6 +1451,16 @@ export default function BusinessVenuesPage() {
                             <span>
                               {venue.capacity.min}-{venue.capacity.max} guests
                             </span>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2">
+                              <DollarSign className="h-4 w-4" />
+                              <span>{getPriceDisplay(venue)}</span>
+                            </div>
+                            <Badge variant="secondary" className="bg-primary text-primary-foreground border-none font-medium shadow-lg px-3 py-1 hover:bg-primary/80 transition-colors">
+                              {t(`business.pricing.${venue.price.type}`)}
+                            </Badge>
                           </div>
 
                           {venue.reviews && venue.reviews.length > 0 && (
@@ -1559,14 +1572,14 @@ export default function BusinessVenuesPage() {
                         <CardDescription className="line-clamp-2 mt-2">{venue.description[language]}</CardDescription>
                       </CardHeader>
                       <CardContent className="p-4 pt-0">
-                        <div className="flex items-center justify-between mb-3">
-                          <Badge variant="outline">{t(`business.venueTypes.${venue.type}`)}</Badge>
-                          <div className="text-right">
-                            <span className="font-medium">{getPriceDisplay(venue)}</span>
-                            <Badge variant="secondary" className="ml-2 text-xs">
-                              {t(`venues.filters.priceType.${venue.price.type}`) || venue.price.type}
-                            </Badge>
-                          </div>
+                        <div className="flex justify-center mb-3">
+                          <Badge
+                            variant="secondary"
+                            className="bg-secondary text-secondary-foreground border-none font-medium shadow-lg px-3 py-1 hover:bg-secondary/80 transition-colors flex items-center gap-1.5"
+                          >
+                            {getVenueTypeIcon(venue.type)}
+                            {t(`business.venueTypes.${venue.type}`)}
+                          </Badge>
                         </div>
 
                         <div className="space-y-2">
@@ -1582,6 +1595,16 @@ export default function BusinessVenuesPage() {
                             <span>
                               {venue.capacity.min}-{venue.capacity.max} guests
                             </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <DollarSign className="h-4 w-4" />
+                            <span>
+                              {getPriceDisplay(venue)}
+                            </span>
+                            <Badge variant="secondary" className="bg-primary text-primary-foreground border-none font-medium shadow-lg px-3 py-1 hover:bg-primary/80 transition-colors">
+                              {t(`business.pricing.${venue.price.type}`)}
+                            </Badge>
                           </div>
 
                           {venue.reviews && venue.reviews.length > 0 && (
@@ -1693,14 +1716,14 @@ export default function BusinessVenuesPage() {
                         <CardDescription className="line-clamp-2 mt-2">{venue.description[language]}</CardDescription>
                       </CardHeader>
                       <CardContent className="p-4 pt-0">
-                        <div className="flex items-center justify-between mb-3">
-                          <Badge variant="outline">{t(`business.venueTypes.${venue.type}`)}</Badge>
-                          <div className="text-right">
-                            <span className="font-medium">{getPriceDisplay(venue)}</span>
-                            <Badge variant="secondary" className="ml-2 text-xs">
-                              {t(`venues.filters.priceType.${venue.price.type}`) || venue.price.type}
-                            </Badge>
-                          </div>
+                        <div className="flex justify-center mb-3">
+                          <Badge
+                            variant="secondary"
+                            className="bg-secondary text-secondary-foreground border-none font-medium shadow-lg px-3 py-1 hover:bg-secondary/80 transition-colors flex items-center gap-1.5"
+                          >
+                            {getVenueTypeIcon(venue.type)}
+                            {t(`business.venueTypes.${venue.type}`)}
+                          </Badge>
                         </div>
 
                         <div className="space-y-2">
@@ -1716,6 +1739,16 @@ export default function BusinessVenuesPage() {
                             <span>
                               {venue.capacity.min}-{venue.capacity.max} guests
                             </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <DollarSign className="h-4 w-4" />
+                            <span>
+                              {getPriceDisplay(venue)}
+                            </span>
+                            <Badge variant="secondary" className="bg-primary text-primary-foreground border-none font-medium shadow-lg px-3 py-1 hover:bg-primary/80 transition-colors">
+                              {t(`business.pricing.${venue.price.type}`)}
+                            </Badge>
                           </div>
 
                           {venue.reviews && venue.reviews.length > 0 && (
@@ -1832,14 +1865,14 @@ export default function BusinessVenuesPage() {
                         <CardDescription className="line-clamp-2 mt-2">{venue.description[language]}</CardDescription>
                       </CardHeader>
                       <CardContent className="p-4 pt-0">
-                        <div className="flex items-center justify-between mb-3">
-                          <Badge variant="outline">{t(`business.venueTypes.${venue.type}`)}</Badge>
-                          <div className="text-right">
-                            <span className="font-medium">{getPriceDisplay(venue)}</span>
-                            <Badge variant="secondary" className="ml-2 text-xs">
-                              {t(`venues.filters.priceType.${venue.price.type}`) || venue.price.type}
-                            </Badge>
-                          </div>
+                        <div className="flex justify-center mb-3">
+                          <Badge
+                            variant="secondary"
+                            className="bg-secondary text-secondary-foreground border-none font-medium shadow-lg px-3 py-1 hover:bg-secondary/80 transition-colors flex items-center gap-1.5"
+                          >
+                            {getVenueTypeIcon(venue.type)}
+                            {t(`business.venueTypes.${venue.type}`)}
+                          </Badge>
                         </div>
 
                         <div className="space-y-2">
@@ -1855,6 +1888,16 @@ export default function BusinessVenuesPage() {
                             <span>
                               {venue.capacity.min}-{venue.capacity.max} guests
                             </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <DollarSign className="h-4 w-4" />
+                            <span>
+                              {getPriceDisplay(venue)}
+                            </span>
+                            <Badge variant="secondary" className="bg-primary text-primary-foreground border-none font-medium shadow-lg px-3 py-1 hover:bg-primary/80 transition-colors">
+                              {t(`business.pricing.${venue.price.type}`)}
+                            </Badge>
                           </div>
 
                           {venue.reviews && venue.reviews.length > 0 && (

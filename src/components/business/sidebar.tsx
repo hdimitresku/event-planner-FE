@@ -137,26 +137,25 @@ export function BusinessSidebar({ className }: SidebarProps) {
                   key={route.href}
                   to={route.href}
                   onClick={() => setIsOpen(false)}
-                  className={`space-y-3 card-hover bg-background rounded-lg overflow-hidden shadow-soft relative after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-[2px] after:bg-primary hover:after:w-full after:transition-all after:duration-300 flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors ${
-                    route.active
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-foreground/70 hover:text-foreground hover:bg-muted/50"
+                  className={`flex items-center p-3 hover:bg-muted ${
+                    route.active ? "text-primary" : "text-muted-foreground"
                   }`}
                 >
-                  <route.icon className={`h-5 w-5 ${route.active ? "text-primary" : "text-foreground/70"}`} />
-                  {!isCollapsed && route.label}
+                  <route.icon className={`mr-2 h-4 w-4 ${route.active ? "text-primary" : "text-muted-foreground"}`} />
+                  {!isCollapsed && <span className="text-sm">{route.label}</span>}
                 </Link>
               ))}
             </nav>
           </div>
           <div className="border-t border-border/50 p-4">
             <Button
-              variant="ghost"
-              className="w-full justify-start text-foreground/70 hover:text-foreground hover:bg-muted/50"
+              variant="outline"
+              className="w-full justify-start"
+              size="sm"
               asChild
             >
               <Link to="/">
-                <LogOut className="mr-2 h-5 w-5" />
+                <LogOut className="mr-2 h-4 w-4" />
                 {!isCollapsed && (t("business.sidebar.logout") || "Logout")}
               </Link>
             </Button>

@@ -12,7 +12,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { useLanguage } from "../../context/language-context"
+import { useCurrency } from "../../context/currency-context"
 import * as venueService from "../../services/venueService"
+import { Info } from "lucide-react"
 
 interface EditBookingModalProps {
   booking: any
@@ -23,6 +25,7 @@ interface EditBookingModalProps {
 
 export function EditBookingModal({ booking, isOpen, onClose, onSave }: EditBookingModalProps) {
   const { t, language } = useLanguage()
+  const { formatPrice } = useCurrency()
   const [venues, setVenues] = useState<any[]>([])
   const [formData, setFormData] = useState({
     venueId: "",
@@ -39,6 +42,7 @@ export function EditBookingModal({ booking, isOpen, onClose, onSave }: EditBooki
   })
   const [startDate, setStartDate] = useState<Date>()
   const [endDate, setEndDate] = useState<Date>()
+  const [selectedVenue, setSelectedVenue] = useState<any>(null)
 
   // Fetch venues when modal opens
   useEffect(() => {
@@ -54,6 +58,14 @@ export function EditBookingModal({ booking, isOpen, onClose, onSave }: EditBooki
       fetchVenues()
     }
   }, [isOpen])
+
+  // Update selected venue when venueId changes
+  useEffect(() => {
+    if (formData.venueId) {
+      const venue = venues.find(v => v.id === formData.venueId)
+      setSelectedVenue(venue)
+    }
+  }, [formData.venueId, venues])
 
   // Populate form with booking data when booking changes
   useEffect(() => {
@@ -80,6 +92,25 @@ export function EditBookingModal({ booking, isOpen, onClose, onSave }: EditBooki
       }
     }
   }, [booking])
+
+  // Calculate total price
+  const calculateTotal = () => {
+    if (!selectedVenue) return null
+
+    let basePrice = selectedVenue.price.amount
+    if (selectedVenue.price.type === "perPerson") {
+      basePrice = basePrice * formData.numberOfGuests
+    }
+
+    const serviceFee = basePrice * 0.1
+    const total = basePrice + serviceFee
+
+    return {
+      basePrice: formatPrice(basePrice, selectedVenue.price.currency),
+      serviceFee: formatPrice(serviceFee, selectedVenue.price.currency),
+      total: formatPrice(total, selectedVenue.price.currency)
+    }
+  }
 
   const handleInputChange = (field: string, value: any) => {
     setFormData((prev) => ({
@@ -145,7 +176,12 @@ export function EditBookingModal({ booking, isOpen, onClose, onSave }: EditBooki
               <SelectContent>
                 {venues.map((venue) => (
                   <SelectItem key={venue.id} value={venue.id}>
-                    {venue.name[language] || venue.name.en}
+                    <div className="flex items-center justify-between w-full">
+                      <span>{venue.name[language] || venue.name.en}</span>
+                      <span className="text-sm text-muted-foreground ml-2">
+                        {formatPrice(venue.price.amount, venue.price.currency)}
+                      </span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -299,6 +335,39 @@ export function EditBookingModal({ booking, isOpen, onClose, onSave }: EditBooki
               rows={3}
             />
           </div>
+
+          {/* Price Summary */}
+          {selectedVenue && (
+            <div className="border-t pt-4 mt-4 space-y-3">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <span className="text-sm">{t("business.bookings.venueRental") || "Venue Rental"}</span>
+                  <span className="text-xs text-muted-foreground ml-2">
+                    ({selectedVenue.price.type === "perPerson" ? t("business.bookings.perPerson") : t("business.bookings.fixed")})
+                  </span>
+                </div>
+                <span className="text-sm font-medium">{calculateTotal()?.basePrice}</span>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <span className="text-sm">{t("business.bookings.serviceFee") || "Service Fee"}</span>
+                  <div className="relative ml-1 group">
+                    <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-popover text-popover-foreground text-xs rounded shadow-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity">
+                      {t("business.bookings.serviceFeeInfo") || "10% service fee applied to the total amount"}
+                    </div>
+                  </div>
+                </div>
+                <span className="text-sm font-medium">{calculateTotal()?.serviceFee}</span>
+              </div>
+
+              <div className="flex justify-between items-center pt-3 border-t">
+                <span className="font-semibold">{t("business.bookings.total") || "Total"}</span>
+                <span className="font-semibold text-lg">{calculateTotal()?.total}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter>

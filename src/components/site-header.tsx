@@ -5,6 +5,7 @@ import { Button } from "./ui/button"
 import { useLanguage } from "../context/language-context"
 import { LanguageSwitcher } from "./language-switcher"
 import { ThemeToggle } from "./theme-toggle"
+import { CurrencySwitcher } from "./currency-switcher"
 import { Menu, User, LogOut, Settings, LayoutDashboard, Heart } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet"
 import { useState } from "react"
@@ -19,19 +20,19 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "./ui/avatar"
+import { ScrollArea } from "./ui/scroll-area"
 
 export function SiteHeader() {
   const { t } = useLanguage()
   const [open, setOpen] = useState(false)
   const location = useLocation()
   const { isAuthenticated, userRole, user, logout } = useAuth()
-  const navigate = useNavigate();
-
+  const navigate = useNavigate()
 
   const handleLogout = async () => {
-    logout();
-    localStorage.clear();
-    navigate("/");
+    logout()
+    localStorage.clear()
+    navigate("/")
     setOpen(false)
   }
 
@@ -79,6 +80,7 @@ export function SiteHeader() {
         <div className="flex items-center gap-2 md:gap-4">
           <LanguageSwitcher />
           <ThemeToggle />
+          <CurrencySwitcher />
           
           <div className="hidden md:flex items-center gap-4">
             {isAuthenticated ? (

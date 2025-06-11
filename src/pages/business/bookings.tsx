@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useLanguage } from "../../context/language-context"
+import { useCurrency, type Currency } from "../../context/currency-context"
 import { BusinessLayout } from "../../components/business/layout"
 import { EditBookingModal } from "../../components/business/edit-booking-modal"
 import { Button } from "../../components/ui/button"
@@ -74,6 +75,7 @@ type FilterOptions = {
 
 export default function BusinessBookingsPage() {
   const { t, language } = useLanguage()
+  const { formatPrice, currency } = useCurrency()
   const [activeTab, setActiveTab] = useState("upcoming")
   const [selectedBooking, setSelectedBooking] = useState<any>(null)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
@@ -117,10 +119,11 @@ export default function BusinessBookingsPage() {
 
   // Calculate venue price based on pricing type
   const calculateVenuePrice = (booking: any) => {
-    if (!booking.venuePrice) return 0
+    if (!booking.venuePrice) return formatPrice(0, "USD" as Currency)
 
     const basePrice = booking.venuePrice.amount || 0
     const priceType = booking.venuePrice.type || "FIXED"
+    const currency = booking.venuePrice.currency as Currency
 
     let calculatedPrice = basePrice
     if (priceType === "perPerson" || priceType === "perperson") {
@@ -133,7 +136,7 @@ export default function BusinessBookingsPage() {
       calculatedPrice = basePrice * hours
     }
 
-    return calculatedPrice
+    return formatPrice(calculatedPrice, currency)
   }
 
   // Get price type display text
@@ -391,6 +394,7 @@ export default function BusinessBookingsPage() {
 
   const handleViewBooking = (booking: any) => {
     setSelectedBooking(booking)
+    console.log(booking)
     setIsViewModalOpen(true)
   }
 
@@ -550,6 +554,17 @@ export default function BusinessBookingsPage() {
       return timeString
     }
   }
+
+  // Add effect to recalculate venue costs when currency changes
+  useEffect(() => {
+    if (bookings.length > 0) {
+      const updatedBookings = bookings.map(booking => ({
+        ...booking,
+        venueCost: calculateVenuePrice(booking)
+      }))
+      setBookings(updatedBookings)
+    }
+  }, [currency])
 
   return (
       <BusinessLayout>
@@ -1182,7 +1197,7 @@ export default function BusinessBookingsPage() {
                         <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
                         <div>
                           <h4 className="font-medium">{t("business.bookings.total")}</h4>
-                          <p>${Number.parseFloat(selectedBooking.totalAmount).toFixed(2)}</p>
+                          <p>{calculateVenuePrice(selectedBooking)}</p>
                         </div>
                       </div>
                     </div>
@@ -1199,7 +1214,7 @@ export default function BusinessBookingsPage() {
                           ({getPriceTypeDisplay(selectedBooking.venuePrice?.type || "FIXED")})
                         </span>
                       </span>
-                          <span>${(selectedBooking.venuePrice?.amount || 0).toFixed(2)}</span>
+                          <span>{formatPrice(selectedBooking.venuePrice?.amount, selectedBooking.venuePrice?.currency)}</span>
                         </div>
 
                         {/* Calculation Breakdown */}
@@ -1215,7 +1230,7 @@ export default function BusinessBookingsPage() {
                                   <div className="flex justify-between">
                                     <span>{t("business.bookings.calculation")}:</span>
                                     <span>
-                                ${basePrice.toFixed(2)} × {selectedBooking.numberOfGuests} guests
+                                {formatPrice(basePrice, selectedBooking.venuePrice?.currency)} × {selectedBooking.numberOfGuests} guests
                               </span>
                                   </div>
                               )
@@ -1226,7 +1241,7 @@ export default function BusinessBookingsPage() {
                               return (
                                   <div className="flex justify-between">
                               <span>
-                                ${basePrice.toFixed(2)} × {hours} hours
+                                {formatPrice(basePrice, selectedBooking.venuePrice?.currency)} × {hours} hours
                               </span>
                                   </div>
                               )
@@ -1236,9 +1251,10 @@ export default function BusinessBookingsPage() {
                         </div>
 
                         {/* Total Venue Cost */}
+                        <Separator className="my-2" />
                         <div className="flex justify-between font-medium">
                           <span>{t("business.bookings.venueTotalCost") || "Total Venue Cost"}</span>
-                          <span>${selectedBooking.venueCost?.toFixed(2) || "0.00"}</span>
+                          <span>{selectedBooking.venueCost}</span>
                         </div>
 
                       </div>
@@ -1404,7 +1420,7 @@ export default function BusinessBookingsPage() {
                           </Badge>
                           <div className="text-right">
                             <div className="text-lg font-bold text-foreground">
-                              ${Number.parseFloat(calculateVenuePrice(booking)).toFixed(2)}
+                              {calculateVenuePrice(booking)}
                             </div>
                             <div className="text-xs text-muted-foreground">
                               {t("business.venueBookings.totalPrice") || "Total Price"}
@@ -1456,7 +1472,7 @@ export default function BusinessBookingsPage() {
                           <div>
                             <p className="text-sm font-medium text-foreground">{t(`business.venueBookings.basePrice`)}</p>
                             <p className="text-xs text-muted-foreground">
-                              {t(`venues.filters.priceType.${booking.venue?.price?.type}`)}: ${booking.venue?.price?.amount}
+                              {t(`venues.filters.priceType.${booking.venue?.price?.type}`)}: {formatPrice(booking.venue?.price?.amount, booking.venue?.price?.currency)}
                             </p>
                           </div>
                         </div>
@@ -1564,7 +1580,7 @@ export default function BusinessBookingsPage() {
                           </Badge>
                           <div className="text-right">
                             <div className="text-lg font-bold text-foreground">
-                              ${Number.parseFloat(calculateVenuePrice(booking)).toFixed(2)}
+                              {calculateVenuePrice(booking)}
                             </div>
                             <div className="text-xs text-muted-foreground">
                               {t("business.venueBookings.totalPrice") || "Total Price"}
@@ -1616,7 +1632,7 @@ export default function BusinessBookingsPage() {
                           <div>
                             <p className="text-sm font-medium text-foreground">{t(`business.venueBookings.basePrice`)}</p>
                             <p className="text-xs text-muted-foreground">
-                              {t(`venues.filters.priceType.${booking.venue?.price?.type}`)}: ${booking.venue?.price?.amount}
+                              {t(`venues.filters.priceType.${booking.venue?.price?.type}`)}: {formatPrice(booking.venue?.price?.amount, booking.venue?.price?.currency)}
                             </p>
                           </div>
                         </div>
@@ -1682,7 +1698,7 @@ export default function BusinessBookingsPage() {
                           </Badge>
                           <div className="text-right">
                             <div className="text-lg font-bold text-foreground">
-                              ${Number.parseFloat(calculateVenuePrice(booking)).toFixed(2)}
+                              {calculateVenuePrice(booking)}
                             </div>
                             <div className="text-xs text-muted-foreground">
                               {t("business.venueBookings.totalPrice") || "Total Price"}
@@ -1734,7 +1750,7 @@ export default function BusinessBookingsPage() {
                           <div>
                             <p className="text-sm font-medium text-foreground">{t(`business.venueBookings.basePrice`)}</p>
                             <p className="text-xs text-muted-foreground">
-                              {t(`venues.filters.priceType.${booking.venue?.price?.type}`)}: ${booking.venue?.price?.amount}
+                              {t(`venues.filters.priceType.${booking.venue?.price?.type}`)}: {formatPrice(booking.venue?.price?.amount, booking.venue?.price?.currency)}
                             </p>
                           </div>
                         </div>
@@ -1806,7 +1822,7 @@ export default function BusinessBookingsPage() {
                           </Badge>
                           <div className="text-right">
                             <div className="text-lg font-bold text-foreground">
-                              ${Number.parseFloat(calculateVenuePrice(booking)).toFixed(2)}
+                              {calculateVenuePrice(booking)}
                             </div>
                             <div className="text-xs text-muted-foreground">
                               {t("business.venueBookings.totalPrice") || "Total Price"}
@@ -1858,7 +1874,7 @@ export default function BusinessBookingsPage() {
                           <div>
                             <p className="text-sm font-medium text-foreground">{t(`business.venueBookings.basePrice`)}</p>
                             <p className="text-xs text-muted-foreground">
-                              {t(`venues.filters.priceType.${booking.venue?.price?.type}`)}: ${booking.venue?.price?.amount}
+                              {t(`venues.filters.priceType.${booking.venue?.price?.type}`)}: {formatPrice(booking.venue?.price?.amount, booking.venue?.price?.currency)}
                             </p>
                           </div>
                         </div>

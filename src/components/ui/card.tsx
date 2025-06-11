@@ -1,9 +1,15 @@
 import * as React from "react"
+import { cn } from "@/lib/utils"
 
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
   <div 
     ref={ref} 
-    className={`rounded-lg border bg-card/90 backdrop-blur-sm text-card-foreground shadow-sm transition-all duration-300 hover:shadow-md ${className}`} 
+    className={cn(
+      "relative rounded-lg border bg-card/90 backdrop-blur-sm text-card-foreground shadow-sm transition-all duration-300 hover:shadow-md",
+      "before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-br before:from-sky-50/50 before:to-emerald-50/50 dark:before:from-sky-950/20 dark:before:to-emerald-950/20 before:opacity-50 before:blur-sm before:-z-10",
+      "after:absolute after:inset-0 after:rounded-lg after:bg-gradient-to-tr after:from-violet-50/30 after:to-purple-50/30 dark:after:from-violet-950/10 dark:after:to-purple-950/10 after:opacity-30 after:blur-sm after:-z-20",
+      className
+    )} 
     {...props} 
   />
 ))

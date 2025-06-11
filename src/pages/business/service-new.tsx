@@ -3,6 +3,7 @@
 import type React from "react"
 import { useState } from "react"
 import { useLanguage } from "../../context/language-context"
+import { useCurrency, type Currency } from "../../context/currency-context"
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
 import { Textarea } from "../../components/ui/textarea"
@@ -36,9 +37,10 @@ interface ServiceOption {
   description: { en: string; sq: string }
   price: {
     amount: number
-    currency: string
     type: PricingType
+    currency: Currency
   }
+  images: string[]
 }
 
 interface ServiceFormData {
@@ -70,23 +72,33 @@ const defaultAvailability = {
 
 export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNewModalProps) {
   const { t } = useLanguage()
+  const { formatPrice } = useCurrency()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedImages, setSelectedImages] = useState<File[]>([])
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ServiceFormData>({
     name: { en: "", sq: "" },
     description: { en: "", sq: "" },
-    type: ServiceType.OTHER,
-    venueTypes: [],
-    dayAvailability: { ...defaultAvailability },
+    type: ServiceType.CATERING,
+    venueTypes: [] as VenueType[],
+    dayAvailability: {
+      monday: "",
+      tuesday: "",
+      wednesday: "",
+      thursday: "",
+      friday: "",
+      saturday: "",
+      sunday: "",
+    },
     options: [
       {
         name: { en: "", sq: "" },
         description: { en: "", sq: "" },
         price: {
-          amount: undefined,
-          currency: "USD",
+          amount: 0,
           type: PricingType.FIXED,
+          currency: "USD" as Currency,
         },
+        images: [] as string[],
       },
     ],
   })
@@ -95,13 +107,14 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({})
   const [fieldTouched, setFieldTouched] = useState<{ [key: string]: boolean }>({})
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
-    setSelectedImages((prev) => [...prev, ...files])
+  const handleImageUpload = (files: FileList | null) => {
+    if (!files) return
+    const newFiles = Array.from(files)
+    setSelectedImages((prev: File[]) => [...prev, ...newFiles])
   }
 
   const removeImage = (index: number) => {
-    setSelectedImages((prev) => prev.filter((_, i) => i !== index))
+    setSelectedImages((prev: File[]) => prev.filter((_, i: number) => i !== index))
   }
 
   // Log FormData contents
@@ -109,7 +122,7 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
   }
 
   const addOption = () => {
-    setFormData((prev) => ({
+    setFormData((prev: ServiceFormData) => ({
       ...prev,
       options: [
         ...prev.options,
@@ -117,10 +130,11 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
           name: { en: "", sq: "" },
           description: { en: "", sq: "" },
           price: {
-            amount: undefined,
-            currency: "USD",
+            amount: 0,
             type: PricingType.FIXED,
+            currency: "USD" as Currency,
           },
+          images: [] as string[],
         },
       ],
     }))
@@ -136,23 +150,28 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
   }
 
   const updateOption = (index: number, field: string, value: any) => {
-    setFormData((prev) => {
+    setFormData((prev: ServiceFormData) => {
       const newOptions = [...prev.options]
+      const option = { ...newOptions[index] }
+      
       if (field.includes(".")) {
         const [parent, child] = field.split(".")
-        newOptions[index] = {
-          ...newOptions[index],
-          [parent]: {
-            ...newOptions[index][parent as keyof ServiceOption],
+        if (parent === "price") {
+          option.price = {
+            ...option.price,
             [child]: value,
-          },
+          }
+        } else if (parent === "name" || parent === "description") {
+          option[parent] = {
+            ...option[parent],
+            [child]: value,
+          }
         }
       } else {
-        newOptions[index] = {
-          ...newOptions[index],
-          [field]: value,
-        }
+        option[field as keyof ServiceOption] = value
       }
+      
+      newOptions[index] = option
       return { ...prev, options: newOptions }
     })
   }
@@ -309,7 +328,7 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
       setFormData({
         name: { en: "", sq: "" },
         description: { en: "", sq: "" },
-        type: ServiceType.OTHER,
+        type: ServiceType.CATERING,
         venueTypes: [],
         dayAvailability: { ...defaultAvailability },
         options: [
@@ -317,10 +336,11 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
             name: { en: "", sq: "" },
             description: { en: "", sq: "" },
             price: {
-              amount: undefined,
-              currency: "USD",
+              amount: 0,
               type: PricingType.FIXED,
+              currency: "USD" as Currency,
             },
+            images: [],
           },
         ],
       })
@@ -614,35 +634,33 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
 
                       <div className="grid gap-4 sm:grid-cols-1 gap-2">
                         <Label htmlFor="price">{t("business.common.price")}</Label>
-                        <Input
-                          id="price"
-                          type="number"
-                          placeholder={t("business.common.enterPrice") || "Enter price"}
-                          value={option.price.amount || ""}
-                          onChange={(e) => updateOption(index, "price.amount", e.target.value ? Number(e.target.value) : undefined)}
-                        />
-                        <FieldError error={fieldErrors[`option.${index}.price`]} />
-                      </div>
-
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label>Pricing Type*</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            id="price"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={option.price.amount || ""}
+                            onChange={(e) => updateOption(index, "price.amount", e.target.value ? Number(e.target.value) : undefined)}
+                            className="flex-1"
+                          />
                           <Select
-                              value={option.price.type}
-                              onValueChange={(value) => updateOption(index, "price.type", value)}
+                            value={option.price.type}
+                            onValueChange={(value) => updateOption(index, "price.type", value)}
                           >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select pricing type" />
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder={t("business.services.selectPriceType")} />
                             </SelectTrigger>
                             <SelectContent>
-                              {Object.values(PricingType).map((type) => (
-                                  <SelectItem key={type} value={type}>
-                                    {type.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
-                                  </SelectItem>
-                              ))}
+                              <SelectItem value="hourly">{t("business.pricing.hourly")}</SelectItem>
+                              <SelectItem value="perPerson">{t("business.pricing.perPerson")}</SelectItem>
+                              <SelectItem value="fixed">{t("business.pricing.fixed")}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
+                        <p className="text-sm text-muted-foreground">
+                          {formatPrice(option.price.amount || 0, option.price.currency as Currency)} {t(`business.pricing.${option.price.type}`)}
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
@@ -664,7 +682,7 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
                         type="file"
                         multiple
                         accept="image/*"
-                        onChange={handleImageSelect}
+                        onChange={(e) => handleImageUpload(e.target.files)}
                         className="hidden"
                     />
                   </label>

@@ -43,6 +43,7 @@ import {
   CircleDot,
 } from "lucide-react"
 import { useLanguage } from "../../context/language-context"
+import { useCurrency, type Currency } from "../../context/currency-context"
 import { BusinessLayout } from "../../components/business/layout"
 import { ServiceNewModal } from "./service-new"
 import * as serviceService from "../../services/serviceService"
@@ -54,6 +55,7 @@ import { LoadingSpinner } from "../../components/ui/loading-spinner"
 
 export default function ServicesManagementPage() {
   const { t, language } = useLanguage()
+  const { formatPrice } = useCurrency()
   const [activeTab, setActiveTab] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
@@ -219,27 +221,14 @@ export default function ServicesManagementPage() {
   // Get price display based on price type and show lowest price
   const getPriceDisplay = (service: Service) => {
     if (!service.options || service.options.length === 0) {
-      return "$0"
+      return formatPrice(0, "USD" as Currency)
     }
 
-    // Find the lowest price option
     const lowestPriceOption = service.options.reduce((lowest, current) =>
-        current.price.amount < lowest.price.amount ? current : lowest,
+      current.price.amount < lowest.price.amount ? current : lowest,
     )
 
-    const price = lowestPriceOption.price.amount
-    const type = lowestPriceOption.price.type.toLowerCase()
-
-    switch (type) {
-      case "hourly":
-        return `$${price}/${t("business.pricing.hourly") || "hr"}`
-      case "perperson":
-        return `$${price}/${t("business.pricing.perPerson") || "person"}`
-      case "fixed":
-        return `$${price} ${t("business.pricing.fixed") || "fixed"}`
-      default:
-        return `$${price}`
-    }
+    return formatPrice(lowestPriceOption.price.amount, lowestPriceOption.price.currency as Currency)
   }
 
   // Get filtered price display for selected price types
@@ -250,7 +239,7 @@ export default function ServicesManagementPage() {
 
     // Filter options by selected price types
     const filteredOptions = service.options.filter((option) =>
-        selectedPriceTypes.includes(option.price.type.toLowerCase()),
+      selectedPriceTypes.includes(option.price.type.toLowerCase()),
     )
 
     if (filteredOptions.length === 0) {
@@ -259,22 +248,10 @@ export default function ServicesManagementPage() {
 
     // Find the lowest price among filtered options
     const lowestPriceOption = filteredOptions.reduce((lowest, current) =>
-        current.price.amount < lowest.price.amount ? current : lowest,
+      current.price.amount < lowest.price.amount ? current : lowest,
     )
 
-    const price = lowestPriceOption.price.amount
-    const type = lowestPriceOption.price.type.toLowerCase()
-
-    switch (type) {
-      case "hourly":
-        return `$${price}/${t("business.pricing.hourly") || "hr"}`
-      case "perperson":
-        return `$${price}/${t("business.pricing.perPerson") || "person"}`
-      case "fixed":
-        return `$${price} ${t("business.pricing.fixed") || "fixed"}`
-      default:
-        return `$${price}`
-    }
+    return formatPrice(lowestPriceOption.price.amount, lowestPriceOption.price.currency as Currency)
   }
 
   const handleViewService = (service: Service) => {
@@ -953,33 +930,42 @@ export default function ServicesManagementPage() {
                                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                                   {getServiceTypeIcon(service.type)}
                                 </div>
-                                <CardTitle className="text-lg">{service.name[language]}</CardTitle>
+                                <CardTitle className="text-lg line-clamp-1">{service.name[language]}</CardTitle>
                               </div>
-                              <CardDescription className="line-clamp-2 mt-2">{service.description[language]}</CardDescription>
+                              <CardDescription className="line-clamp-2 mt-2 h-10">{service.description[language]}</CardDescription>
                             </CardHeader>
                             <CardContent className="p-4 pt-0">
                               <div className="flex items-center justify-between mb-3">
-                                <Badge variant="outline">{t(`business.categories.${service.type}`)}</Badge>
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-secondary text-secondary-foreground border-none font-medium shadow-lg px-3 py-1 hover:bg-secondary/80 transition-colors"
+                                >
+                                  {t(`business.categories.${service.type.toLowerCase()}`)}
+                                </Badge>
                                 <span className="font-medium">
-                            {selectedPriceTypes.length > 0
-                                ? getFilteredPriceDisplay(service, selectedPriceTypes)
-                                : getPriceDisplay(service)}
-                          </span>
+                                  {selectedPriceTypes.length > 0
+                                    ? getFilteredPriceDisplay(service, selectedPriceTypes)
+                                    : getPriceDisplay(service)}
+                                </span>
                               </div>
 
                               {/* Show service options count and types */}
                               {service.options && service.options.length > 0 && (
-                                  <div className="space-y-2">
+                                  <div className="space-y-2 h-[60px]">
                                     <div className="flex items-center justify-between text-sm text-muted-foreground">
-                              <span>
-                                {service.options.length} option{service.options.length > 1 ? "s" : ""} available
-                              </span>
+                                      <span>
+                                        {service.options.length} option{service.options.length > 1 ? "s" : ""} available
+                                      </span>
                                     </div>
 
                                     {/* Show price types available */}
                                     <div className="flex flex-wrap gap-1">
                                       {[...new Set(service.options.map((opt) => opt.price.type))].map((priceType) => (
-                                          <Badge key={priceType} variant="secondary" className="text-xs">
+                                          <Badge 
+                                            key={priceType} 
+                                            variant="secondary" 
+                                            className="text-xs bg-secondary text-secondary-foreground border-none font-medium shadow-lg px-2 py-0.5 hover:bg-secondary/80 transition-colors"
+                                          >
                                             {t(`common.${priceType.toLowerCase()}`) || priceType}
                                           </Badge>
                                       ))}
@@ -987,10 +973,9 @@ export default function ServicesManagementPage() {
 
                                     {/* Show price range if multiple options */}
                                     {service.options.length > 1 && (
-                                        <div className="text-xs text-muted-foreground">
-                                          Range: ${Math.min(...service.options.map((opt) => opt.price.amount))} - $
-                                          {Math.max(...service.options.map((opt) => opt.price.amount))}
-                                        </div>
+                                      <div className="text-xs text-muted-foreground line-clamp-1">
+                                        Range: {formatPrice(Math.min(...service.options.map((opt) => opt.price.amount)), service.options[0].price.currency as Currency)} - {formatPrice(Math.max(...service.options.map((opt) => opt.price.amount)), service.options[0].price.currency as Currency)}
+                                      </div>
                                     )}
                                   </div>
                               )}
@@ -1076,33 +1061,42 @@ export default function ServicesManagementPage() {
                                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                                   {getServiceTypeIcon(service.type)}
                                 </div>
-                                <CardTitle className="text-lg">{service.name[language]}</CardTitle>
+                                <CardTitle className="text-lg line-clamp-1">{service.name[language]}</CardTitle>
                               </div>
-                              <CardDescription className="line-clamp-2 mt-2">{service.description[language]}</CardDescription>
+                              <CardDescription className="line-clamp-2 mt-2 h-10">{service.description[language]}</CardDescription>
                             </CardHeader>
                             <CardContent className="p-4 pt-0">
                               <div className="flex items-center justify-between mb-3">
-                                <Badge variant="outline">{t(`business.categories.${service.type.toLowerCase()}`)}</Badge>
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-secondary text-secondary-foreground border-none font-medium shadow-lg px-3 py-1 hover:bg-secondary/80 transition-colors"
+                                >
+                                  {t(`business.categories.${service.type.toLowerCase()}`)}
+                                </Badge>
                                 <span className="font-medium">
-                            {selectedPriceTypes.length > 0
-                                ? getFilteredPriceDisplay(service, selectedPriceTypes)
-                                : getPriceDisplay(service)}
-                          </span>
+                                  {selectedPriceTypes.length > 0
+                                    ? getFilteredPriceDisplay(service, selectedPriceTypes)
+                                    : getPriceDisplay(service)}
+                                </span>
                               </div>
 
                               {/* Show service options count and types */}
                               {service.options && service.options.length > 0 && (
-                                  <div className="space-y-2">
+                                  <div className="space-y-2 h-[60px]">
                                     <div className="flex items-center justify-between text-sm text-muted-foreground">
-                              <span>
-                                {service.options.length} option{service.options.length > 1 ? "s" : ""} available
-                              </span>
+                                      <span>
+                                        {service.options.length} option{service.options.length > 1 ? "s" : ""} available
+                                      </span>
                                     </div>
 
                                     {/* Show price types available */}
                                     <div className="flex flex-wrap gap-1">
                                       {[...new Set(service.options.map((opt) => opt.price.type))].map((priceType) => (
-                                          <Badge key={priceType} variant="secondary" className="text-xs">
+                                          <Badge 
+                                            key={priceType} 
+                                            variant="secondary" 
+                                            className="text-xs bg-secondary text-secondary-foreground border-none font-medium shadow-lg px-2 py-0.5 hover:bg-secondary/80 transition-colors"
+                                          >
                                             {t(`common.${priceType.toLowerCase()}`) || priceType}
                                           </Badge>
                                       ))}
@@ -1110,10 +1104,9 @@ export default function ServicesManagementPage() {
 
                                     {/* Show price range if multiple options */}
                                     {service.options.length > 1 && (
-                                        <div className="text-xs text-muted-foreground">
-                                          Range: ${Math.min(...service.options.map((opt) => opt.price.amount))} - $
-                                          {Math.max(...service.options.map((opt) => opt.price.amount))}
-                                        </div>
+                                      <div className="text-xs text-muted-foreground line-clamp-1">
+                                        Range: {formatPrice(Math.min(...service.options.map((opt) => opt.price.amount)), service.options[0].price.currency as Currency)} - {formatPrice(Math.max(...service.options.map((opt) => opt.price.amount)), service.options[0].price.currency as Currency)}
+                                      </div>
                                     )}
                                   </div>
                               )}
@@ -1201,33 +1194,42 @@ export default function ServicesManagementPage() {
                                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                                   {getServiceTypeIcon(service.type)}
                                 </div>
-                                <CardTitle className="text-lg">{service.name[language]}</CardTitle>
+                                <CardTitle className="text-lg line-clamp-1">{service.name[language]}</CardTitle>
                               </div>
-                              <CardDescription className="line-clamp-2 mt-2">{service.description[language]}</CardDescription>
+                              <CardDescription className="line-clamp-2 mt-2 h-10">{service.description[language]}</CardDescription>
                             </CardHeader>
                             <CardContent className="p-4 pt-0">
                               <div className="flex items-center justify-between mb-3">
-                                <Badge variant="outline">{t(`business.categories.${service.type.toLowerCase()}`)}</Badge>
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-secondary text-secondary-foreground border-none font-medium shadow-lg px-3 py-1 hover:bg-secondary/80 transition-colors"
+                                >
+                                  {t(`business.categories.${service.type.toLowerCase()}`)}
+                                </Badge>
                                 <span className="font-medium">
-                            {selectedPriceTypes.length > 0
-                                ? getFilteredPriceDisplay(service, selectedPriceTypes)
-                                : getPriceDisplay(service)}
-                          </span>
+                                  {selectedPriceTypes.length > 0
+                                    ? getFilteredPriceDisplay(service, selectedPriceTypes)
+                                    : getPriceDisplay(service)}
+                                </span>
                               </div>
 
                               {/* Show service options count and types */}
                               {service.options && service.options.length > 0 && (
-                                  <div className="space-y-2">
+                                  <div className="space-y-2 h-[60px]">
                                     <div className="flex items-center justify-between text-sm text-muted-foreground">
-                              <span>
-                                {service.options.length} option{service.options.length > 1 ? "s" : ""} available
-                              </span>
+                                      <span>
+                                        {service.options.length} option{service.options.length > 1 ? "s" : ""} available
+                                      </span>
                                     </div>
 
                                     {/* Show price types available */}
                                     <div className="flex flex-wrap gap-1">
                                       {[...new Set(service.options.map((opt) => opt.price.type))].map((priceType) => (
-                                          <Badge key={priceType} variant="secondary" className="text-xs">
+                                          <Badge 
+                                            key={priceType} 
+                                            variant="secondary" 
+                                            className="text-xs bg-secondary text-secondary-foreground border-none font-medium shadow-lg px-2 py-0.5 hover:bg-secondary/80 transition-colors"
+                                          >
                                             {t(`common.${priceType.toLowerCase()}`) || priceType}
                                           </Badge>
                                       ))}
@@ -1235,10 +1237,9 @@ export default function ServicesManagementPage() {
 
                                     {/* Show price range if multiple options */}
                                     {service.options.length > 1 && (
-                                        <div className="text-xs text-muted-foreground">
-                                          Range: ${Math.min(...service.options.map((opt) => opt.price.amount))} - $
-                                          {Math.max(...service.options.map((opt) => opt.price.amount))}
-                                        </div>
+                                      <div className="text-xs text-muted-foreground line-clamp-1">
+                                        Range: {formatPrice(Math.min(...service.options.map((opt) => opt.price.amount)), service.options[0].price.currency as Currency)} - {formatPrice(Math.max(...service.options.map((opt) => opt.price.amount)), service.options[0].price.currency as Currency)}
+                                      </div>
                                     )}
                                   </div>
                               )}
