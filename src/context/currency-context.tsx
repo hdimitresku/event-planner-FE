@@ -7,7 +7,7 @@ import { createContext, useContext, useState, useEffect } from "react"
 export type Currency = "EUR" | "USD" | "ALL"
 
 // Define exchange rates (these should be fetched from an API in production)
-const EXCHANGE_RATES: Record<Currency, Record<Currency, number>> = {
+export const EXCHANGE_RATES: Record<Currency, Record<Currency, number>> = {
   EUR: {
     EUR: 1,
     USD: 1.08,

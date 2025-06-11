@@ -39,7 +39,7 @@ import {
   Building2,
 } from "lucide-react"
 import { useLanguage } from "../context/language-context"
-import { useCurrency, type Currency } from "../context/currency-context"
+import { EXCHANGE_RATES, useCurrency, type Currency } from "../context/currency-context"
 import { cn } from "../lib/utils"
 import { Badge } from "../components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar"
@@ -301,13 +301,71 @@ export default function VenueBookPage() {
     lastName: "",
     email: "",
     phone: "",
+    phonePrefix: "+355", // Albanian prefix as default
   })
+  const [specialRequests, setSpecialRequests] = useState("")
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({})
   const [blockedDates, setBlockedDates] = useState<Date[]>([])
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [confirmationData, setConfirmationData] = useState<any>(null)
+
+  // Phone prefixes with country codes and flags
+  const phonePrefix = [
+    { code: "+355", country: "AL", name: "Albania", flag: "🇦🇱" },
+    { code: "+1", country: "US", name: "United States", flag: "🇺🇸" },
+    { code: "+44", country: "GB", name: "United Kingdom", flag: "🇬🇧" },
+    { code: "+49", country: "DE", name: "Germany", flag: "🇩🇪" },
+    { code: "+33", country: "FR", name: "France", flag: "🇫🇷" },
+    { code: "+39", country: "IT", name: "Italy", flag: "🇮🇹" },
+    { code: "+34", country: "ES", name: "Spain", flag: "🇪🇸" },
+    { code: "+31", country: "NL", name: "Netherlands", flag: "🇳🇱" },
+    { code: "+41", country: "CH", name: "Switzerland", flag: "🇨🇭" },
+    { code: "+43", country: "AT", name: "Austria", flag: "🇦🇹" },
+    { code: "+61", country: "AU", name: "Australia", flag: "🇦🇺" },
+    { code: "+81", country: "JP", name: "Japan", flag: "🇯🇵" },
+    { code: "+49", country: "AT", name: "Austria", flag: "🇦🇹" },
+    { code: "+86", country: "CN", name: "China", flag: "🇨🇳" },
+    { code: "+91", country: "IN", name: "India", flag: "🇮🇳" },
+    { code: "+7", country: "RU", name: "Russia", flag: "🇷🇺" },
+    { code: "+27", country: "ZA", name: "South Africa", flag: "🇿🇦" },
+    { code: "+64", country: "NZ", name: "New Zealand", flag: "🇳🇿" },
+    { code: "+82", country: "KR", name: "South Korea", flag: "🇰🇷" },
+    { code: "+47", country: "NO", name: "Norway", flag: "🇳🇴" },
+    { code: "+46", country: "SE", name: "Sweden", flag: "🇸🇪" },
+    { code: "+48", country: "PL", name: "Poland", flag: "🇵🇱" },
+    { code: "+420", country: "CZ", name: "Czech Republic", flag: "🇨🇿" },
+    { code: "+36", country: "HU", name: "Hungary", flag: "🇭🇺" },
+    { code: "+370", country: "LT", name: "Lithuania", flag: "🇱🇹" },
+    { code: "+371", country: "LV", name: "Latvia", flag: "🇱🇻" },
+    { code: "+372", country: "EE", name: "Estonia", flag: "🇪🇪" },
+    { code: "+358", country: "FI", name: "Finland", flag: "🇫🇮" },
+    { code: "+45", country: "DK", name: "Denmark", flag: "🇩🇰" },
+    { code: "+40", country: "RO", name: "Romania", flag: "🇷🇴" },
+    { code: "+48", country: "PL", name: "Poland", flag: "🇵🇱" },
+    { code: "+351", country: "PT", name: "Portugal", flag: "🇵🇹" },
+    { code: "+352", country: "LU", name: "Luxembourg", flag: "🇱🇺" },
+    { code: "+353", country: "IE", name: "Ireland", flag: "🇮🇪" },
+    { code: "+380", country: "UA", name: "Ukraine", flag: "🇺🇦" },
+    { code: "+254", country: "KE", name: "Kenya", flag: "🇰🇪" },
+    { code: "+234", country: "NG", name: "Nigeria", flag: "🇳🇬" },
+    { code: "+966", country: "SA", name: "Saudi Arabia", flag: "🇸🇦" },
+    { code: "+972", country: "IL", name: "Israel", flag: "🇮🇱" },
+    { code: "+65", country: "SG", name: "Singapore", flag: "🇸🇬" },
+    { code: "+60", country: "MY", name: "Malaysia", flag: "🇲🇾" },
+    { code: "+351", country: "PT", name: "Portugal", flag: "🇵🇹" },
+    { code: "+358", country: "FI", name: "Finland", flag: "🇫🇮" },
+    { code: "+65", country: "SG", name: "Singapore", flag: "🇸🇬" }
+  ];
+  
+
+  // Handle phone number input with automatic 0 removal
+  const handlePhoneChange = (value: string) => {
+    // Remove leading 0 if present (common in local formats)
+    const cleanedValue = value.startsWith('0') ? value.substring(1) : value
+    handleFormChange("phone", cleanedValue)
+  }
 
   const handleViewOptionDetails = (service: Service, option: ServiceOption) => {
     setSelectedOptionDetails({ service, option })
@@ -325,7 +383,13 @@ export default function VenueBookPage() {
 
   const validatePhone = (phone: string): boolean => {
     const phoneRegex = /^[+]?[1-9][\d]{0,15}$/
-    return phoneRegex.test(phone.replace(/[\s\-$$$$]/g, ""))
+    // Clean the phone number: remove spaces, dashes, brackets, and leading 0
+    let cleanedPhone = phone.replace(/[\s\-$$$$]/g, "")
+    // Remove leading 0 if present (common in local formats like Albanian)
+    if (cleanedPhone.startsWith('0')) {
+      cleanedPhone = cleanedPhone.substring(1)
+    }
+    return phoneRegex.test(cleanedPhone)
   }
 
   const validateField = (fieldName: string, value: any): string | undefined => {
@@ -544,6 +608,7 @@ export default function VenueBookPage() {
               lastName: currentUser.lastName || "",
               email: currentUser.email || "",
               phone: currentUser.phoneNumber || "",
+              phonePrefix: "+355", // Albanian prefix as default
             })
           }
         } catch (error) {
@@ -555,6 +620,7 @@ export default function VenueBookPage() {
               lastName: user.lastName || "",
               email: user.email || "",
               phone: user.phoneNumber || "",
+              phonePrefix: "+355", // Albanian prefix as default
             })
           }
         }
@@ -669,16 +735,16 @@ export default function VenueBookPage() {
       console.log("Totals:", {
         subtotalSelectedCurrency: `${breakdown.totals.subtotal} ${currency}`,
         subtotalUSD: `${breakdown.totals.subtotalUSD} USD`,
-        serviceFeeSelectedCurrency: `${breakdown.totals.serviceFee} ${currency}`,
-        serviceFeeUSD: `${breakdown.totals.serviceFeeUSD} USD`,
         totalSelectedCurrency: `${breakdown.totals.total} ${currency}`,
         totalUSD: `${breakdown.totals.totalUSD} USD`
       })
       console.log("================================")
 
       // Use form values from state
-      const { firstName, lastName, email, phone } = formValues
-      const specialRequests = (document.getElementById("special-requests") as HTMLTextAreaElement).value
+      const { firstName, lastName, email, phone, phonePrefix } = formValues
+      // Remove leading 0 from phone number before combining with prefix
+      const cleanPhone = phone.startsWith('0') ? phone.substring(1) : phone
+      const fullPhoneNumber = `${phonePrefix}${cleanPhone}`
 
       // Format dates and times
       const formattedStartDate = startDate ? format(startDate, "yyyy-MM-dd") : ""
@@ -715,7 +781,7 @@ export default function VenueBookPage() {
             firstName,
             lastName,
             email,
-            phone,
+            phone: fullPhoneNumber,
           },
         },
       }
@@ -791,7 +857,6 @@ export default function VenueBookPage() {
     const { formatPrice, convertPrice, currency } = useCurrency()
     let basePrice = 0
     let servicesCost = 0
-    let serviceFee = 0
     const defaultCurrency = "USD" // Fallback currency
 
     // Add venue price
@@ -825,16 +890,14 @@ export default function VenueBookPage() {
     })
 
     // Calculate service fee (e.g., 10% of total)
-    serviceFee = (basePrice + servicesCost) * 0.1
 
     // Calculate total
-    const total = basePrice + servicesCost + serviceFee
+    const total = basePrice + servicesCost
 
     // Use the current selected currency for formatting all amounts
     return {
       basePrice: formatPrice(basePrice, currency),
       servicesCost: formatPrice(servicesCost, currency),
-      serviceFee: formatPrice(serviceFee, currency),
       total: formatPrice(total, currency)
     }
   }
@@ -843,25 +906,6 @@ export default function VenueBookPage() {
   const calculateDetailedBreakdown = () => {
     const defaultCurrency = "USD"
     
-    // Exchange rates (should match currency context)
-    const EXCHANGE_RATES: Record<Currency, Record<Currency, number>> = {
-      EUR: {
-        EUR: 1,
-        USD: 1.08,
-        ALL: 105.5,
-      },
-      USD: {
-        EUR: 0.92,
-        USD: 1,
-        ALL: 97.5,
-      },
-      ALL: {
-        EUR: 0.0095,
-        USD: 0.0103,
-        ALL: 1,
-      },
-    }
-
     const convertToUSD = (amount: number, fromCurrency: string): number => {
       if (fromCurrency === "USD") return amount
       return amount * EXCHANGE_RATES[fromCurrency as Currency]["USD"]
@@ -875,15 +919,26 @@ export default function VenueBookPage() {
       totals: {}
     }
 
+    // Calculate duration in hours for hourly pricing
+    const calculateDuration = () => {
+      if (!startDate || !endDate) return 0
+      return Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60)))
+    }
+
     // Venue pricing
     if (venue) {
       const venuePrice = venue.price.amount
       const venueCurrency = venue.price.currency || defaultCurrency
       let finalVenuePrice = venuePrice
       
+      // Calculate venue price based on type
       if (venue.price.type === "perPerson") {
         finalVenuePrice = venuePrice * (guests || 0)
+      } else if (venue.price.type === "hourly") {
+        const hours = calculateDuration()
+        finalVenuePrice = venuePrice * hours
       }
+      // For "fixed" type, finalVenuePrice remains as venuePrice
       
       const convertedVenuePrice = convertPrice(finalVenuePrice, venueCurrency as Currency)
       const convertedVenuePriceUSD = convertToUSD(finalVenuePrice, venueCurrency)
@@ -897,7 +952,8 @@ export default function VenueBookPage() {
         convertedAmount: convertedVenuePrice,
         convertedAmountUSD: convertedVenuePriceUSD,
         type: venue.price.type,
-        guests: guests
+        guests: guests,
+        hours: venue.price.type === "hourly" ? calculateDuration() : undefined
       }
     }
 
@@ -912,9 +968,14 @@ export default function VenueBookPage() {
             const optionCurrency = selectedOption.price.currency || defaultCurrency
             let finalOptionPrice = optionPrice
             
+            // Calculate service option price based on type
             if (selectedOption.price.type === "perPerson") {
               finalOptionPrice = optionPrice * (guests || 0)
+            } else if (selectedOption.price.type === "hourly") {
+              const hours = calculateDuration()
+              finalOptionPrice = optionPrice * hours
             }
+            // For "fixed" type, finalOptionPrice remains as optionPrice
             
             const convertedOptionPrice = convertPrice(finalOptionPrice, optionCurrency as Currency)
             const convertedOptionPriceUSD = convertToUSD(finalOptionPrice, optionCurrency)
@@ -930,26 +991,21 @@ export default function VenueBookPage() {
               convertedAmount: convertedOptionPrice,
               convertedAmountUSD: convertedOptionPriceUSD,
               type: selectedOption.price.type,
-              guests: guests
+              guests: guests,
+              hours: selectedOption.price.type === "hourly" ? calculateDuration() : undefined
             })
           }
         })
       }
     })
 
-    // Calculate service fee
-    const serviceFee = totalInSelectedCurrency * 0.1
-    const serviceFeeUSD = totalInUSD * 0.1
-    const finalTotal = totalInSelectedCurrency + serviceFee
-    const finalTotalUSD = totalInUSD + serviceFeeUSD
+
 
     breakdown.totals = {
       subtotal: totalInSelectedCurrency,
       subtotalUSD: totalInUSD,
-      serviceFee: serviceFee,
-      serviceFeeUSD: serviceFeeUSD,
-      total: finalTotal,
-      totalUSD: finalTotalUSD,
+      total: totalInSelectedCurrency,
+      totalUSD: totalInUSD,
       currency: currency
     }
 
@@ -988,7 +1044,7 @@ export default function VenueBookPage() {
     })
   }
 
-  const { basePrice, serviceFee, servicesCost, total } = calculateTotal()
+  const { basePrice, servicesCost, total } = calculateTotal()
   const duration = calculateDuration()
 
 
@@ -1753,20 +1809,39 @@ export default function VenueBookPage() {
                     <label className="text-sm font-medium" htmlFor="phone">
                       {t("venueBook.phone")} <span className="text-red-500">*</span>
                     </label>
-                    <Input
-                        id="phone"
-                        type="tel"
-                        value={formValues.phone}
-                        onChange={(e) => handleFormChange("phone", e.target.value)}
-                        onBlur={(e) => handleFieldBlur("phone", e.target.value)}
+                    <div className="flex gap-2">
+                      <select
+                        value={formValues.phonePrefix}
+                        onChange={(e) => handleFormChange("phonePrefix", e.target.value)}
                         className={cn(
-                            "focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
-                            validationErrors.phone && touchedFields.phone
-                                ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                                : "",
+                          "h-10 w-32 px-3 py-2 text-sm border border-input bg-background rounded-md ring-offset-background",
+                          "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                          "disabled:cursor-not-allowed disabled:opacity-50",
+                          "hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                         )}
-                        required
-                    />
+                      >
+                        {phonePrefix.map((prefix) => (
+                          <option key={prefix.code} value={prefix.code}>
+                            {prefix.flag} {prefix.code}
+                          </option>
+                        ))}
+                      </select>
+                      <Input
+                          id="phone"
+                          type="tel"
+                          value={formValues.phone}
+                          onChange={(e) => handlePhoneChange(e.target.value)}
+                          onBlur={(e) => handleFieldBlur("phone", e.target.value)}
+                          className={cn(
+                              "flex-1 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
+                              validationErrors.phone && touchedFields.phone
+                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                                  : "",
+                          )}
+                          placeholder="69 123 4567"
+                          required
+                      />
+                    </div>
                     {validationErrors.phone && touchedFields.phone && (
                         <p className="text-sm text-red-500 flex items-center">
                           <AlertCircle className="h-4 w-4 mr-1" />
@@ -1785,6 +1860,8 @@ export default function VenueBookPage() {
                     </label>
                     <Textarea
                         id="special-requests"
+                        value={specialRequests}
+                        onChange={(e) => setSpecialRequests(e.target.value)}
                         placeholder={t("venueBook.specialRequestsPlaceholder")}
                         className="min-h-[100px] focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                     />
@@ -1840,69 +1917,6 @@ export default function VenueBookPage() {
                                     {guests} {t("venueBook.guests")}
                                 </span>
                             </div>
-                        </div>
-                    </div>
-
-                    <div className="border-t pt-4 mt-4 space-y-3">
-                        <div className="flex justify-between items-center">
-                            <div className="flex items-center">
-                                <span className="text-sm">{t("venueBook.venueRental")}</span>
-                                <Badge className={`ml-2 text-[10px] ${getPriceTypeBadge(venue.price.type).bgColor}`}>
-                                    {getPriceTypeBadge(venue.price.type).text}
-                                </Badge>
-                            </div>
-                            <span className="text-sm font-medium">{basePrice}</span>
-                        </div>
-
-                        {/* Services summary */}
-                        {Object.entries(selectedServices).map(([serviceId, optionIds]) =>
-                            optionIds.map((optionId) => {
-                                const service = services.find((s) => s.id === serviceId)
-                                if (!service) return null
-
-                                const option = service.options.find((o) => o.id === optionId)
-                                if (!option) return null
-
-                                let price = convertPrice(option.price.amount, (option.price.currency || "USD") as Currency)
-                                if (option.price.type === "perPerson") {
-                                    price = convertPrice(option.price.amount * guests, (option.price.currency || "USD") as Currency)
-                                }
-
-                                return (
-                                    <div key={`${serviceId}-${optionId}`} className="flex justify-between text-sm">
-                                        <div className="flex-1 min-w-0 mr-4">
-                                            <div className="truncate">
-                                                <span>{service.name[language]}</span>
-                                                <span className="text-muted-foreground ml-1">({option.name[language]})</span>
-                                            </div>
-                                            {option.price.type === "perPerson" && (
-                                                <div className="text-xs text-muted-foreground">
-                                                    {formatPrice(convertPrice(option.price.amount, (option.price.currency || "USD") as Currency), currency)} × {guests}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <span className="font-medium whitespace-nowrap">{formatPrice(price, currency)}</span>
-                                    </div>
-                                )
-                            }),
-                        )}
-
-                        <div className="flex justify-between items-center pt-2">
-                            <div className="flex items-center">
-                                <span className="text-sm">{t("venueBook.serviceFee")}</span>
-                                <div className="relative ml-1 group">
-                                    <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-popover text-popover-foreground text-xs rounded shadow-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity">
-                                        {t("venueBook.serviceFeeInfo")}
-                                    </div>
-                                </div>
-                            </div>
-                            <span className="text-sm font-medium">{serviceFee}</span>
-                        </div>
-
-                        <div className="flex justify-between items-center pt-3 border-t">
-                            <span className="font-semibold">{t("venueBook.total")}</span>
-                            <span className="font-semibold text-lg">{total}</span>
                         </div>
                     </div>
 
@@ -2234,33 +2248,27 @@ export default function VenueBookPage() {
                         <Building2 className="h-4 w-4 mr-2" />
                         {t("venueBook.venueRental") || "Venue Rental"}
                       </h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-sm">{venue?.name[language]}</span>
-                          <div className="text-right">
-                            <div className="text-sm font-medium">
-                              {confirmationData.breakdown.venue.originalCurrency !== currency && (
-                                <div className="text-xs text-muted-foreground">
-                                  {formatPrice(confirmationData.breakdown.venue.finalAmount, confirmationData.breakdown.venue.originalCurrency as Currency)}
-                                  {confirmationData.breakdown.venue.type === "perPerson" && ` × ${guests} guests`}
-                                </div>
-                              )}
-                              <div className="text-sm font-medium">
-                                {formatPrice(confirmationData.breakdown.venue.convertedAmount, currency)}
-                              </div>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="text-sm font-medium">{venue?.name[language]}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {confirmationData.breakdown.venue.type === "perPerson" 
+                                ? `${formatPrice(confirmationData.breakdown.venue.originalAmount, confirmationData.breakdown.venue.originalCurrency as Currency)} ${t("venueBook.perPerson")}`
+                                : confirmationData.breakdown.venue.type === "hourly"
+                                ? `${formatPrice(confirmationData.breakdown.venue.originalAmount, confirmationData.breakdown.venue.originalCurrency as Currency)} ${t("venueBook.perHour")}`
+                                : t("business.pricing.fixed")
+                              }
+                              {confirmationData.breakdown.venue.type === "perPerson" && ` × ${guests} ${t("venueBook.guests")}`}
+                              {confirmationData.breakdown.venue.type === "hourly" && ` × ${confirmationData.breakdown.venue.hours} ${t("venueBook.hours")}`}
                             </div>
                           </div>
-                        </div>
-                        <div className="text-xs text-muted-foreground flex justify-between">
-                          <span>
-                            {confirmationData.breakdown.venue.type === "perPerson" 
-                              ? `${formatPrice(confirmationData.breakdown.venue.originalAmount, confirmationData.breakdown.venue.originalCurrency as Currency)} per person`
-                              : t("business.pricing.fixed")
-                            }
-                          </span>
-                          <Badge className={`text-xs ${getPriceTypeBadge(confirmationData.breakdown.venue.type).bgColor}`}>
-                            {getPriceTypeBadge(confirmationData.breakdown.venue.type).text}
-                          </Badge>
+                          <div className="text-right">
+                            <div className="text-sm font-medium">
+                              {formatPrice(confirmationData.breakdown.venue.convertedAmount, currency)}
+                            </div>
+
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -2279,25 +2287,18 @@ export default function VenueBookPage() {
                                 <div className="text-sm font-medium">
                                   {service.serviceName[language]} - {service.optionName[language]}
                                 </div>
-                                <div className="text-xs text-muted-foreground flex items-center gap-2">
-                                  <span>
-                                    {service.type === "perPerson" 
-                                      ? `${formatPrice(service.originalAmount, service.originalCurrency as Currency)} per person`
-                                      : t("business.pricing.fixed")
-                                    }
-                                  </span>
-                                  <Badge className={`text-xs ${getPriceTypeBadge(service.type).bgColor}`}>
-                                    {getPriceTypeBadge(service.type).text}
-                                  </Badge>
+                                <div className="text-xs text-muted-foreground">
+                                  {service.type === "perPerson" 
+                                    ? `${formatPrice(service.originalAmount, service.originalCurrency as Currency)} ${t("venueBook.perPerson")}`
+                                    : service.type === "hourly"
+                                    ? `${formatPrice(service.originalAmount, service.originalCurrency as Currency)} ${t("venueBook.perHour")}`
+                                    : t("business.pricing.fixed")
+                                  }
+                                  {service.type === "perPerson" && ` × ${guests} ${t("venueBook.guests")}`}
+                                  {service.type === "hourly" && ` × ${service.hours} ${t("venueBook.hours")}`}
                                 </div>
                               </div>
                               <div className="text-right">
-                                {service.originalCurrency !== currency && (
-                                  <div className="text-xs text-muted-foreground">
-                                    {formatPrice(service.finalAmount, service.originalCurrency as Currency)}
-                                    {service.type === "perPerson" && ` × ${guests} guests`}
-                                  </div>
-                                )}
                                 <div className="text-sm font-medium">
                                   {formatPrice(service.convertedAmount, currency)}
                                 </div>
@@ -2308,49 +2309,53 @@ export default function VenueBookPage() {
                       </div>
                     )}
 
-                    {/* Currency Summary */}
+                    {/* Price Breakdown */}
                     <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
                       <h4 className="font-medium mb-3 flex items-center">
                         <DollarSign className="h-4 w-4 mr-2" />
                         {t("venueBook.priceBreakdown") || "Price Breakdown"}
                       </h4>
                       <div className="space-y-2">
+                        {/* Venue Total */}
                         <div className="flex justify-between text-sm">
-                          <span>{t("venueBook.subtotal") || "Subtotal"}</span>
+                          <span>{t("venueBook.venueTotal") || "Venue Total"}</span>
                           <div className="text-right">
-                            <span className="font-medium">{formatPrice(confirmationData.breakdown.totals.subtotal, currency)}</span>
-                            {currency !== "USD" && (
-                              <div className="text-xs text-muted-foreground">
-                                {formatPrice(confirmationData.breakdown.totals.subtotalUSD, "USD" as Currency)}
-                              </div>
-                            )}
+                            <span className="font-medium">{formatPrice(confirmationData.breakdown.venue.convertedAmount, currency)}</span>
+                            
                           </div>
                         </div>
-                        <div className="flex justify-between text-sm">
-                          <span>{t("venueBook.serviceFee") || "Service Fee"} (10%)</span>
-                          <div className="text-right">
-                            <span className="font-medium">{formatPrice(confirmationData.breakdown.totals.serviceFee, currency)}</span>
-                            {currency !== "USD" && (
-                              <div className="text-xs text-muted-foreground">
-                                {formatPrice(confirmationData.breakdown.totals.serviceFeeUSD, "USD" as Currency)}
-                              </div>
-                            )}
+
+                        {/* Services Total */}
+                        {confirmationData.breakdown.services.length > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span>{t("venueBook.servicesTotal") || "Services Total"}</span>
+                            <div className="text-right">
+                              <span className="font-medium">
+                                {formatPrice(
+                                  confirmationData.breakdown.services.reduce((sum: number, service: any) => sum + service.convertedAmount, 0),
+                                  currency
+                                )}
+                              </span>
+                              
+                            </div>
                           </div>
-                        </div>
+                        )}
+
+                        
+
+                        {/* Total */}
                         <div className="border-t pt-2 flex justify-between font-semibold">
                           <span>{t("venueBook.total") || "Total"}</span>
                           <div className="text-right">
                             <span className="text-lg">{formatPrice(confirmationData.breakdown.totals.total, currency)}</span>
-                            {currency !== "USD" && (
-                              <div className="text-sm text-muted-foreground font-normal">
-                                ≈ {formatPrice(confirmationData.breakdown.totals.totalUSD, "USD" as Currency)}
-                              </div>
-                            )}
+                            
                           </div>
                         </div>
                       </div>
                     </div>
 
+                    {/* Currency Summary */}
+                  
                     {/* Booking Summary with USD Info */}
                     <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20">
                       <h4 className="font-medium mb-3 text-blue-800 dark:text-blue-200">
@@ -2396,6 +2401,15 @@ export default function VenueBookPage() {
                           <div className="font-medium">{endDate ? format(endDate, "PPP p") : ""}</div>
                         </div>
                       </div>
+                      {/* Special Requests */}
+                      {confirmationData.bookingData.specialRequests && (
+                        <div className="mt-4 pt-4 border-t">
+                          <div className="text-sm">
+                            <span className="font-medium text-muted-foreground">{t("venueBook.specialRequests") || "Special Requests"}:</span>
+                            <p className="mt-1 text-foreground">{confirmationData.bookingData.specialRequests}</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
