@@ -6,6 +6,7 @@ import type React from "react"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useLanguage } from "../../context/language-context"
+import { useCurrency, type Currency } from "../../context/currency-context"
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
@@ -68,6 +69,7 @@ interface VenueForm {
 
 export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps) {
   const { t, language } = useLanguage()
+  const { formatPrice, convertPrice, currency } = useCurrency()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState("details")
   const [venueForm, setVenueForm] = useState<VenueForm>({
@@ -99,13 +101,13 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
       type: PricingType.HOURLY,
     },
     dayAvailability: {
-      monday: "9:00 AM - 10:00 PM",
-      tuesday: "9:00 AM - 10:00 PM",
-      wednesday: "9:00 AM - 10:00 PM",
-      thursday: "9:00 AM - 10:00 PM",
-      friday: "9:00 AM - 12:00 AM",
-      saturday: "10:00 AM - 12:00 AM",
-      sunday: "10:00 AM - 10:00 PM",
+      monday: "12:00 AM - 11:59 PM",
+      tuesday: "12:00 AM - 11:59 PM",
+      wednesday: "12:00 AM - 11:59 PM",
+      thursday: "12:00 AM - 11:59 PM",
+      friday: "12:00 AM - 11:59 PM",
+      saturday: "12:00 AM - 11:59 PM",
+      sunday: "12:00 AM - 11:59 PM",
     },
   })
 
@@ -405,13 +407,13 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
             type: PricingType.HOURLY,
           },
           dayAvailability: {
-            monday: "9:00 AM - 10:00 PM",
-            tuesday: "9:00 AM - 10:00 PM",
-            wednesday: "9:00 AM - 10:00 PM",
-            thursday: "9:00 AM - 10:00 PM",
-            friday: "9:00 AM - 12:00 AM",
-            saturday: "10:00 AM - 12:00 AM",
-            sunday: "10:00 AM - 10:00 PM",
+            "monday": "12:00 AM - 11:59 PM",
+            "tuesday": "12:00 AM - 11:59 PM",
+            "wednesday": "12:00 AM - 11:59 PM",
+            "thursday": "12:00 AM - 11:59 PM",
+            "friday": "12:00 AM - 11:59 PM",
+            "saturday": "12:00 AM - 11:59 PM",
+            "sunday": "12:00 AM - 11:59 PM"
           },
         })
 
@@ -425,10 +427,9 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
           onClose()
         }
       } else {
-        const errorData = await response.json()
         toast({
           title: "Error",
-          description: errorData.message || "Failed to create venue",
+          description: response.error || "Failed to create venue",
           variant: "destructive",
         })
       }
@@ -926,49 +927,40 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
 
               <TabsContent value="pricing" className="space-y-6">
                 <div className="space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {/* Add validation to the price input in the pricing tab
-                  // Replace the price input with: */}
-                    <div className="space-y-2">
-                      <Label htmlFor="price" className="flex items-center gap-1">
-                        {t("business.common.price")}*
-                        {fieldTouched["price.amount"] && !fieldErrors["price.amount"] && (
-                            <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                              <path
-                                  fillRule="evenodd"
-                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                  clipRule="evenodd"
-                              />
-                            </svg>
-                        )}
-                      </Label>
-                      <div className="relative">
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="price">{t("business.common.price")} (USD)</Label>
+                      <p className="text-xs text-muted-foreground">
+                        {t("business.venueNew.priceExplanation") || "All prices should be entered in USD for consistency. The converted price in your selected currency will be shown below."}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
                         <Input
-                            id="price"
-                            type="number"
-                            placeholder={t("business.common.enterPrice") || "Enter price"}
-                            value={venueForm.price.amount || ""}
-                            onChange={(e) => setVenueForm(prev => ({
-                              ...prev,
-                              price: {
-                                ...prev.price,
-                                amount: e.target.value ? Number(e.target.value) : undefined
-                              }
-                            }))}
+                          id="price"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={venueForm.price.amount || ""}
+                          onChange={(e) => setVenueForm(prev => ({
+                            ...prev,
+                            price: {
+                              ...prev.price,
+                              amount: e.target.value ? Number(e.target.value) : undefined
+                            }
+                          }))}
+                          className="pl-8"
                         />
                       </div>
-                      <FieldError error={fieldTouched["price.amount"] ? fieldErrors["price.amount"] : undefined} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="pricingType">{t("business.serviceNew.pricingType")}*</Label>
                       <Select
-                          value={venueForm.price.type}
-                          onValueChange={(value) =>
-                              setVenueForm({ ...venueForm, price: { ...venueForm.price, type: value as PricingType } })
-                          }
+                        value={venueForm.price.type}
+                        onValueChange={(value) =>
+                            setVenueForm({ ...venueForm, price: { ...venueForm.price, type: value as PricingType } })
+                        }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-[180px]">
                           <SelectValue placeholder={t("business.common.selectPriceType")} />
                         </SelectTrigger>
                         <SelectContent>
@@ -980,6 +972,15 @@ export function VenueNewModal({ isOpen, onClose, onSuccess }: VenueNewModalProps
                         </SelectContent>
                       </Select>
                     </div>
+                    {currency !== "USD" && venueForm.price.amount && (
+                      <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">
+                        <p className="text-sm text-blue-700 dark:text-blue-300">
+                          <span className="font-medium">{t("business.venueNew.convertedPrice") || "Converted price"}:</span>{" "}
+                          {formatPrice(convertPrice(venueForm.price.amount, "USD" as Currency), currency)} {t(`business.pricing.${venueForm.price.type}`)}
+                        </p>
+                      </div>
+                    )}
+                    <FieldError error={fieldTouched["price.amount"] ? fieldErrors["price.amount"] : undefined} />
                   </div>
                 </div>
 

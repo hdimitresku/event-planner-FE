@@ -96,7 +96,7 @@ interface EditForm {
 
 export default function BusinessVenuesPage() {
   const { t, language } = useLanguage()
-  const { formatPrice } = useCurrency()
+  const { formatPrice, convertPrice, currency } = useCurrency()
   const [activeTab, setActiveTab] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedVenueTypes, setSelectedVenueTypes] = useState<string[]>([])
@@ -568,8 +568,10 @@ export default function BusinessVenuesPage() {
           blockedDates: updatedBlockedDates,
         },
       }
+      const formData = new FormData()
+      formData.append("data", JSON.stringify(venueUpdate))
 
-      const result = await venueService.updateVenue(selectedVenue.id, venueUpdate)
+      const result = await venueService.updateVenue(selectedVenue.id, formData)
 
       if (result.success) {
         setBlockedDates(updatedBlockedDates)
@@ -741,7 +743,7 @@ export default function BusinessVenuesPage() {
                       className="bg-secondary text-secondary-foreground border-none font-medium shadow-lg px-3 py-1 hover:bg-secondary/80 transition-colors flex items-center gap-1.5"
                     >
                       {getVenueTypeIcon(selectedVenue.type)}
-                      {t(`business.venueTypes.${selectedVenue.type.toLowerCase()}`) || selectedVenue.type}
+                      {t(`business.venueTypes.${selectedVenue.type}`) || selectedVenue.type}
                     </Badge>
                   </div>
 
@@ -1090,27 +1092,36 @@ export default function BusinessVenuesPage() {
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid grid-cols-1 gap-2">
-                <Label htmlFor="price">{t("business.venues.price")}</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  value={editForm.price.amount}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, price: { ...editForm.price, amount: Number.parseInt(e.target.value) } })
-                  }
-                />
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <Label htmlFor="price">{t("business.common.price")} (USD)</Label>
+                <p className="text-xs text-muted-foreground">
+                  {t("business.venueNew.priceExplanation") || "All prices should be entered in USD for consistency. The converted price in your selected currency will be shown below."}
+                </p>
               </div>
-              <div className="grid grid-cols-1 gap-2">
-                <Label htmlFor="price-type">{t("business.venues.priceType")}</Label>
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
+                  <Input
+                    id="price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={editForm.price.amount || ""}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, price: { ...editForm.price, amount: e.target.value ? Number.parseFloat(e.target.value) : 0 } })
+                    }
+                    className="pl-8"
+                  />
+                </div>
                 <Select
                   value={editForm.price.type}
                   onValueChange={(value) =>
                     setEditForm({ ...editForm, price: { ...editForm.price, type: value as PricingType } })
                   }
                 >
-                  <SelectTrigger id="price-type">
+                  <SelectTrigger className="w-[180px]" id="price-type">
                     <SelectValue placeholder={t("business.venues.selectPriceType")} />
                   </SelectTrigger>
                   <SelectContent>
@@ -1122,6 +1133,14 @@ export default function BusinessVenuesPage() {
                   </SelectContent>
                 </Select>
               </div>
+              {currency !== "USD" && editForm.price.amount && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    <span className="font-medium">{t("business.venueNew.convertedPrice") || "Converted price"}:</span>{" "}
+                    {formatPrice(convertPrice(editForm.price.amount, "USD" as Currency), currency)} {t(`business.pricing.${editForm.price.type}`)}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-3 gap-4">

@@ -128,7 +128,7 @@ export default function BusinessBookingsPage() {
     let calculatedPrice = basePrice
     if (priceType === "perPerson" || priceType === "perperson") {
       calculatedPrice = basePrice * booking.numberOfGuests
-    } else if (priceType === "perHour" || priceType === "perhour") {
+    } else if (priceType === "hourly" || priceType === "hourly") {
       // Calculate hours between start and end time
       const startTime = new Date(`2000-01-01 ${booking.startTime}`)
       const endTime = new Date(`2000-01-01 ${booking.endTime}`)
@@ -147,7 +147,7 @@ export default function BusinessBookingsPage() {
     if (type === "PER_PERSON" || type === "PERPERSON") {
       return t("business.serviceNew.perPerson") || "Per Person"
     } else if (type === "hourly" || type === "HOURLY") {
-      return t("business.serviceNew.perHour") || "Per Hour"
+      return t("venues.filters.priceType.hourly") || "Per orë"
     }
     return t("business.pricing.fixed") || "Fixed Price"
   }
@@ -1197,7 +1197,7 @@ export default function BusinessBookingsPage() {
                         <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
                         <div>
                           <h4 className="font-medium">{t("business.bookings.total")}</h4>
-                          <p>{calculateVenuePrice(selectedBooking)}</p>
+                          <p>{formatPrice(selectedBooking.totalAmount, selectedBooking.venuePrice?.currency)}</p>
                         </div>
                       </div>
                     </div>
@@ -1234,7 +1234,7 @@ export default function BusinessBookingsPage() {
                               </span>
                                   </div>
                               )
-                            } else if (priceType === "perHour" || priceType === "PERHOUR") {
+                            } else if (priceType === "hourly" || priceType === "hourly") {
                               const startTime = new Date(`2000-01-01 ${selectedBooking.startTime}`)
                               const endTime = new Date(`2000-01-01 ${selectedBooking.endTime}`)
                               const hours = Math.ceil((endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60))

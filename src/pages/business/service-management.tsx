@@ -55,7 +55,7 @@ import { LoadingSpinner } from "../../components/ui/loading-spinner"
 
 export default function ServicesManagementPage() {
   const { t, language } = useLanguage()
-  const { formatPrice } = useCurrency()
+  const { formatPrice, convertPrice, currency } = useCurrency()
   const [activeTab, setActiveTab] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
@@ -676,42 +676,53 @@ export default function ServicesManagementPage() {
                           />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <Label htmlFor={`option-price-${index}`}>{t("business.services.price")}</Label>
-                            <div className="relative">
-                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
-                            $
-                          </span>
+                        <div className="space-y-3">
+                          <div className="space-y-1">
+                            <Label htmlFor={`option-price-${index}`}>{t("business.common.price")} (USD)</Label>
+                            <p className="text-xs text-muted-foreground">
+                              {t("business.serviceNew.priceExplanation") || "All prices should be entered in USD for consistency. The converted price in your selected currency will be shown below."}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
                               <Input
-                                  id={`option-price-${index}`}
-                                  type="number"
-                                  value={option.price.amount}
-                                  onChange={(e) =>
-                                      updateOptionField(index, "price.amount", Number.parseFloat(e.target.value))
-                                  }
-                                  className="pl-7"
+                                id={`option-price-${index}`}
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder="0.00"
+                                value={option.price.amount || ""}
+                                onChange={(e) =>
+                                  updateOptionField(index, "price.amount", e.target.value ? Number.parseFloat(e.target.value) : 0)
+                                }
+                                className="pl-8"
                               />
                             </div>
-                          </div>
-                          <div>
-                            <Label htmlFor={`option-price-type-${index}`}>{t("venues.filters.priceType")}</Label>
                             <Select
-                                value={option.price.type}
-                                onValueChange={(value) => updateOptionField(index, "price.type", value)}
+                              value={option.price.type}
+                              onValueChange={(value) => updateOptionField(index, "price.type", value)}
                             >
-                              <SelectTrigger id={`option-price-type-${index}`}>
+                              <SelectTrigger className="w-[180px]" id={`option-price-type-${index}`}>
                                 <SelectValue placeholder={t("business.services.selectPriceType")} />
                               </SelectTrigger>
                               <SelectContent>
                                 {Object.values(PricingType).map((type) => (
-                                    <SelectItem key={type} value={type}>
-                                      {t(`common.${type.toLowerCase()}`) || type.replace("_", " ")}
-                                    </SelectItem>
+                                  <SelectItem key={type} value={type}>
+                                    {t(`common.${type.toLowerCase()}`) || type.replace("_", " ")}
+                                  </SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
                           </div>
+                          {currency !== "USD" && option.price.amount && (
+                            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">
+                              <p className="text-sm text-blue-700 dark:text-blue-300">
+                                <span className="font-medium">{t("business.serviceNew.convertedPrice") || "Converted price"}:</span>{" "}
+                                {formatPrice(convertPrice(option.price.amount, "USD" as Currency), currency)} {t(`common.${option.price.type.toLowerCase()}`)}
+                              </p>
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex items-center space-x-2">

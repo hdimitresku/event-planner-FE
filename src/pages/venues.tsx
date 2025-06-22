@@ -41,7 +41,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
-import type { VenueSummary } from "../models/venue"
+import {VenueAmenity, VenueSummary} from "../models/venue"
 import { PricingType } from "../models/common"
 import * as venueService from "../services/venueService"
 import { useFavorites } from "../context/favorites-context"
@@ -56,8 +56,6 @@ import { useCurrency, type Currency } from "../context/currency-context"
 import { toast } from "@/components/ui/use-toast"
 
 // Define price type interface
-type PriceType = "hourly" | "perPerson" | "fixed"
-
 // Updated venue types to match API data
 const VENUE_TYPES = {
   meetingRoom: "Meeting Room",
@@ -105,28 +103,6 @@ const getVenueRating = (venue: VenueSummary) => {
 }
 
 // Check if a date is blocked for a venue
-const isDateBlocked = (venue: VenueSummary, dateStr: string) => {
-  if (!venue.metadata?.blockedDates || !dateStr) return false
-
-  // Convert the date string to a Date object for comparison
-  const selectedDate = new Date(dateStr)
-  selectedDate.setHours(0, 0, 0, 0) // Normalize to start of day
-
-  return venue.metadata.blockedDates.some((blockedDate: { startDate: string | Date; endDate: string | Date }) => {
-    // Handle different date formats in the API
-    const startDate =
-      typeof blockedDate.startDate === "string" ? new Date(blockedDate.startDate) : new Date(blockedDate.startDate)
-
-    const endDate =
-      typeof blockedDate.endDate === "string" ? new Date(blockedDate.endDate) : new Date(blockedDate.endDate)
-
-    startDate.setHours(0, 0, 0, 0)
-    endDate.setHours(23, 59, 59, 999)
-
-    return selectedDate >= startDate && selectedDate <= endDate
-  })
-}
-
 // Get venue type icon
 const getVenueTypeIcon = (type: string) => {
   switch (type) {
@@ -185,11 +161,7 @@ const VenueCard = ({ venue, language, t }: VenueCardProps) => {
   }, [api, venue.media])
 
   // Function to get venue type display name
-  const getVenueTypeDisplay = (type: keyof typeof VENUE_TYPES) => {
-    return VENUE_TYPES[type] || type
-  }
-
-  // Get price display based on price type and language
+// Get price display based on price type and language
   const getPriceDisplay = (venue: VenueSummary) => {
     switch (venue.price.type) {
       case PricingType.HOURLY:
@@ -353,7 +325,6 @@ const VenueCard = ({ venue, language, t }: VenueCardProps) => {
 export default function VenuesPage() {
   const { t, language } = useLanguage()
   const [searchParams, setSearchParams] = useSearchParams()
-  const navigate = useNavigate()
 
   // Initialize state from URL parameters
   const [priceRange, setPriceRange] = useState<number[]>([0, 1000])
@@ -382,6 +353,7 @@ export default function VenuesPage() {
     location: "",
     date: "",
     guests: "",
+    search: "",
   })
   const [venues, setVenues] = useState<VenueSummary[]>([])
   const [loading, setLoading] = useState(true)
@@ -405,6 +377,7 @@ export default function VenuesPage() {
       location,
       date: dateParam,
       guests,
+      search: searchParams.get("search") || "",
     })
 
     if (dateParam) {
@@ -415,18 +388,20 @@ export default function VenuesPage() {
     const fetchInitialVenues = async () => {
       setLoading(true)
       try {
+        const searchParam = searchParams.get("search") || ""
         const filters = {
           location: location || undefined,
           guests: guests ? Number.parseInt(guests) : undefined,
           date: dateParam || undefined,
+          search: searchParam || undefined,
           page: 1,
           limit: venuesPerPage,
         }
         
         const result = await venueService.getVenues(filters)
-        setVenues(Array.isArray(result) ? result : result.data)
-        setTotalVenues(Array.isArray(result) ? result.length : result.total)
-        setTotalPages(Math.ceil((Array.isArray(result) ? result.length : result.total) / venuesPerPage))
+        setVenues(result)
+        setTotalVenues(result.length)
+        setTotalPages(Math.ceil((result.length) / venuesPerPage))
         setCurrentPage(1)
       } catch (error) {
         console.error("Error fetching venues:", error)
@@ -485,14 +460,10 @@ export default function VenuesPage() {
     }
 
     // Apply amenities filter
-    const selectedAmenities = Object.entries(amenities)
+    const selectedAmenities: string[] = Object.entries(amenities)
       .filter(([_, selected]) => selected)
       .map(([amenity]) => amenity)
-    if (selectedAmenities.length > 0 && !selectedAmenities.every(amenity => venue.amenities.includes(amenity))) {
-      return false
-    }
-
-    return true
+    return !(selectedAmenities.length > 0 && !selectedAmenities.every(amenity => venue.amenities.includes(amenity)));
   })
 
   const handleVenueTypeChange = (type: string, checked: boolean) => {
@@ -521,15 +492,21 @@ export default function VenuesPage() {
   }
 
   const handleSearch = () => {
-    setCurrentPage(1)
-    fetchVenues(1)
-
-    // Update URL parameters
+    // Update URL parameters first
     const params = new URLSearchParams()
+    if (searchFilters.search) params.set("search", searchFilters.search)
     if (searchFilters.location) params.set("location", searchFilters.location)
     if (searchFilters.date) params.set("date", searchFilters.date)
     if (searchFilters.guests) params.set("guests", searchFilters.guests)
     setSearchParams(params)
+    
+    // Reset to first page and fetch venues with current search filters
+    setCurrentPage(1)
+    
+    // Use timeout to ensure state updates have been processed
+    setTimeout(() => {
+      fetchVenues(1)
+    }, 0)
   }
 
   const handlePageChange = (page: number) => {
@@ -538,72 +515,7 @@ export default function VenuesPage() {
     // Scroll to top when changing pages
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
-
-  const clearAllFilters = async () => {
-    // First clear all the filter states
-    setPriceRange([0, 1000])
-    setUsePriceFilter(false)
-    setVenueTypes({
-      meetingRoom: false,
-      ballroom: false,
-      loft: false,
-      garden: false,
-      rooftop: false,
-    })
-    setPriceTypes({
-      [PricingType.HOURLY]: false,
-      [PricingType.PER_PERSON]: false,
-      [PricingType.FIXED]: false,
-    })
-    setAmenities({
-      wifi: false,
-      parking: false,
-      sound_system: false,
-      kitchen: false,
-      av_equipment: false,
-      bathroom: false,
-    })
-    setSearchFilters({
-      location: "",
-      date: "",
-      guests: "",
-    })
-    setDate(undefined)
-    setCurrentPage(1)
-    
-    // Clear URL parameters
-    setSearchParams({})
-
-    // Make the API call with empty filters
-    setLoading(true)
-    try {
-      const response = await venueService.getVenues({
-        page: 1,
-        limit: venuesPerPage
-      })
-      
-      if (Array.isArray(response)) {
-        setVenues(response)
-        setTotalVenues(response.length)
-        setTotalPages(Math.ceil(response.length / venuesPerPage))
-      } else {
-        setVenues(response.data || [])
-        setTotalVenues(response.total || 0)
-        setTotalPages(Math.ceil((response.total || 0) / venuesPerPage))
-      }
-    } catch (error) {
-      console.error("Error fetching venues:", error)
-      toast({
-        title: "Error",
-        description: "Failed to load venues. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Generate pagination buttons
+// Generate pagination buttons
   const generatePaginationButtons = () => {
     const buttons = []
     const maxVisiblePages = 5
@@ -657,6 +569,7 @@ export default function VenuesPage() {
         location: searchFilters.location || undefined,
         guests: searchFilters.guests ? Number.parseInt(searchFilters.guests) : undefined,
         date: searchFilters.date || undefined,
+        search: searchFilters.search || undefined,
         page,
         limit: venuesPerPage,
       }
@@ -668,10 +581,6 @@ export default function VenuesPage() {
         setVenues(response)
         setTotalVenues(response.length)
         setTotalPages(Math.ceil(response.length / venuesPerPage))
-      } else {
-        setVenues(response.data || [])
-        setTotalVenues(response.total || 0)
-        setTotalPages(Math.ceil((response.total || 0) / venuesPerPage))
       }
       
       setCurrentPage(page)
@@ -724,6 +633,29 @@ export default function VenuesPage() {
                     {t("venues.searchBar.title") || "Search"}
                   </h2>
                   <div className="space-y-5">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-card-foreground" htmlFor="search">
+                        {t("venues.searchBar.venueName") || "Venue Name"}
+                      </label>
+                      <div className="form-input flex items-center gap-3">
+                        <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <Input
+                          id="search"
+                          name="search"
+                          value={searchFilters.search}
+                          onChange={handleSearchChange}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleSearch()
+                            }
+                          }}
+                          className="border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
+                          placeholder={t("venues.searchBar.venueNamePlaceholder") || "Search by venue name..."}
+                        />
+                      </div>
+                    </div>
+
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-card-foreground" htmlFor="location">
                         {t("venues.searchBar.location") || "Location"}
@@ -844,6 +776,7 @@ export default function VenuesPage() {
                             location: "",
                             date: "",
                             guests: "",
+                            search: "",
                           })
                           setDate(undefined)
                           setPriceRange([0, 1000])

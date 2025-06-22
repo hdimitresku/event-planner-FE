@@ -61,18 +61,18 @@ interface ServiceFormData {
 }
 
 const defaultAvailability = {
-  monday: "9:00 AM - 10:00 PM",
-  tuesday: "9:00 AM - 10:00 PM",
-  wednesday: "9:00 AM - 10:00 PM",
-  thursday: "9:00 AM - 10:00 PM",
-  friday: "9:00 AM - 12:00 AM",
-  saturday: "10:00 AM - 12:00 AM",
-  sunday: "10:00 AM - 10:00 PM",
+  "monday": "12:00 AM - 11:59 PM",
+  "tuesday": "12:00 AM - 11:59 PM",
+  "wednesday": "12:00 AM - 11:59 PM",
+  "thursday": "12:00 AM - 11:59 PM",
+  "friday": "12:00 AM - 11:59 PM",
+  "saturday": "12:00 AM - 11:59 PM",
+  "sunday": "12:00 AM - 11:59 PM"
 }
 
 export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNewModalProps) {
   const { t } = useLanguage()
-  const { formatPrice } = useCurrency()
+  const { formatPrice, convertPrice, currency } = useCurrency()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedImages, setSelectedImages] = useState<File[]>([])
   const [formData, setFormData] = useState<ServiceFormData>({
@@ -632,18 +632,27 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
                         </div>
                       </div>
 
-                      <div className="grid gap-4 sm:grid-cols-1 gap-2">
-                        <Label htmlFor="price">{t("business.common.price")}</Label>
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          <Label htmlFor={`price-${index}`}>{t("business.common.price")} (USD)</Label>
+                          <p className="text-xs text-muted-foreground">
+                            {t("business.serviceNew.priceExplanation") || "All prices should be entered in USD for consistency. The converted price in your selected currency will be shown below."}
+                          </p>
+                        </div>
                         <div className="flex items-center gap-2">
-                          <Input
-                            id="price"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={option.price.amount || ""}
-                            onChange={(e) => updateOption(index, "price.amount", e.target.value ? Number(e.target.value) : undefined)}
-                            className="flex-1"
-                          />
+                          <div className="relative flex-1">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
+                            <Input
+                              id={`price-${index}`}
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="0.00"
+                              value={option.price.amount || ""}
+                              onChange={(e) => updateOption(index, "price.amount", e.target.value ? Number(e.target.value) : undefined)}
+                              className="pl-8"
+                            />
+                          </div>
                           <Select
                             value={option.price.type}
                             onValueChange={(value) => updateOption(index, "price.type", value)}
@@ -658,9 +667,14 @@ export function ServiceNewModal({ isOpen, onClose, onServiceCreated }: ServiceNe
                             </SelectContent>
                           </Select>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          {formatPrice(option.price.amount || 0, option.price.currency as Currency)} {t(`business.pricing.${option.price.type}`)}
-                        </p>
+                        {currency !== "USD" && option.price.amount && (
+                          <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">
+                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                              <span className="font-medium">{t("business.serviceNew.convertedPrice") || "Converted price"}:</span>{" "}
+                              {formatPrice(convertPrice(option.price.amount, "USD" as Currency), currency)} {t(`business.pricing.${option.price.type}`)}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

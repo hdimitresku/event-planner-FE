@@ -5,7 +5,7 @@
  */
 
 import { apiRequest, buildQueryString, USE_MOCK_DATA } from './apiService';
-import { Venue, VenueSummary, VenueCreateData, VenueType, VenueAmenity } from '../models/venue';
+import { Venue, VenueSummary, VenueType, VenueAmenity } from '../models/venue';
 import { PricingType } from '../models/common';
 import { MockDataService } from './mockDataService';
 
@@ -225,8 +225,8 @@ export const getSimilarVenues = async (
 
       return {
         venues: similarVenues
-          .sort((a, b) => b.similarityScore - a.similarityScore)
-          .slice(0, limit) as Venue[],
+            .sort((a, b) => b.similarityScore - a.similarityScore)
+            .slice(0, limit) as unknown as Venue[],
       };
     }
 

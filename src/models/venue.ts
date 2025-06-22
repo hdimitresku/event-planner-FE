@@ -116,6 +116,7 @@ export interface VenueSummary {
   price: Price
   media: MediaItem[]
   amenities: VenueAmenity[]
+  metadata?: VenueMetadata
   capacity: Capacity
   reviews?: Review[]
   operatingHours?: OperatingHours
