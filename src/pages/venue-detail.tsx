@@ -394,7 +394,6 @@ export default function VenueDetailPage() {
       setLoading(true)
       try {
         if (id) {
-          console.log(id)
           const venueData = await venueService.getVenueById(id)
           const result = await serviceService.getServiceTypesByVenueType(venueData?.type)
 
@@ -507,6 +506,7 @@ export default function VenueDetailPage() {
     return `${apiUrl}/${url.replace(/\\/g, "/")}`
   }
 
+
   // Get price display based on price type and language
   const getPriceDisplay = (venue: Venue) => {
     if (!venue || !venue.price) return ""
@@ -617,6 +617,7 @@ export default function VenueDetailPage() {
     if (!venue || !venue.price) return 0
 
     const duration = calculateDuration()
+
     const numberOfGuests = guests || venue.capacity.min
 
     switch (venue.price.type) {
