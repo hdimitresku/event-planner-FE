@@ -35,7 +35,6 @@ import {
   CheckCircle,
   Loader2,
   X,
-  ChevronUp,
   Building2,
 } from "lucide-react"
 import { useLanguage } from "../context/language-context"
@@ -53,7 +52,7 @@ import { useAuth } from "../context/auth-context"
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover"
 import { Calendar } from "../components/ui/calendar"
 import { Label } from "../components/ui/label"
-import { User as UserType } from "../models/user"
+import type { User as UserType } from "../models/user"
 
 // Define interfaces for the API data structure
 interface LocalizedText {
@@ -356,14 +355,13 @@ export default function VenueBookPage() {
     { code: "+60", country: "MY", name: "Malaysia", flag: "🇲🇾" },
     { code: "+351", country: "PT", name: "Portugal", flag: "🇵🇹" },
     { code: "+358", country: "FI", name: "Finland", flag: "🇫🇮" },
-    { code: "+65", country: "SG", name: "Singapore", flag: "🇸🇬" }
-  ];
-  
+    { code: "+65", country: "SG", name: "Singapore", flag: "🇸🇬" },
+  ]
 
   // Handle phone number input with automatic 0 removal
   const handlePhoneChange = (value: string) => {
     // Remove leading 0 if present (common in local formats)
-    const cleanedValue = value.startsWith('0') ? value.substring(1) : value
+    const cleanedValue = value.startsWith("0") ? value.substring(1) : value
     handleFormChange("phone", cleanedValue)
   }
 
@@ -386,7 +384,7 @@ export default function VenueBookPage() {
     // Clean the phone number: remove spaces, dashes, brackets, and leading 0
     let cleanedPhone = phone.replace(/[\s\-$$$$]/g, "")
     // Remove leading 0 if present (common in local formats like Albanian)
-    if (cleanedPhone.startsWith('0')) {
+    if (cleanedPhone.startsWith("0")) {
       cleanedPhone = cleanedPhone.substring(1)
     }
     return phoneRegex.test(cleanedPhone)
@@ -417,13 +415,13 @@ export default function VenueBookPage() {
         if (!value || value < 1) return t("venueBook.validation.guestsRequired") || "Number of guests is required"
         if (venue && value < venue.capacity.min)
           return (
-              t("venueBook.validation.guestsMin", { min: venue.capacity.min }) ||
-              `Minimum ${venue.capacity.min} guests required`
+            t("venueBook.validation.guestsMin", { min: venue.capacity.min }) ||
+            `Minimum ${venue.capacity.min} guests required`
           )
         if (venue && value > venue.capacity.max)
           return (
-              t("venueBook.validation.guestsMax", { max: venue.capacity.max }) ||
-              `Maximum ${venue.capacity.max} guests allowed`
+            t("venueBook.validation.guestsMax", { max: venue.capacity.max }) ||
+            `Maximum ${venue.capacity.max} guests allowed`
           )
         return undefined
 
@@ -538,15 +536,15 @@ export default function VenueBookPage() {
             // Cast venueData to Venue type since we know it has all required properties
             const fullVenueData = {
               ...venueData,
-              owner: venueData.owner || {} as Person,
-              description: venueData.description || { en: '', sq: '' },
-              dayAvailability: venueData.dayAvailability || {} as DayAvailability,
+              owner: venueData.owner || ({} as Person),
+              description: venueData.description || { en: "", sq: "" },
+              dayAvailability: venueData.dayAvailability || ({} as DayAvailability),
               isActive: venueData.isActive || true,
               metadata: venueData.metadata || {},
               bookings: venueData.bookings || [],
               media: venueData.media || [],
               reviews: venueData.reviews || [],
-            } 
+            }
             setVenue(fullVenueData)
 
             // Set initial guests to min capacity if available
@@ -556,8 +554,10 @@ export default function VenueBookPage() {
 
             // Fetch service types for this venue type
             if (venueData.type) {
-              const serviceTypesData = await serviceService.getServiceTypesByVenueType(venueData.type) as ServiceTypesResponse
-              
+              const serviceTypesData = (await serviceService.getServiceTypesByVenueType(
+                venueData.type,
+              )) as ServiceTypesResponse
+
               // Convert service types array to a map for easier lookup
               const serviceTypesMap: Record<string, ServiceType> = {}
               serviceTypesData.forEach((type: ServiceType) => {
@@ -568,13 +568,13 @@ export default function VenueBookPage() {
               // Fetch services for this venue type
               const servicesData = await serviceService.getServicesByVenue(venueData.id)
               console.log(servicesData)
-              const fullServices = servicesData.services.map(service => ({
+              const fullServices = servicesData.services.map((service) => ({
                 ...service,
-                icon: service.icon || 'Info',
+                icon: service.icon || "Info",
                 venueTypes: service.venueTypes || [],
-                dayAvailability: service.dayAvailability || {} as DayAvailability,
+                dayAvailability: service.dayAvailability || ({} as DayAvailability),
                 metadata: service.metadata || {},
-                provider: service.provider || {} as Person,
+                provider: service.provider || ({} as Person),
               })) as Service[]
               setServices(fullServices)
 
@@ -720,35 +720,35 @@ export default function VenueBookPage() {
 
       // Calculate detailed breakdown and prepare confirmation data
       const breakdown = calculateDetailedBreakdown()
-      
+
       // Debug logging to verify pricing calculations
       console.log("=== PRICING BREAKDOWN DEBUG ===")
       console.log("User selected currency:", currency)
       console.log("Venue pricing:", {
         original: `${breakdown.venue?.originalAmount} ${breakdown.venue?.originalCurrency}`,
         selectedCurrency: `${breakdown.venue?.convertedAmount} ${currency}`,
-        USD: `${breakdown.venue?.convertedAmountUSD} USD`
+        USD: `${breakdown.venue?.convertedAmountUSD} USD`,
       })
       breakdown.services.forEach((service: any, index: number) => {
         console.log(`Service ${index + 1}:`, {
           name: `${service.serviceName.en} - ${service.optionName.en}`,
           original: `${service.originalAmount} ${service.originalCurrency}`,
           selectedCurrency: `${service.convertedAmount} ${currency}`,
-          USD: `${service.convertedAmountUSD} USD`
+          USD: `${service.convertedAmountUSD} USD`,
         })
       })
       console.log("Totals:", {
         subtotalSelectedCurrency: `${breakdown.totals.subtotal} ${currency}`,
         subtotalUSD: `${breakdown.totals.subtotalUSD} USD`,
         totalSelectedCurrency: `${breakdown.totals.total} ${currency}`,
-        totalUSD: `${breakdown.totals.totalUSD} USD`
+        totalUSD: `${breakdown.totals.totalUSD} USD`,
       })
       console.log("================================")
 
       // Use form values from state
       const { firstName, lastName, email, phone, phonePrefix } = formValues
       // Remove leading 0 from phone number before combining with prefix
-      const cleanPhone = phone.startsWith('0') ? phone.substring(1) : phone
+      const cleanPhone = phone.startsWith("0") ? phone.substring(1) : phone
       const fullPhoneNumber = `${phonePrefix}${cleanPhone}`
 
       // Format dates and times
@@ -779,7 +779,7 @@ export default function VenueBookPage() {
           // Ensure USD total is always included at top level
           totalUSD: breakdown.totals.totalUSD,
           totalSelectedCurrency: breakdown.totals.total,
-          currency: currency
+          currency: currency,
         },
         metadata: {
           contactDetails: {
@@ -795,7 +795,6 @@ export default function VenueBookPage() {
       setConfirmationData({ bookingData, breakdown })
       setShowConfirmationModal(true)
       setIsSubmitting(false)
-
     } catch (error: any) {
       console.error("Error preparing booking:", error)
       toast.error(t("common.error"), {
@@ -808,7 +807,7 @@ export default function VenueBookPage() {
 
   const handleConfirmBooking = async () => {
     if (!confirmationData) return
-    
+
     setIsSubmitting(true)
     try {
       const response = await bookingService.createBooking(confirmationData.bookingData)
@@ -879,7 +878,7 @@ export default function VenueBookPage() {
     Object.entries(selectedServices).forEach(([serviceId, optionIds]) => {
       const service = services.find((s) => s.id === serviceId)
       if (service) {
-        optionIds.forEach(optionId => {
+        optionIds.forEach((optionId) => {
           const selectedOption = service.options.find((opt) => opt.id === optionId)
           if (selectedOption) {
             const optionPrice = selectedOption.price.amount
@@ -903,25 +902,25 @@ export default function VenueBookPage() {
     return {
       basePrice: formatPrice(basePrice, currency),
       servicesCost: formatPrice(servicesCost, currency),
-      total: formatPrice(total, currency)
+      total: formatPrice(total, currency),
     }
   }
 
   // Calculate detailed price breakdown in all currencies
   const calculateDetailedBreakdown = () => {
     const defaultCurrency = "USD"
-    
+
     const convertToUSD = (amount: number, fromCurrency: string): number => {
       if (fromCurrency === "USD") return amount
       return amount * EXCHANGE_RATES[fromCurrency as Currency]["USD"]
     }
-    
+
     let totalInSelectedCurrency = 0
     let totalInUSD = 0
     const breakdown: any = {
       venue: null,
       services: [],
-      totals: {}
+      totals: {},
     }
 
     // Calculate duration in hours for hourly pricing
@@ -935,7 +934,7 @@ export default function VenueBookPage() {
       const venuePrice = venue.price.amount
       const venueCurrency = venue.price.currency || defaultCurrency
       let finalVenuePrice = venuePrice
-      
+
       // Calculate venue price based on type
       if (venue.price.type === "perPerson") {
         finalVenuePrice = venuePrice * (guests || 0)
@@ -944,12 +943,12 @@ export default function VenueBookPage() {
         finalVenuePrice = venuePrice * hours
       }
       // For "fixed" type, finalVenuePrice remains as venuePrice
-      
+
       const convertedVenuePrice = convertPrice(finalVenuePrice, venueCurrency as Currency)
       const convertedVenuePriceUSD = convertToUSD(finalVenuePrice, venueCurrency)
       totalInSelectedCurrency += convertedVenuePrice
       totalInUSD += convertedVenuePriceUSD
-      
+
       breakdown.venue = {
         originalAmount: venuePrice,
         originalCurrency: venueCurrency,
@@ -958,7 +957,7 @@ export default function VenueBookPage() {
         convertedAmountUSD: convertedVenuePriceUSD,
         type: venue.price.type,
         guests: guests,
-        hours: venue.price.type === "hourly" ? calculateDuration() : undefined
+        hours: venue.price.type === "hourly" ? calculateDuration() : undefined,
       }
     }
 
@@ -966,13 +965,13 @@ export default function VenueBookPage() {
     Object.entries(selectedServices).forEach(([serviceId, optionIds]) => {
       const service = services.find((s) => s.id === serviceId)
       if (service) {
-        optionIds.forEach(optionId => {
+        optionIds.forEach((optionId) => {
           const selectedOption = service.options.find((opt) => opt.id === optionId)
           if (selectedOption) {
             const optionPrice = selectedOption.price.amount
             const optionCurrency = selectedOption.price.currency || defaultCurrency
             let finalOptionPrice = optionPrice
-            
+
             // Calculate service option price based on type
             if (selectedOption.price.type === "perPerson") {
               finalOptionPrice = optionPrice * (guests || 0)
@@ -981,12 +980,12 @@ export default function VenueBookPage() {
               finalOptionPrice = optionPrice * hours
             }
             // For "fixed" type, finalOptionPrice remains as optionPrice
-            
+
             const convertedOptionPrice = convertPrice(finalOptionPrice, optionCurrency as Currency)
             const convertedOptionPriceUSD = convertToUSD(finalOptionPrice, optionCurrency)
             totalInSelectedCurrency += convertedOptionPrice
             totalInUSD += convertedOptionPriceUSD
-            
+
             breakdown.services.push({
               serviceName: service.name,
               optionName: selectedOption.name,
@@ -997,21 +996,19 @@ export default function VenueBookPage() {
               convertedAmountUSD: convertedOptionPriceUSD,
               type: selectedOption.price.type,
               guests: guests,
-              hours: selectedOption.price.type === "hourly" ? calculateDuration() : undefined
+              hours: selectedOption.price.type === "hourly" ? calculateDuration() : undefined,
             })
           }
         })
       }
     })
 
-
-
     breakdown.totals = {
       subtotal: totalInSelectedCurrency,
       subtotalUSD: totalInUSD,
       total: totalInSelectedCurrency,
       totalUSD: totalInUSD,
-      currency: currency
+      currency: currency,
     }
 
     return breakdown
@@ -1021,17 +1018,17 @@ export default function VenueBookPage() {
   const toggleService = (serviceId: string, optionId: string) => {
     setSelectedServices((prev) => {
       const newServices = { ...prev }
-      
+
       // If this option is already selected, deselect it
       if (newServices[serviceId]?.includes(optionId)) {
         delete newServices[serviceId]
         return newServices
       }
-      
+
       // Otherwise, select only this option for this service
       return {
         ...newServices,
-        [serviceId]: [optionId]
+        [serviceId]: [optionId],
       }
     })
   }
@@ -1052,20 +1049,18 @@ export default function VenueBookPage() {
   const { basePrice, servicesCost, total } = calculateTotal()
   const duration = calculateDuration()
 
-
-
   // Get badge color and text for price type
   const getPriceTypeBadge = (priceType: string) => {
     switch (priceType) {
       case "hourly":
         return {
           text: t("business.pricing.hourly"),
-          bgColor: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-400",
+          bgColor: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-400",
         }
       case "perPerson":
         return {
           text: t("business.pricing.perPerson"),
-          bgColor: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-400",
+          bgColor: "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-400",
         }
       case "fixed":
         return {
@@ -1075,7 +1070,7 @@ export default function VenueBookPage() {
       case "custom":
         return {
           text: t("business.pricing.custom"),
-          bgColor: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-400",
+          bgColor: "bg-stone-100 text-stone-800 dark:bg-stone-900/40 dark:text-stone-400",
         }
       default:
         return {
@@ -1125,21 +1120,23 @@ export default function VenueBookPage() {
 
     return venue.metadata.blockedDates.map((date) => {
       // Handle both string and ISO date formats
-      const startDate = typeof date.startDate === "string"
-        ? date.startDate.includes("T")
-          ? parseISO(date.startDate)
-          : new Date(date.startDate)
-        : date.startDate
+      const startDate =
+        typeof date.startDate === "string"
+          ? date.startDate.includes("T")
+            ? parseISO(date.startDate)
+            : new Date(date.startDate)
+          : date.startDate
 
-      const endDate = typeof date.endDate === "string"
-        ? date.endDate.includes("T")
-          ? parseISO(date.endDate)
-          : new Date(date.endDate)
-        : date.endDate
+      const endDate =
+        typeof date.endDate === "string"
+          ? date.endDate.includes("T")
+            ? parseISO(date.endDate)
+            : new Date(date.endDate)
+          : date.endDate
 
       return {
         start: startDate,
-        end: endDate || startDate // If no end date, use start date as end date
+        end: endDate || startDate, // If no end date, use start date as end date
       }
     })
   }
@@ -1148,7 +1145,7 @@ export default function VenueBookPage() {
   const isDateAvailable = (date: Date) => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    
+
     if (date < today) return false
 
     // Check if the date falls within any blocked range
@@ -1238,25 +1235,25 @@ export default function VenueBookPage() {
 
   if (isLoading || !venue) {
     return (
-        <div className="container px-4 md:px-6 py-8">
-          <div className="flex items-center justify-center h-[60vh]">
-            <div className="text-center">
-              <div className="w-16 h-16 border-4 border-t-sky-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-muted-foreground">{t("common.loading")}</p>
-            </div>
+      <div className="container px-4 md:px-6 py-8">
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-t-amber-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-muted-foreground">{t("common.loading")}</p>
           </div>
         </div>
+      </div>
     )
   }
 
   return (
     <>
-      <section className="relative w-full py-16 md:py-24 lg:py-32 overflow-hidden bg-gradient-to-br from-gray-100 via-sky-50 to-emerald-50 dark:from-slate-900 dark:to-slate-800">
-        {/* Enhanced abstract background elements with better contrast */}
+      <section className="relative w-full py-16 md:py-24 lg:py-32 overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-stone-100 dark:from-slate-900 dark:to-slate-800">
+        {/* Enhanced abstract background elements with warm earth tones */}
         <div className="absolute inset-0 overflow-hidden opacity-40 dark:opacity-10">
-          <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-sky-300 to-sky-400 dark:bg-sky-700 blur-3xl"></div>
-          <div className="absolute top-40 -left-20 w-60 h-60 rounded-full bg-gradient-to-tr from-emerald-300 to-emerald-400 dark:bg-emerald-700 blur-3xl"></div>
-          <div className="absolute bottom-20 left-1/2 w-40 h-40 rounded-full bg-gradient-to-r from-violet-200 to-purple-300 dark:bg-purple-700 blur-2xl opacity-60"></div>
+          <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-amber-300 to-orange-400 dark:bg-amber-700 blur-3xl"></div>
+          <div className="absolute top-40 -left-20 w-60 h-60 rounded-full bg-gradient-to-tr from-orange-300 to-red-400 dark:bg-orange-700 blur-3xl"></div>
+          <div className="absolute bottom-20 left-1/2 w-40 h-40 rounded-full bg-gradient-to-r from-stone-200 to-amber-300 dark:bg-stone-700 blur-2xl opacity-60"></div>
         </div>
 
         {/* Subtle texture overlay for light mode */}
@@ -1269,7 +1266,7 @@ export default function VenueBookPage() {
                 <h1 className="text-2xl font-bold md:text-3xl mb-2">{t("venueBook.title")}</h1>
                 <p className="text-muted-foreground">{t("venueBook.subtitle", { venue: venue.name[language] })}</p>
               </div>
-              <Button variant="outline" onClick={handleBackToVenueDetail} className="flex items-center">
+              <Button variant="outline" onClick={handleBackToVenueDetail} className="flex items-center bg-transparent">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 {t("venueBook.backToVenue")}
               </Button>
@@ -1278,32 +1275,32 @@ export default function VenueBookPage() {
             <div className="grid gap-8 md:grid-cols-[1fr_350px]">
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Venue Information Card */}
-                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-amber-100 dark:border-slate-700 shadow-sm">
                   <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold">{t("venueBook.venueDetails")}</h2>
                     <div className="flex items-center">
-                      <Star className="h-4 w-4 text-yellow-400 mr-1" />
+                      <Star className="h-4 w-4 text-amber-400 mr-1" />
                       <span className="text-sm font-medium">
-                      {venue.reviews && venue.reviews.length > 0
+                        {venue.reviews && venue.reviews.length > 0
                           ? (
                               venue.reviews.reduce((sum, review) => sum + review.rating, 0) / venue.reviews.length
-                          ).toFixed(1)
+                            ).toFixed(1)
                           : "0.0"}
-                    </span>
+                      </span>
                       <span className="text-xs text-muted-foreground ml-1">({venue.reviews?.length || 0})</span>
                     </div>
                   </div>
 
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <div className="w-full sm:w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
+                    <div className="w-full sm:w-24 h-24 rounded-lg overflow-hidden bg-amber-100 dark:bg-amber-900/20 flex-shrink-0">
                       <img
-                          src={
-                            venue.media && venue.media.length > 0
-                                ? formatImageUrl(venue.media[0].url)
-                                : "/placeholder.svg?height=96&width=96&text=Venue"
-                          }
-                          alt={venue.name[language]}
-                          className="w-full h-full object-cover"
+                        src={
+                          venue.media && venue.media.length > 0
+                            ? formatImageUrl(venue.media[0].url)
+                            : "/placeholder.svg?height=96&width=96&text=Venue"
+                        }
+                        alt={venue.name[language]}
+                        className="w-full h-full object-cover"
                       />
                     </div>
                     <div className="flex-1">
@@ -1323,7 +1320,7 @@ export default function VenueBookPage() {
                 </div>
 
                 {/* Event Details Card */}
-                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-amber-100 dark:border-slate-700 shadow-sm">
                   <h2 className="text-xl font-semibold">{t("venueBook.eventDetails")}</h2>
 
                   <div ref={eventTypeRef} className="space-y-3">
@@ -1332,35 +1329,35 @@ export default function VenueBookPage() {
                     </label>
                     <div className="relative">
                       <select
-                          id="event-type"
-                          value={eventType}
-                          onChange={(e) => {
-                            setEventType(e.target.value)
-                            handleFieldChange("eventType", e.target.value)
-                          }}
-                          onBlur={(e) => handleFieldBlur("eventType", e.target.value)}
-                          className={cn(
-                              "hover:border-primary hover:shadow-sm w-full p-3 pr-10 border rounded-md bg-background appearance-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
-                              validationErrors.eventType && touchedFields.eventType
-                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                                  : "",
-                          )}
-                          required
+                        id="event-type"
+                        value={eventType}
+                        onChange={(e) => {
+                          setEventType(e.target.value)
+                          handleFieldChange("eventType", e.target.value)
+                        }}
+                        onBlur={(e) => handleFieldBlur("eventType", e.target.value)}
+                        className={cn(
+                          "hover:border-amber-300 hover:shadow-sm w-full p-3 pr-10 border rounded-md bg-background appearance-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
+                          validationErrors.eventType && touchedFields.eventType
+                            ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                            : "",
+                        )}
+                        required
                       >
                         <option value="">{t("venueBook.selectEventType")}</option>
                         {Object.values(EventType).map((type) => (
-                            <option key={type} value={type}>
-                              {t(`venueBook.${type}`)}
-                            </option>
+                          <option key={type} value={type}>
+                            {t(`venueBook.${type}`)}
+                          </option>
                         ))}
                       </select>
                       <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                     </div>
                     {validationErrors.eventType && touchedFields.eventType && (
-                        <p className="text-sm text-red-500 flex items-center">
-                          <AlertCircle className="h-4 w-4 mr-1" />
-                          {validationErrors.eventType}
-                        </p>
+                      <p className="text-sm text-red-500 flex items-center">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        {validationErrors.eventType}
+                      </p>
                     )}
                   </div>
 
@@ -1375,13 +1372,17 @@ export default function VenueBookPage() {
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal",
+                              "w-full justify-start text-left font-normal hover:border-amber-300",
                               !startDate && "text-muted-foreground",
-                              validationErrors.startDate && "border-destructive"
+                              validationErrors.startDate && "border-destructive",
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {startDate ? format(startDate, "PPP p") : <span>{t("venueBook.selectDate") || "Select date"}</span>}
+                            {startDate ? (
+                              format(startDate, "PPP p")
+                            ) : (
+                              <span>{t("venueBook.selectDate") || "Select date"}</span>
+                            )}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
@@ -1395,8 +1396,10 @@ export default function VenueBookPage() {
                               unavailable: (date) => !isDateAvailable(date),
                             }}
                             modifiersClassNames={{
-                              available: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50",
-                              unavailable: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
+                              available:
+                                "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50",
+                              unavailable:
+                                "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
                             }}
                             disabled={(date) => !isDateAvailable(date)}
                             className="rounded-md border"
@@ -1409,7 +1412,7 @@ export default function VenueBookPage() {
                                 if (startDate) {
                                   const [hours, minutes] = e.target.value.split(":")
                                   const newDate = new Date(startDate)
-                                  newDate.setHours(parseInt(hours), parseInt(minutes))
+                                  newDate.setHours(Number.parseInt(hours), Number.parseInt(minutes))
                                   handleStartDateSelect(newDate)
                                 }
                               }}
@@ -1432,13 +1435,17 @@ export default function VenueBookPage() {
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal",
+                              "w-full justify-start text-left font-normal hover:border-amber-300",
                               !endDate && "text-muted-foreground",
-                              validationErrors.endDate && "border-destructive"
+                              validationErrors.endDate && "border-destructive",
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {endDate ? format(endDate, "PPP p") : <span>{t("venueBook.selectDate") || "Select date"}</span>}
+                            {endDate ? (
+                              format(endDate, "PPP p")
+                            ) : (
+                              <span>{t("venueBook.selectDate") || "Select date"}</span>
+                            )}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
@@ -1452,8 +1459,10 @@ export default function VenueBookPage() {
                               unavailable: (date) => !isDateAvailable(date),
                             }}
                             modifiersClassNames={{
-                              available: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50",
-                              unavailable: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
+                              available:
+                                "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50",
+                              unavailable:
+                                "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
                             }}
                             disabled={(date) => !isDateAvailable(date)}
                             className="rounded-md border"
@@ -1466,7 +1475,7 @@ export default function VenueBookPage() {
                                 if (endDate) {
                                   const [hours, minutes] = e.target.value.split(":")
                                   const newDate = new Date(endDate)
-                                  newDate.setHours(parseInt(hours), parseInt(minutes))
+                                  newDate.setHours(Number.parseInt(hours), Number.parseInt(minutes))
                                   handleEndDateSelect(newDate)
                                 }
                               }}
@@ -1485,34 +1494,34 @@ export default function VenueBookPage() {
                       {t("venueBook.guests")} <span className="text-red-500">*</span>
                     </label>
                     <div
-                        className={cn(
-                            "flex items-center border rounded-md bg-background overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-colors hover:border-primary hover:shadow-sm",
-                            validationErrors.guests
-                                ? "border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20"
-                                : "",
-                        )}
+                      className={cn(
+                        "flex items-center border rounded-md bg-background overflow-hidden focus-within:ring-2 focus-within:ring-amber-500/20 focus-within:border-amber-500 transition-colors hover:border-amber-300 hover:shadow-sm",
+                        validationErrors.guests
+                          ? "border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20"
+                          : "",
+                      )}
                     >
                       <Users className="ml-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                          type="number"
-                          min={venue.capacity.min}
-                          max={venue.capacity.max}
-                          value={guests}
-                          onChange={(e) => {
-                            const value = Number.parseInt(e.target.value)
-                            setGuests(value)
-                            handleFieldChange("guests", value)
-                          }}
-                          onBlur={(e) => handleFieldBlur("guests", Number.parseInt(e.target.value))}
-                          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                          required
+                        type="number"
+                        min={venue.capacity.min}
+                        max={venue.capacity.max}
+                        value={guests}
+                        onChange={(e) => {
+                          const value = Number.parseInt(e.target.value)
+                          setGuests(value)
+                          handleFieldChange("guests", value)
+                        }}
+                        onBlur={(e) => handleFieldBlur("guests", Number.parseInt(e.target.value))}
+                        className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        required
                       />
                     </div>
                     {validationErrors.guests && (
-                        <p className="text-sm text-red-500 flex items-center">
-                          <AlertCircle className="h-4 w-4 mr-1" />
-                          {validationErrors.guests}
-                        </p>
+                      <p className="text-sm text-red-500 flex items-center">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        {validationErrors.guests}
+                      </p>
                     )}
                     <p className="text-xs text-muted-foreground">
                       {t("venueBook.guestCapacity", { min: venue.capacity.min, max: venue.capacity.max })}
@@ -1521,7 +1530,7 @@ export default function VenueBookPage() {
                 </div>
 
                 {/* Services Section - Grouped by Type */}
-                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-amber-100 dark:border-slate-700 shadow-sm">
                   <div>
                     <h2 className="text-xl font-semibold">{t("venueBook.services")}</h2>
                     <p className="text-muted-foreground text-sm mt-1">{t("venueBook.servicesSubtitle")}</p>
@@ -1531,205 +1540,224 @@ export default function VenueBookPage() {
                   <div className="services-container max-h-[500px] overflow-y-auto pr-2 space-y-6">
                     {/* Render services grouped by type */}
                     {Object.keys(serviceTypes).length > 0 ? (
-                        Object.entries(serviceTypes).map(([type, serviceType]) => {
-                          const isTypeExpanded = expandedTypes.includes(type)
-                          const selectedCount = countSelectedOptionsForType(type)
-                          const typeDisplayName = serviceTypeNames[type]?.[language] || type
+                      Object.entries(serviceTypes).map(([type, serviceType]) => {
+                        const isTypeExpanded = expandedTypes.includes(type)
+                        const selectedCount = countSelectedOptionsForType(type)
+                        const typeDisplayName = serviceTypeNames[type]?.[language] || type
 
-                          // Get the icon from the service type data
-                          const IconComponent = getIconByName(serviceType.icon)
+                        // Get the icon from the service type data
+                        const IconComponent = getIconByName(serviceType.icon)
 
-                          // Count unique providers
-                          const uniqueProviders = new Set(services.filter((s) => s.type === type).map((s) => s.provider.id)).size
+                        // Count unique providers
+                        const uniqueProviders = new Set(
+                          services.filter((s) => s.type === type).map((s) => s.provider.id),
+                        ).size
 
-                          return (
-                              <div
-                                  key={type}
-                                  className="service-type-section border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden"
-                              >
-                                {/* Service Type Header */}
-                                <div
-                                    className="service-type-header p-4 bg-gray-50 dark:bg-gray-800/50 flex items-center justify-between cursor-pointer"
-                                    onClick={() => toggleTypeExpansion(type)}
-                                >
-                                  <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center space-x-2">
-                                      <div className="h-10 w-10 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center">
-                                        {React.createElement(getIconByName(serviceType.icon), {
-                                          className: "h-5 w-5 text-sky-500 dark:text-sky-400"
-                                        })}
-                                      </div>
-                                      <h3 className="font-medium">{serviceTypeNames[type]?.[language] || type}</h3>
-                                    </div>
-                                    <div className="flex items-center space-x-2 min-w-[100px] justify-end">
-                                      {countSelectedOptionsForType(type) > 0 && (
-                                        <Badge variant="secondary" className="text-xs">
-                                          {countSelectedOptionsForType(type)} {t("venueBook.selected")}
-                                        </Badge>
-                                      )}
-                                    </div>
+                        return (
+                          <div
+                            key={type}
+                            className="service-type-section border border-amber-100 dark:border-amber-800/30 rounded-lg overflow-hidden"
+                          >
+                            {/* Service Type Header */}
+                            <div
+                              className="service-type-header p-4 bg-amber-50 dark:bg-amber-900/20 flex items-center justify-between cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+                              onClick={() => toggleTypeExpansion(type)}
+                            >
+                              <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center space-x-2">
+                                  <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                                    {React.createElement(getIconByName(serviceType.icon), {
+                                      className: "h-5 w-5 text-amber-600 dark:text-amber-400",
+                                    })}
                                   </div>
+                                  <h3 className="font-medium">{serviceTypeNames[type]?.[language] || type}</h3>
                                 </div>
-
-                                {/* All Providers and Services for this type */}
-                                {isTypeExpanded && (
-                                    <div className="service-content p-4 space-y-4 border-t border-gray-100 dark:border-gray-700">
-                                      {/* Group services by provider */}
-                                      {(() => {
-                                        // Group services by provider
-                                        const servicesByProvider: Record<string, Service[]> = {}
-                                        services.forEach((service) => {
-                                          if (service.type === type) {
-                                            const providerId = service.provider.id
-                                            if (!servicesByProvider[providerId]) {
-                                              servicesByProvider[providerId] = []
-                                            }
-                                            servicesByProvider[providerId].push(service)
-                                          }
-                                        })
-
-                                        return Object.entries(servicesByProvider).map(([providerId, providerServices]) => {
-                                          const provider = providerServices[0].provider
-                                          const totalSelectedForProvider = providerServices.reduce(
-                                              (sum, service) => sum + (selectedServices[service.id]?.length || 0),
-                                              0,
-                                          )
-
-                                          return (
-                                              <div key={providerId} className="provider-section space-y-3">
-                                                {/* Provider Header */}
-                                                <div className="provider-header flex items-center justify-between p-3 bg-gray-50/50 dark:bg-gray-800/30 rounded-lg">
-                                                  <div className="flex items-center">
-                                                    <Avatar className="h-8 w-8 mr-3">
-                                                      <AvatarImage
-                                                          src={
-                                                            provider?.profilePicture
-                                                                ? formatImageUrl(provider?.profilePicture)
-                                                                : "/placeholder.svg?height=32&width=32"
-                                                          }
-                                                          alt={`${provider?.firstName} ${provider?.lastName}`}
-                                                      />
-                                                      <AvatarFallback>
-                                                        {provider?.firstName?.charAt(0)}
-                                                        {provider?.lastName?.charAt(0)}
-                                                      </AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                      <h4 className="font-medium text-sm">
-                                                        {provider?.firstName} {provider?.lastName}
-                                                      </h4>
-                                                      <p className="text-xs text-muted-foreground">
-                                                        {providerServices.length}{" "}
-                                                        {providerServices.length === 1
-                                                            ? t("venueBook.service")
-                                                            : t("venueBook.services")}
-                                                      </p>
-                                                    </div>
-                                                  </div>
-                                                  <div className="flex items-center">
-                                                    <Button variant="outline" size="sm" className="text-xs">
-                                                      <MessageSquare className="h-3 w-3 mr-1" />
-                                                      {t("venueBook.contactProvider")}
-                                                    </Button>
-                                                  </div>
-                                                </div>
-
-                                                {/* All Services from this Provider */}
-                                                <div className="provider-services space-y-4">
-                                                  {providerServices.map((service) => (
-                                                      <div key={service.id} className="service-section">
-                                                        {/* Service Name (if provider has multiple services) */}
-                                                        {providerServices.length > 1 && (
-                                                            <div className="service-header mb-2">
-                                                              <h5 className="font-medium text-sm">{service.name[language]}</h5>
-                                                              <p className="text-xs text-muted-foreground">
-                                                                {service.description[language]}
-                                                              </p>
-                                                            </div>
-                                                        )}
-
-                                                        {/* Service Options */}
-                                                        {service.options && service.options.length > 0 ? (
-                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                              {service.options.map((option) => {
-                                                                const isSelected = selectedServices[service.id]?.includes(option.id)
-                                                                return (
-                                                                    <div
-                                                                        key={option.id}
-                                                                        className={cn(
-                                                                            "service-option flex flex-col p-3 relative rounded-lg border-2 border-transparent hover:border-sky-200 dark:hover:border-sky-800 transition-all duration-200 h-[140px]",
-                                                                            isSelected
-                                                                                ? "bg-sky-50 dark:bg-sky-900/30 border-sky-200 dark:border-sky-800"
-                                                                                : "bg-gray-50 dark:bg-slate-800/50 hover:bg-gray-100 dark:hover:bg-slate-700/70",
-                                                                        )}
-                                                                    >
-                                                                      {isSelected && (
-                                                                          <Check className="h-4 w-4 text-primary absolute top-2 right-2" />
-                                                                      )}
-                                                                      <div className="flex-1 min-h-0">
-                                                                        <span className="font-medium text-sm mb-2 line-clamp-1 block">
-                                                                          {option.name[language]}
-                                                                        </span>
-                                                                        <div className="flex items-center mb-3">
-                                                                          <Badge
-                                                                            className={`text-xs ${getPriceTypeBadge(option.price.type).bgColor} mr-2`}
-                                                                          >
-                                                                            {getPriceTypeBadge(option.price.type).text}
-                                                                          </Badge>
-                                                                          <span className="font-medium">{formatPrice(convertPrice(option.price.amount, (option.price.currency || "USD") as Currency), currency)}</span>
-                                                                        </div>
-                                                                      </div>
-                                                                      <div className="flex gap-2 mt-auto">
-                                                                        <button
-                                                                          type="button"
-                                                                          onClick={() => toggleService(service.id, option.id)}
-                                                                          className={cn(
-                                                                              "flex-1 px-3 py-2 text-xs rounded-md transition-colors",
-                                                                              isSelected
-                                                                                  ? "bg-sky-500 text-white hover:bg-sky-600"
-                                                                                  : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600",
-                                                                          )}
-                                                                        >
-                                                                          {isSelected ? t("venueBook.selected") : t("venueBook.select")}
-                                                                        </button>
-                                                                        <button
-                                                                          type="button"
-                                                                          onClick={() => handleViewOptionDetails(service, option)}
-                                                                          className="px-3 py-2 text-xs rounded-md bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                                                                        >
-                                                                          <Info className="h-3 w-3" />
-                                                                        </button>
-                                                                      </div>
-                                                                    </div>
-                                                                )
-                                                              })}
-                                                            </div>
-                                                        ) : (
-                                                            <p className="text-sm text-muted-foreground">
-                                                              {t("venueBook.noOptionsAvailable")}
-                                                            </p>
-                                                        )}
-                                                      </div>
-                                                  ))}
-                                                </div>
-                                              </div>
-                                          )
-                                        })
-                                      })()}
-                                    </div>
-                                )}
+                                <div className="flex items-center space-x-2 min-w-[100px] justify-end">
+                                  {countSelectedOptionsForType(type) > 0 && (
+                                    <Badge
+                                      variant="secondary"
+                                      className="text-xs bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-400"
+                                    >
+                                      {countSelectedOptionsForType(type)} {t("venueBook.selected")}
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
-                          )
-                        })
+                            </div>
+
+                            {/* All Providers and Services for this type */}
+                            {isTypeExpanded && (
+                              <div className="service-content p-4 space-y-4 border-t border-amber-100 dark:border-amber-800/30">
+                                {/* Group services by provider */}
+                                {(() => {
+                                  // Group services by provider
+                                  const servicesByProvider: Record<string, Service[]> = {}
+                                  services.forEach((service) => {
+                                    if (service.type === type) {
+                                      const providerId = service.provider.id
+                                      if (!servicesByProvider[providerId]) {
+                                        servicesByProvider[providerId] = []
+                                      }
+                                      servicesByProvider[providerId].push(service)
+                                    }
+                                  })
+
+                                  return Object.entries(servicesByProvider).map(([providerId, providerServices]) => {
+                                    const provider = providerServices[0].provider
+                                    const totalSelectedForProvider = providerServices.reduce(
+                                      (sum, service) => sum + (selectedServices[service.id]?.length || 0),
+                                      0,
+                                    )
+
+                                    return (
+                                      <div key={providerId} className="provider-section space-y-3">
+                                        {/* Provider Header */}
+                                        <div className="provider-header flex items-center justify-between p-3 bg-stone-50 dark:bg-stone-900/20 rounded-lg">
+                                          <div className="flex items-center">
+                                            <Avatar className="h-8 w-8 mr-3">
+                                              <AvatarImage
+                                                src={
+                                                  provider?.profilePicture
+                                                    ? formatImageUrl(provider?.profilePicture)
+                                                    : "/placeholder.svg?height=32&width=32"
+                                                }
+                                                alt={`${provider?.firstName} ${provider?.lastName}`}
+                                              />
+                                              <AvatarFallback>
+                                                {provider?.firstName?.charAt(0)}
+                                                {provider?.lastName?.charAt(0)}
+                                              </AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                              <h4 className="font-medium text-sm">
+                                                {provider?.firstName} {provider?.lastName}
+                                              </h4>
+                                              <p className="text-xs text-muted-foreground">
+                                                {providerServices.length}{" "}
+                                                {providerServices.length === 1
+                                                  ? t("venueBook.service")
+                                                  : t("venueBook.services")}
+                                              </p>
+                                            </div>
+                                          </div>
+                                          <div className="flex items-center">
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              className="text-xs hover:border-amber-300 bg-transparent"
+                                            >
+                                              <MessageSquare className="h-3 w-3 mr-1" />
+                                              {t("venueBook.contactProvider")}
+                                            </Button>
+                                          </div>
+                                        </div>
+
+                                        {/* All Services from this Provider */}
+                                        <div className="provider-services space-y-4">
+                                          {providerServices.map((service) => (
+                                            <div key={service.id} className="service-section">
+                                              {/* Service Name (if provider has multiple services) */}
+                                              {providerServices.length > 1 && (
+                                                <div className="service-header mb-2">
+                                                  <h5 className="font-medium text-sm">{service.name[language]}</h5>
+                                                  <p className="text-xs text-muted-foreground">
+                                                    {service.description[language]}
+                                                  </p>
+                                                </div>
+                                              )}
+
+                                              {/* Service Options */}
+                                              {service.options && service.options.length > 0 ? (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                  {service.options.map((option) => {
+                                                    const isSelected = selectedServices[service.id]?.includes(option.id)
+                                                    return (
+                                                      <div
+                                                        key={option.id}
+                                                        className={cn(
+                                                          "service-option flex flex-col p-3 relative rounded-lg border-2 border-transparent hover:border-amber-200 dark:hover:border-amber-800 transition-all duration-200 h-[140px]",
+                                                          isSelected
+                                                            ? "bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800"
+                                                            : "bg-stone-50 dark:bg-slate-800/50 hover:bg-stone-100 dark:hover:bg-slate-700/70",
+                                                        )}
+                                                      >
+                                                        {isSelected && (
+                                                          <Check className="h-4 w-4 text-amber-600 absolute top-2 right-2" />
+                                                        )}
+                                                        <div className="flex-1 min-h-0">
+                                                          <span className="font-medium text-sm mb-2 line-clamp-1 block">
+                                                            {option.name[language]}
+                                                          </span>
+                                                          <div className="flex items-center mb-3">
+                                                            <Badge
+                                                              className={`text-xs ${getPriceTypeBadge(option.price.type).bgColor} mr-2`}
+                                                            >
+                                                              {getPriceTypeBadge(option.price.type).text}
+                                                            </Badge>
+                                                            <span className="font-medium">
+                                                              {formatPrice(
+                                                                convertPrice(
+                                                                  option.price.amount,
+                                                                  (option.price.currency || "USD") as Currency,
+                                                                ),
+                                                                currency,
+                                                              )}
+                                                            </span>
+                                                          </div>
+                                                        </div>
+                                                        <div className="flex gap-2 mt-auto">
+                                                          <button
+                                                            type="button"
+                                                            onClick={() => toggleService(service.id, option.id)}
+                                                            className={cn(
+                                                              "flex-1 px-3 py-2 text-xs rounded-md transition-colors",
+                                                              isSelected
+                                                                ? "bg-amber-500 text-white hover:bg-amber-600"
+                                                                : "bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-600",
+                                                            )}
+                                                          >
+                                                            {isSelected
+                                                              ? t("venueBook.selected")
+                                                              : t("venueBook.select")}
+                                                          </button>
+                                                          <button
+                                                            type="button"
+                                                            onClick={() => handleViewOptionDetails(service, option)}
+                                                            className="px-3 py-2 text-xs rounded-md bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
+                                                          >
+                                                            <Info className="h-3 w-3" />
+                                                          </button>
+                                                        </div>
+                                                      </div>
+                                                    )
+                                                  })}
+                                                </div>
+                                              ) : (
+                                                <p className="text-sm text-muted-foreground">
+                                                  {t("venueBook.noOptionsAvailable")}
+                                                </p>
+                                              )}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )
+                                  })
+                                })()}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })
                     ) : (
-                        <div className="text-center p-8 bg-gray-50 dark:bg-gray-800/30 rounded-lg">
-                          <p className="text-muted-foreground">{t("venueDetail.noServices")}</p>
-                        </div>
+                      <div className="text-center p-8 bg-stone-50 dark:bg-stone-900/20 rounded-lg">
+                        <p className="text-muted-foreground">{t("venueDetail.noServices")}</p>
+                      </div>
                     )}
                   </div>
                 </div>
 
-                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-amber-100 dark:border-slate-700 shadow-sm">
                   <h2 className="text-xl font-semibold">{t("venueBook.contactDetails")}</h2>
 
                   <div className="grid gap-4 md:grid-cols-2">
@@ -1738,23 +1766,23 @@ export default function VenueBookPage() {
                         {t("venueBook.firstName")} <span className="text-red-500">*</span>
                       </label>
                       <Input
-                          id="first-name"
-                          value={formValues.firstName}
-                          onChange={(e) => handleFormChange("firstName", e.target.value)}
-                          onBlur={(e) => handleFieldBlur("firstName", e.target.value)}
-                          className={cn(
-                              "hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
-                              validationErrors.firstName && touchedFields.firstName
-                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                                  : "",
-                          )}
-                          required
+                        id="first-name"
+                        value={formValues.firstName}
+                        onChange={(e) => handleFormChange("firstName", e.target.value)}
+                        onBlur={(e) => handleFieldBlur("firstName", e.target.value)}
+                        className={cn(
+                          "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
+                          validationErrors.firstName && touchedFields.firstName
+                            ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                            : "",
+                        )}
+                        required
                       />
                       {validationErrors.firstName && touchedFields.firstName && (
-                          <p className="text-sm text-red-500 flex items-center">
-                            <AlertCircle className="h-4 w-4 mr-1" />
-                            {validationErrors.firstName}
-                          </p>
+                        <p className="text-sm text-red-500 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {validationErrors.firstName}
+                        </p>
                       )}
                     </div>
 
@@ -1763,23 +1791,23 @@ export default function VenueBookPage() {
                         {t("venueBook.lastName")} <span className="text-red-500">*</span>
                       </label>
                       <Input
-                          id="last-name"
-                          value={formValues.lastName}
-                          onChange={(e) => handleFormChange("lastName", e.target.value)}
-                          onBlur={(e) => handleFieldBlur("lastName", e.target.value)}
-                          className={cn(
-                              "hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
-                              validationErrors.lastName && touchedFields.lastName
-                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                                  : "",
-                          )}
-                          required
+                        id="last-name"
+                        value={formValues.lastName}
+                        onChange={(e) => handleFormChange("lastName", e.target.value)}
+                        onBlur={(e) => handleFieldBlur("lastName", e.target.value)}
+                        className={cn(
+                          "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
+                          validationErrors.lastName && touchedFields.lastName
+                            ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                            : "",
+                        )}
+                        required
                       />
                       {validationErrors.lastName && touchedFields.lastName && (
-                          <p className="text-sm text-red-500 flex items-center">
-                            <AlertCircle className="h-4 w-4 mr-1" />
-                            {validationErrors.lastName}
-                          </p>
+                        <p className="text-sm text-red-500 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {validationErrors.lastName}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -1789,24 +1817,24 @@ export default function VenueBookPage() {
                       {t("venueBook.email")} <span className="text-red-500">*</span>
                     </label>
                     <Input
-                        id="email"
-                        type="email"
-                        value={formValues.email}
-                        onChange={(e) => handleFormChange("email", e.target.value)}
-                        onBlur={(e) => handleFieldBlur("email", e.target.value)}
-                        className={cn(
-                            "hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
-                            validationErrors.email && touchedFields.email
-                                ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                                : "",
-                        )}
-                        required
+                      id="email"
+                      type="email"
+                      value={formValues.email}
+                      onChange={(e) => handleFormChange("email", e.target.value)}
+                      onBlur={(e) => handleFieldBlur("email", e.target.value)}
+                      className={cn(
+                        "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
+                        validationErrors.email && touchedFields.email
+                          ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                          : "",
+                      )}
+                      required
                     />
                     {validationErrors.email && touchedFields.email && (
-                        <p className="text-sm text-red-500 flex items-center">
-                          <AlertCircle className="h-4 w-4 mr-1" />
-                          {validationErrors.email}
-                        </p>
+                      <p className="text-sm text-red-500 flex items-center">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        {validationErrors.email}
+                      </p>
                     )}
                   </div>
 
@@ -1822,7 +1850,7 @@ export default function VenueBookPage() {
                           "h-10 w-32 px-3 py-2 text-sm border border-input bg-background rounded-md ring-offset-background",
                           "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
                           "disabled:cursor-not-allowed disabled:opacity-50",
-                          "hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                          "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
                         )}
                       >
                         {phonePrefix.map((prefix) => (
@@ -1832,31 +1860,31 @@ export default function VenueBookPage() {
                         ))}
                       </select>
                       <Input
-                          id="phone"
-                          type="tel"
-                          value={formValues.phone}
-                          onChange={(e) => handlePhoneChange(e.target.value)}
-                          onBlur={(e) => handleFieldBlur("phone", e.target.value)}
-                          className={cn(
-                              "flex-1 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
-                              validationErrors.phone && touchedFields.phone
-                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                                  : "",
-                          )}
-                          placeholder="69 123 4567"
-                          required
+                        id="phone"
+                        type="tel"
+                        value={formValues.phone}
+                        onChange={(e) => handlePhoneChange(e.target.value)}
+                        onBlur={(e) => handleFieldBlur("phone", e.target.value)}
+                        className={cn(
+                          "flex-1 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
+                          validationErrors.phone && touchedFields.phone
+                            ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                            : "",
+                        )}
+                        placeholder="69 123 4567"
+                        required
                       />
                     </div>
                     {validationErrors.phone && touchedFields.phone && (
-                        <p className="text-sm text-red-500 flex items-center">
-                          <AlertCircle className="h-4 w-4 mr-1" />
-                          {validationErrors.phone}
-                        </p>
+                      <p className="text-sm text-red-500 flex items-center">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        {validationErrors.phone}
+                      </p>
                     )}
                   </div>
                 </div>
 
-                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-amber-100 dark:border-slate-700 shadow-sm">
                   <h2 className="text-xl font-semibold">{t("venueBook.additionalInfo")}</h2>
 
                   <div className="space-y-2">
@@ -1864,11 +1892,11 @@ export default function VenueBookPage() {
                       {t("venueBook.specialRequests")}
                     </label>
                     <Textarea
-                        id="special-requests"
-                        value={specialRequests}
-                        onChange={(e) => setSpecialRequests(e.target.value)}
-                        placeholder={t("venueBook.specialRequestsPlaceholder")}
-                        className="min-h-[100px] focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                      id="special-requests"
+                      value={specialRequests}
+                      onChange={(e) => setSpecialRequests(e.target.value)}
+                      placeholder={t("venueBook.specialRequestsPlaceholder")}
+                      className="min-h-[100px] focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
                     />
                   </div>
                 </div>
@@ -1876,74 +1904,78 @@ export default function VenueBookPage() {
 
               <div className="space-y-6">
                 {/* Booking Summary Card */}
-                <div className="sticky top-6 venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
-                    <h2 className="text-xl font-semibold">{t("venueBook.summary")}</h2>
+                <div className="sticky top-6 venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-amber-100 dark:border-slate-700 shadow-sm">
+                  <h2 className="text-xl font-semibold">{t("venueBook.summary")}</h2>
 
-                    <div className="space-y-4">
-                        <div className="flex items-start gap-4">
-                            <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
-                                <img
-                                    src={venue.media && venue.media.length > 0 ? formatImageUrl(venue.media[0].url) : "/placeholder.svg"}
-                                    alt={venue.name[language]}
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <h3 className="font-medium truncate">{venue.name[language]}</h3>
-                                <p className="text-sm text-muted-foreground truncate">
-                                    {venue.address ? `${venue.address.city}, ${venue.address.country}` : ""}
-                                </p>
-                                <div className="flex items-center mt-2">
-                                    <Badge className={`${getPriceTypeBadge(venue.price.type).bgColor} mr-2`}>
-                                        {getPriceTypeBadge(venue.price.type).text}
-                                    </Badge>
-                                    <span className="font-medium">{basePrice}</span>
-                                </div>
-                            </div>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-4">
+                      <div className="w-20 h-20 rounded-lg overflow-hidden bg-amber-100 dark:bg-amber-900/20 flex-shrink-0">
+                        <img
+                          src={
+                            venue.media && venue.media.length > 0
+                              ? formatImageUrl(venue.media[0].url)
+                              : "/placeholder.svg"
+                          }
+                          alt={venue.name[language]}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium truncate">{venue.name[language]}</h3>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {venue.address ? `${venue.address.city}, ${venue.address.country}` : ""}
+                        </p>
+                        <div className="flex items-center mt-2">
+                          <Badge className={`${getPriceTypeBadge(venue.price.type).bgColor} mr-2`}>
+                            {getPriceTypeBadge(venue.price.type).text}
+                          </Badge>
+                          <span className="font-medium">{basePrice}</span>
                         </div>
-
-                        <div className="space-y-3 pt-2">
-                            <div className="flex items-center text-sm">
-                                <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <span className="truncate">{startDate ? format(startDate, "PPP") : t("venueBook.date")}</span>
-                            </div>
-
-                            <div className="flex items-center text-sm">
-                                <Clock className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <span className="truncate">
-                                    {startDate ? format(startDate, "p") : ""} - {endDate ? format(endDate, "p") : ""}
-                                    {duration > 0 && ` (${duration} ${t("venueBook.hours")})`}
-                                </span>
-                            </div>
-
-                            <div className="flex items-center text-sm">
-                                <Users className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <span className="truncate">
-                                    {guests} {t("venueBook.guests")}
-                                </span>
-                            </div>
-                        </div>
+                      </div>
                     </div>
 
-                    <Button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="w-full cta-button mt-6 bg-sky-500 hover:bg-sky-600 hover:translate-y-[-2px] transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                        onClick={handleSubmit}
-                    >
-                        {isSubmitting ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                {t("venueBook.processing")}
-                            </>
-                        ) : (
-                            <>
-                                {t("venueBook.continueToBook")} <ArrowRight className="ml-2 h-4 w-4" />
-                            </>
-                        )}
-                    </Button>
+                    <div className="space-y-3 pt-2">
+                      <div className="flex items-center text-sm">
+                        <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="truncate">{startDate ? format(startDate, "PPP") : t("venueBook.date")}</span>
+                      </div>
 
-                    <p className="text-xs text-muted-foreground text-center mt-4">{t("venueBook.cancellationPolicy")}</p>
+                      <div className="flex items-center text-sm">
+                        <Clock className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="truncate">
+                          {startDate ? format(startDate, "p") : ""} - {endDate ? format(endDate, "p") : ""}
+                          {duration > 0 && ` (${duration} ${t("venueBook.hours")})`}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center text-sm">
+                        <Users className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="truncate">
+                          {guests} {t("venueBook.guests")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full cta-button mt-6 bg-amber-500 hover:bg-amber-600 hover:translate-y-[-2px] transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleSubmit}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t("venueBook.processing")}
+                      </>
+                    ) : (
+                      <>
+                        {t("venueBook.continueToBook")} <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+
+                  <p className="text-xs text-muted-foreground text-center mt-4">{t("venueBook.cancellationPolicy")}</p>
                 </div>
               </div>
             </div>
@@ -1951,506 +1983,531 @@ export default function VenueBookPage() {
         </div>
         {/* Service Option Details Modal */}
         {selectedOptionDetails && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white dark:bg-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                  {/* Modal Header */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h3 className="text-xl font-semibold">{selectedOptionDetails.option.name[language]}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {t("venueBook.serviceBy")} {selectedOptionDetails.service.provider.firstName}{" "}
-                        {selectedOptionDetails.service.provider.lastName}
-                      </p>
-                    </div>
-                    <button
-                        onClick={closeOptionDetails}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-amber-100 dark:border-amber-800/30">
+              <div className="p-6">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-xl font-semibold">{selectedOptionDetails.option.name[language]}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {t("venueBook.serviceBy")} {selectedOptionDetails.service.provider.firstName}{" "}
+                      {selectedOptionDetails.service.provider.lastName}
+                    </p>
+                  </div>
+                  <button
+                    onClick={closeOptionDetails}
+                    className="p-2 hover:bg-amber-100 dark:hover:bg-amber-900/30 rounded-lg transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {/* Option Details */}
+                <div className="space-y-6">
+                  {/* Description */}
+                  <div>
+                    <h4 className="font-medium mb-2">{t("venueBook.description")}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedOptionDetails.option.description[language]}
+                    </p>
                   </div>
 
-                  {/* Option Details */}
-                  <div className="space-y-6">
-                    {/* Description */}
-                    <div>
-                      <h4 className="font-medium mb-2">{t("venueBook.description")}</h4>
-                      <p className="text-sm text-muted-foreground">{selectedOptionDetails.option.description[language]}</p>
-                    </div>
-
-                    {/* Pricing */}
-                    <div>
-                      <h4 className="font-medium mb-2">{t("venueBook.pricing")}</h4>
-                      <div className="flex items-center gap-2">
-                        <Badge className={`${getPriceTypeBadge(selectedOptionDetails.option.price.type).bgColor}`}>
-                          {getPriceTypeBadge(selectedOptionDetails.option.price.type).text}
-                        </Badge>
-                        <span className="font-medium text-lg">{formatPrice(convertPrice(selectedOptionDetails.option.price.amount, (selectedOptionDetails.option.price.currency || "USD") as Currency), currency)}</span>
-                      </div>
-                      {selectedOptionDetails.option.price.type === "perPerson" && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                              {t("venueBook.totalForGuests", {
-                                  total: formatPrice(convertPrice(selectedOptionDetails.option.price.amount * guests, (selectedOptionDetails.option.price.currency || "USD") as Currency), currency),
-                                  guests: guests,
-                              })}
-                          </p>
-                      )}
-                    </div>
-
-                    {/* Service Information */}
-                    <div>
-                      <h4 className="font-medium mb-2">{t("venueBook.serviceInformation")}</h4>
-                      <div className="space-y-2 text-sm">
-                        <div>
-                          <span className="font-medium">{t("venueBook.serviceName")}: </span>
-                          <span>{selectedOptionDetails.service.name[language]}</span>
-                        </div>
-                        <div>
-                          <span className="font-medium">{t("venueBook.serviceType")}: </span>
-                          <span>
-                        {serviceTypeNames[selectedOptionDetails.service.type]?.[language] ||
-                            selectedOptionDetails.service.type}
-                      </span>
-                        </div>
-                        <div>
-                          <span className="font-medium">{t("venueBook.serviceDescription")}: </span>
-                          <span className="text-muted-foreground">
-                        {selectedOptionDetails.service.description[language]}
-                      </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Provider Information */}
-                    <div>
-                      <h4 className="font-medium mb-2">{t("venueBook.providerInformation")}</h4>
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage
-                              src={
-                                selectedOptionDetails.service.provider.profilePicture
-                                    ? formatImageUrl(selectedOptionDetails.service.provider.profilePicture)
-                                    : "/placeholder.svg?height=48&width=48"
-                              }
-                              alt={`${selectedOptionDetails.service.provider.firstName} ${selectedOptionDetails.service.provider.lastName}`}
-                          />
-                          <AvatarFallback>
-                            {selectedOptionDetails.service.provider.firstName?.charAt(0)}
-                            {selectedOptionDetails.service.provider.lastName?.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <h5 className="font-medium">
-                            {selectedOptionDetails.service.provider.firstName}{" "}
-                            {selectedOptionDetails.service.provider.lastName}
-                          </h5>
-                          <p className="text-sm text-muted-foreground">{selectedOptionDetails.service.provider.email}</p>
-                          {selectedOptionDetails.service.provider.phoneNumber && (
-                              <p className="text-sm text-muted-foreground">
-                                {selectedOptionDetails.service.provider.phoneNumber}
-                              </p>
-                          )}
-                        </div>
-                        <Button variant="outline" size="sm">
-                          <MessageSquare className="h-4 w-4 mr-1" />
-                          {t("venueBook.contact")}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Additional Metadata */}
-                    {selectedOptionDetails.option.metadata &&
-                        Object.keys(selectedOptionDetails.option.metadata).length > 0 && (
-                            <div>
-                              <h4 className="font-medium mb-2">{t("venueBook.additionalDetails")}</h4>
-                              <div className="space-y-1 text-sm">
-                                {Object.entries(selectedOptionDetails.option.metadata).map(([key, value]) => (
-                                    <div key={key}>
-                                      <span className="font-medium capitalize">{key.replace(/([A-Z])/g, " $1")}: </span>
-                                      <span className="text-muted-foreground">{String(value)}</span>
-                                    </div>
-                                ))}
-                              </div>
-                            </div>
+                  {/* Pricing */}
+                  <div>
+                    <h4 className="font-medium mb-2">{t("venueBook.pricing")}</h4>
+                    <div className="flex items-center gap-2">
+                      <Badge className={`${getPriceTypeBadge(selectedOptionDetails.option.price.type).bgColor}`}>
+                        {getPriceTypeBadge(selectedOptionDetails.option.price.type).text}
+                      </Badge>
+                      <span className="font-medium text-lg">
+                        {formatPrice(
+                          convertPrice(
+                            selectedOptionDetails.option.price.amount,
+                            (selectedOptionDetails.option.price.currency || "USD") as Currency,
+                          ),
+                          currency,
                         )}
-
-                    {/* Service Media */}
-                    {selectedOptionDetails.service.media && selectedOptionDetails.service.media.length > 0 && (
-                        <div>
-                          <h4 className="font-medium mb-2">{t("venueBook.serviceImages")}</h4>
-                          <div className="relative">
-                            <div
-                                className="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 cursor-pointer"
-                                onClick={() => {
-                                  setSelectedImageGallery(selectedOptionDetails.service.media)
-                                  setCurrentImageIndex(0)
-                                }}
-                            >
-                              <img
-                                  src={
-                                      formatImageUrl(selectedOptionDetails.service.media[currentImageIndex]?.url) ||
-                                      "/placeholder.svg" ||
-                                      "/placeholder.svg" ||
-                                      "/placeholder.svg"
-                                  }
-                                  alt="Service"
-                                  className="w-full h-full object-cover transition-opacity duration-500"
-                              />
-                            </div>
-                            {selectedOptionDetails.service.media.length > 1 && (
-                                <div className="flex justify-center mt-2 gap-1">
-                                  {selectedOptionDetails.service.media.map((_, index) => (
-                                      <button
-                                          key={index}
-                                          onClick={() => setCurrentImageIndex(index)}
-                                          className={cn(
-                                              "w-2 h-2 rounded-full transition-colors",
-                                              index === currentImageIndex ? "bg-sky-500" : "bg-gray-300 dark:bg-gray-600",
-                                          )}
-                                      />
-                                  ))}
-                                </div>
-                            )}
-                            <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full text-sm">
-                              {currentImageIndex + 1} / {selectedOptionDetails.service.media.length}
-                            </div>
-                          </div>
-                        </div>
+                      </span>
+                    </div>
+                    {selectedOptionDetails.option.price.type === "perPerson" && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {t("venueBook.totalForGuests", {
+                          total: formatPrice(
+                            convertPrice(
+                              selectedOptionDetails.option.price.amount * guests,
+                              (selectedOptionDetails.option.price.currency || "USD") as Currency,
+                            ),
+                            currency,
+                          ),
+                          guests: guests,
+                        })}
+                      </p>
                     )}
                   </div>
 
-                  {/* Modal Actions */}
-                  <div className="flex gap-3 mt-6 pt-6 border-t">
-                    <Button variant="outline" onClick={closeOptionDetails} className="flex-1">
-                      {t("common.close")}
-                    </Button>
-                    <Button
-                        onClick={() => {
-                          const isSelected = selectedServices[selectedOptionDetails.service.id]?.includes(
-                              selectedOptionDetails.option.id,
-                          )
-                          toggleService(selectedOptionDetails.service.id, selectedOptionDetails.option.id)
-                          if (!isSelected) {
-                            closeOptionDetails()
-                          }
-                        }}
-                        className={cn(
-                            "flex-1",
-                            selectedServices[selectedOptionDetails.service.id]?.includes(selectedOptionDetails.option.id)
-                                ? "bg-red-500 hover:bg-red-600 text-white"
-                                : "bg-sky-500 hover:bg-sky-600 text-white",
-                        )}
-                    >
-                      {selectedServices[selectedOptionDetails.service.id]?.includes(selectedOptionDetails.option.id)
-                          ? t("venueBook.removeFromSelection")
-                          : t("venueBook.addToSelection")}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-        )}
-        {/* Image Gallery Modal */}
-        {selectedImageGallery && (
-            <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
-              <div className="relative w-full h-full flex items-center justify-center p-4">
-                {/* Close button */}
-                <button
-                    onClick={() => setSelectedImageGallery(null)}
-                    className="absolute top-4 right-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-
-                {/* Navigation buttons */}
-                {selectedImageGallery.length > 1 && (
-                    <>
-                      <button
-                          onClick={() =>
-                              setCurrentImageIndex((prev) => (prev === 0 ? selectedImageGallery.length - 1 : prev - 1))
-                          }
-                          className="absolute left-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
-                      >
-                        <ChevronLeft className="h-6 w-6" />
-                      </button>
-                      <button
-                          onClick={() => setCurrentImageIndex((prev) => (prev + 1) % selectedImageGallery.length)}
-                          className="absolute right-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
-                      >
-                        <ChevronRight className="h-6 w-6" />
-                      </button>
-                    </>
-                )}
-
-                {/* Main image */}
-                <div className="max-w-4xl max-h-full">
-                  <img
-                      src={formatImageUrl(selectedImageGallery[currentImageIndex]?.url) || "/placeholder.svg"}
-                      alt="Service Gallery"
-                      className="max-w-full max-h-full object-contain"
-                  />
-                </div>
-
-                {/* Image counter */}
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-                  {currentImageIndex + 1} / {selectedImageGallery.length}
-                </div>
-
-                {/* Thumbnail strip */}
-                {selectedImageGallery.length > 1 && (
-                    <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex gap-2 max-w-md overflow-x-auto">
-                      {selectedImageGallery.map((media, index) => (
-                          <button
-                              key={media.id}
-                              onClick={() => setCurrentImageIndex(index)}
-                              className={cn(
-                                  "flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors",
-                                  index === currentImageIndex ? "border-sky-500" : "border-transparent hover:border-gray-400",
-                              )}
-                          >
-                            <img
-                                src={formatImageUrl(media.url) || "/placeholder.svg"}
-                                alt="Thumbnail"
-                                className="w-full h-full object-cover"
-                            />
-                          </button>
-                      ))}
-                    </div>
-                )}
-              </div>
-            </div>
-        )}
-        {/* Confirmation Modal */}
-        {showConfirmationModal && confirmationData && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white dark:bg-slate-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                  {/* Modal Header */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h3 className="text-xl font-semibold">{t("venueBook.confirmBooking") || "Confirm Your Booking"}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {t("venueBook.reviewDetailsBeforeConfirming") || "Please review the details below before confirming your booking"}
-                      </p>
-                    </div>
-                    <button
-                        onClick={() => {
-                          setShowConfirmationModal(false)
-                          setConfirmationData(null)
-                        }}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  </div>
-
-                  {/* Price Breakdown */}
-                  <div className="space-y-6">
-                    {/* Venue Details */}
-                    <div className="border rounded-lg p-4">
-                      <h4 className="font-medium mb-3 flex items-center">
-                        <Building2 className="h-4 w-4 mr-2" />
-                        {t("venueBook.venueRental") || "Venue Rental"}
-                      </h4>
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="text-sm font-medium">{venue?.name[language]}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {confirmationData.breakdown.venue.type === "perPerson" 
-                                ? `${formatPrice(confirmationData.breakdown.venue.originalAmount, confirmationData.breakdown.venue.originalCurrency as Currency)} ${t("venueBook.perPerson")}`
-                                : confirmationData.breakdown.venue.type === "hourly"
-                                ? `${formatPrice(confirmationData.breakdown.venue.originalAmount, confirmationData.breakdown.venue.originalCurrency as Currency)} ${t("venueBook.perHour")}`
-                                : t("business.pricing.fixed")
-                              }
-                              {confirmationData.breakdown.venue.type === "perPerson" && ` × ${guests} ${t("venueBook.guests")}`}
-                              {confirmationData.breakdown.venue.type === "hourly" && ` × ${confirmationData.breakdown.venue.hours} ${t("venueBook.hours")}`}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm font-medium">
-                              {formatPrice(confirmationData.breakdown.venue.convertedAmount, currency)}
-                            </div>
-
-                          </div>
-                        </div>
+                  {/* Service Information */}
+                  <div>
+                    <h4 className="font-medium mb-2">{t("venueBook.serviceInformation")}</h4>
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <span className="font-medium">{t("venueBook.serviceName")}: </span>
+                        <span>{selectedOptionDetails.service.name[language]}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">{t("venueBook.serviceType")}: </span>
+                        <span>
+                          {serviceTypeNames[selectedOptionDetails.service.type]?.[language] ||
+                            selectedOptionDetails.service.type}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-medium">{t("venueBook.serviceDescription")}: </span>
+                        <span className="text-muted-foreground">
+                          {selectedOptionDetails.service.description[language]}
+                        </span>
                       </div>
                     </div>
+                  </div>
 
-                    {/* Service Options */}
-                    {confirmationData.breakdown.services.length > 0 && (
-                      <div className="border rounded-lg p-4">
-                        <h4 className="font-medium mb-3 flex items-center">
-                          <Sparkles className="h-4 w-4 mr-2" />
-                          {t("venueBook.selectedServices") || "Selected Services"}
-                        </h4>
-                        <div className="space-y-3">
-                          {confirmationData.breakdown.services.map((service: any, index: number) => (
-                            <div key={index} className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <div className="text-sm font-medium">
-                                  {service.serviceName[language]} - {service.optionName[language]}
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  {service.type === "perPerson" 
-                                    ? `${formatPrice(service.originalAmount, service.originalCurrency as Currency)} ${t("venueBook.perPerson")}`
-                                    : service.type === "hourly"
-                                    ? `${formatPrice(service.originalAmount, service.originalCurrency as Currency)} ${t("venueBook.perHour")}`
-                                    : t("business.pricing.fixed")
-                                  }
-                                  {service.type === "perPerson" && ` × ${guests} ${t("venueBook.guests")}`}
-                                  {service.type === "hourly" && ` × ${service.hours} ${t("venueBook.hours")}`}
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-sm font-medium">
-                                  {formatPrice(service.convertedAmount, currency)}
-                                </div>
-                              </div>
+                  {/* Provider Information */}
+                  <div>
+                    <h4 className="font-medium mb-2">{t("venueBook.providerInformation")}</h4>
+                    <div className="flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage
+                          src={
+                            selectedOptionDetails.service.provider.profilePicture
+                              ? formatImageUrl(selectedOptionDetails.service.provider.profilePicture)
+                              : "/placeholder.svg?height=48&width=48"
+                          }
+                          alt={`${selectedOptionDetails.service.provider.firstName} ${selectedOptionDetails.service.provider.lastName}`}
+                        />
+                        <AvatarFallback>
+                          {selectedOptionDetails.service.provider.firstName?.charAt(0)}
+                          {selectedOptionDetails.service.provider.lastName?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <h5 className="font-medium">
+                          {selectedOptionDetails.service.provider.firstName}{" "}
+                          {selectedOptionDetails.service.provider.lastName}
+                        </h5>
+                        <p className="text-sm text-muted-foreground">{selectedOptionDetails.service.provider.email}</p>
+                        {selectedOptionDetails.service.provider.phoneNumber && (
+                          <p className="text-sm text-muted-foreground">
+                            {selectedOptionDetails.service.provider.phoneNumber}
+                          </p>
+                        )}
+                      </div>
+                      <Button variant="outline" size="sm" className="hover:border-amber-300 bg-transparent">
+                        <MessageSquare className="h-4 w-4 mr-1" />
+                        {t("venueBook.contact")}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Additional Metadata */}
+                  {selectedOptionDetails.option.metadata &&
+                    Object.keys(selectedOptionDetails.option.metadata).length > 0 && (
+                      <div>
+                        <h4 className="font-medium mb-2">{t("venueBook.additionalDetails")}</h4>
+                        <div className="space-y-1 text-sm">
+                          {Object.entries(selectedOptionDetails.option.metadata).map(([key, value]) => (
+                            <div key={key}>
+                              <span className="font-medium capitalize">{key.replace(/([A-Z])/g, " $1")}: </span>
+                              <span className="text-muted-foreground">{String(value)}</span>
                             </div>
                           ))}
                         </div>
                       </div>
                     )}
 
-                    {/* Price Breakdown */}
-                    <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
-                      <h4 className="font-medium mb-3 flex items-center">
-                        <DollarSign className="h-4 w-4 mr-2" />
-                        {t("venueBook.priceBreakdown") || "Price Breakdown"}
-                      </h4>
-                      <div className="space-y-2">
-                        {/* Venue Total */}
-                        <div className="flex justify-between text-sm">
-                          <span>{t("venueBook.venueTotal") || "Venue Total"}</span>
-                          <div className="text-right">
-                            <span className="font-medium">{formatPrice(confirmationData.breakdown.venue.convertedAmount, currency)}</span>
-                            
-                          </div>
+                  {/* Service Media */}
+                  {selectedOptionDetails.service.media && selectedOptionDetails.service.media.length > 0 && (
+                    <div>
+                      <h4 className="font-medium mb-2">{t("venueBook.serviceImages")}</h4>
+                      <div className="relative">
+                        <div
+                          className="aspect-video rounded-lg overflow-hidden bg-amber-100 dark:bg-amber-900/20 cursor-pointer"
+                          onClick={() => {
+                            setSelectedImageGallery(selectedOptionDetails.service.media)
+                            setCurrentImageIndex(0)
+                          }}
+                        >
+                          <img
+                            src={
+                              formatImageUrl(selectedOptionDetails.service.media[currentImageIndex]?.url) ||
+                              "/placeholder.svg" ||
+                              "/placeholder.svg" ||
+                              "/placeholder.svg" ||
+                              "/placeholder.svg"
+                            }
+                            alt="Service"
+                            className="w-full h-full object-cover transition-opacity duration-500"
+                          />
                         </div>
-
-                        {/* Services Total */}
-                        {confirmationData.breakdown.services.length > 0 && (
-                          <div className="flex justify-between text-sm">
-                            <span>{t("venueBook.servicesTotal") || "Services Total"}</span>
-                            <div className="text-right">
-                              <span className="font-medium">
-                                {formatPrice(
-                                  confirmationData.breakdown.services.reduce((sum: number, service: any) => sum + service.convertedAmount, 0),
-                                  currency
+                        {selectedOptionDetails.service.media.length > 1 && (
+                          <div className="flex justify-center mt-2 gap-1">
+                            {selectedOptionDetails.service.media.map((_, index) => (
+                              <button
+                                key={index}
+                                onClick={() => setCurrentImageIndex(index)}
+                                className={cn(
+                                  "w-2 h-2 rounded-full transition-colors",
+                                  index === currentImageIndex ? "bg-amber-500" : "bg-stone-300 dark:bg-stone-600",
                                 )}
-                              </span>
-                              
-                            </div>
+                              />
+                            ))}
                           </div>
                         )}
-
-                        
-
-                        {/* Total */}
-                        <div className="border-t pt-2 flex justify-between font-semibold">
-                          <span>{t("venueBook.total") || "Total"}</span>
-                          <div className="text-right">
-                            <span className="text-lg">{formatPrice(confirmationData.breakdown.totals.total, currency)}</span>
-                            
-                          </div>
+                        <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full text-sm">
+                          {currentImageIndex + 1} / {selectedOptionDetails.service.media.length}
                         </div>
                       </div>
                     </div>
+                  )}
+                </div>
 
-                    {/* Currency Summary */}
-                  
-                    {/* Booking Summary with USD Info */}
-                    <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20">
-                      <h4 className="font-medium mb-3 text-blue-800 dark:text-blue-200">
-                        💰 {t("venueBook.finalBookingTotal") || "Final Booking Total"}
-                      </h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium">{t("venueBook.youWillPay") || "You will pay"}:</span>
-                          <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                            {formatPrice(confirmationData.breakdown.totals.total, currency)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-muted-foreground">{t("venueBook.equivalentInUSD") || "Equivalent in USD"}:</span>
-                          <span className="font-medium text-muted-foreground">
-                            ${confirmationData.breakdown.totals.totalUSD.toFixed(2)} USD
-                          </span>
-                        </div>
-                        <div className="text-xs text-muted-foreground pt-2 border-t">
-                          <strong>{t("venueBook.note")}:</strong> {t("venueBook.noteMessage")} <strong>${confirmationData.breakdown.totals.totalUSD.toFixed(2)} USD</strong> {t("venueBook.noteMessage2")}.
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Booking Details Summary */}
-                    <div className="border rounded-lg p-4">
-                      <h4 className="font-medium mb-3">{t("venueBook.bookingDetails") || "Booking Details"}</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">{t("venueBook.eventType")}:</span>
-                          <div className="font-medium">{t(`venueBook.${eventType}`)}</div>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">{t("venueBook.guests")}:</span>
-                          <div className="font-medium">{guests} guests</div>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">{t("venueBook.startDate")}:</span>
-                          <div className="font-medium">{startDate ? format(startDate, "PPP p") : ""}</div>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">{t("venueBook.endDate")}:</span>
-                          <div className="font-medium">{endDate ? format(endDate, "PPP p") : ""}</div>
-                        </div>
-                      </div>
-                      {/* Special Requests */}
-                      {confirmationData.bookingData.specialRequests && (
-                        <div className="mt-4 pt-4 border-t">
-                          <div className="text-sm">
-                            <span className="font-medium text-muted-foreground">{t("venueBook.specialRequests") || "Special Requests"}:</span>
-                            <p className="mt-1 text-foreground">{confirmationData.bookingData.specialRequests}</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Modal Actions */}
-                  <div className="flex gap-3 mt-6 pt-6 border-t">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => {
-                        setShowConfirmationModal(false)
-                        setConfirmationData(null)
-                      }} 
-                      className="flex-1"
-                    >
-                      {t("common.cancel") || "Cancel"}
-                    </Button>
-                    <Button
-                        onClick={handleConfirmBooking}
-                        disabled={isSubmitting}
-                        className="flex-1 bg-sky-500 hover:bg-sky-600 text-white"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {t("venueBook.processing") || "Processing..."}
-                        </>
-                      ) : (
-                        <>
-                          {t("venueBook.confirmAndBook") || "Confirm & Book"}
-                          <CheckCircle className="ml-2 h-4 w-4" />
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                {/* Modal Actions */}
+                <div className="flex gap-3 mt-6 pt-6 border-t border-amber-100 dark:border-amber-800/30">
+                  <Button variant="outline" onClick={closeOptionDetails} className="flex-1 bg-transparent">
+                    {t("common.close")}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      const isSelected = selectedServices[selectedOptionDetails.service.id]?.includes(
+                        selectedOptionDetails.option.id,
+                      )
+                      toggleService(selectedOptionDetails.service.id, selectedOptionDetails.option.id)
+                      if (!isSelected) {
+                        closeOptionDetails()
+                      }
+                    }}
+                    className={cn(
+                      "flex-1",
+                      selectedServices[selectedOptionDetails.service.id]?.includes(selectedOptionDetails.option.id)
+                        ? "bg-red-500 hover:bg-red-600 text-white"
+                        : "bg-amber-500 hover:bg-amber-600 text-white",
+                    )}
+                  >
+                    {selectedServices[selectedOptionDetails.service.id]?.includes(selectedOptionDetails.option.id)
+                      ? t("venueBook.removeFromSelection")
+                      : t("venueBook.addToSelection")}
+                  </Button>
                 </div>
               </div>
             </div>
+          </div>
+        )}
+        {/* Image Gallery Modal */}
+        {selectedImageGallery && (
+          <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
+            <div className="relative w-full h-full flex items-center justify-center p-4">
+              {/* Close button */}
+              <button
+                onClick={() => setSelectedImageGallery(null)}
+                className="absolute top-4 right-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+
+              {/* Navigation buttons */}
+              {selectedImageGallery.length > 1 && (
+                <>
+                  <button
+                    onClick={() =>
+                      setCurrentImageIndex((prev) => (prev === 0 ? selectedImageGallery.length - 1 : prev - 1))
+                    }
+                    className="absolute left-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentImageIndex((prev) => (prev + 1) % selectedImageGallery.length)}
+                    className="absolute right-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </button>
+                </>
+              )}
+
+              {/* Main image */}
+              <div className="max-w-4xl max-h-full">
+                <img
+                  src={formatImageUrl(selectedImageGallery[currentImageIndex]?.url) || "/placeholder.svg"}
+                  alt="Service Gallery"
+                  className="max-w-full max-h-full object-contain"
+                />
+              </div>
+
+              {/* Image counter */}
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                {currentImageIndex + 1} / {selectedImageGallery.length}
+              </div>
+
+              {/* Thumbnail strip */}
+              {selectedImageGallery.length > 1 && (
+                <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex gap-2 max-w-md overflow-x-auto">
+                  {selectedImageGallery.map((media, index) => (
+                    <button
+                      key={media.id}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={cn(
+                        "flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors",
+                        index === currentImageIndex ? "border-amber-500" : "border-transparent hover:border-amber-400",
+                      )}
+                    >
+                      <img
+                        src={formatImageUrl(media.url) || "/placeholder.svg"}
+                        alt="Thumbnail"
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {/* Confirmation Modal */}
+        {showConfirmationModal && confirmationData && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-slate-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-amber-100 dark:border-amber-800/30">
+              <div className="p-6">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-xl font-semibold">{t("venueBook.confirmBooking") || "Confirm Your Booking"}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {t("venueBook.reviewDetailsBeforeConfirming") ||
+                        "Please review the details below before confirming your booking"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowConfirmationModal(false)
+                      setConfirmationData(null)
+                    }}
+                    className="p-2 hover:bg-amber-100 dark:hover:bg-amber-900/30 rounded-lg transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {/* Price Breakdown */}
+                <div className="space-y-6">
+                  {/* Venue Details */}
+                  <div className="border border-amber-100 dark:border-amber-800/30 rounded-lg p-4">
+                    <h4 className="font-medium mb-3 flex items-center">
+                      <Building2 className="h-4 w-4 mr-2 text-amber-600" />
+                      {t("venueBook.venueRental") || "Venue Rental"}
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{venue?.name[language]}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {confirmationData.breakdown.venue.type === "perPerson"
+                              ? `${formatPrice(confirmationData.breakdown.venue.originalAmount, confirmationData.breakdown.venue.originalCurrency as Currency)} ${t("venueBook.perPerson")}`
+                              : confirmationData.breakdown.venue.type === "hourly"
+                                ? `${formatPrice(confirmationData.breakdown.venue.originalAmount, confirmationData.breakdown.venue.originalCurrency as Currency)} ${t("venueBook.perHour")}`
+                                : t("business.pricing.fixed")}
+                            {confirmationData.breakdown.venue.type === "perPerson" &&
+                              ` × ${guests} ${t("venueBook.guests")}`}
+                            {confirmationData.breakdown.venue.type === "hourly" &&
+                              ` × ${confirmationData.breakdown.venue.hours} ${t("venueBook.hours")}`}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-medium">
+                            {formatPrice(confirmationData.breakdown.venue.convertedAmount, currency)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Service Options */}
+                  {confirmationData.breakdown.services.length > 0 && (
+                    <div className="border border-amber-100 dark:border-amber-800/30 rounded-lg p-4">
+                      <h4 className="font-medium mb-3 flex items-center">
+                        <Sparkles className="h-4 w-4 mr-2 text-amber-600" />
+                        {t("venueBook.selectedServices") || "Selected Services"}
+                      </h4>
+                      <div className="space-y-3">
+                        {confirmationData.breakdown.services.map((service: any, index: number) => (
+                          <div key={index} className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="text-sm font-medium">
+                                {service.serviceName[language]} - {service.optionName[language]}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {service.type === "perPerson"
+                                  ? `${formatPrice(service.originalAmount, service.originalCurrency as Currency)} ${t("venueBook.perPerson")}`
+                                  : service.type === "hourly"
+                                    ? `${formatPrice(service.originalAmount, service.originalCurrency as Currency)} ${t("venueBook.perHour")}`
+                                    : t("business.pricing.fixed")}
+                                {service.type === "perPerson" && ` × ${guests} ${t("venueBook.guests")}`}
+                                {service.type === "hourly" && ` × ${service.hours} ${t("venueBook.hours")}`}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-medium">
+                                {formatPrice(service.convertedAmount, currency)}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Price Breakdown */}
+                  <div className="border border-amber-100 dark:border-amber-800/30 rounded-lg p-4 bg-amber-50 dark:bg-amber-900/20">
+                    <h4 className="font-medium mb-3 flex items-center">
+                      <DollarSign className="h-4 w-4 mr-2 text-amber-600" />
+                      {t("venueBook.priceBreakdown") || "Price Breakdown"}
+                    </h4>
+                    <div className="space-y-2">
+                      {/* Venue Total */}
+                      <div className="flex justify-between text-sm">
+                        <span>{t("venueBook.venueTotal") || "Venue Total"}</span>
+                        <div className="text-right">
+                          <span className="font-medium">
+                            {formatPrice(confirmationData.breakdown.venue.convertedAmount, currency)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Services Total */}
+                      {confirmationData.breakdown.services.length > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span>{t("venueBook.servicesTotal") || "Services Total"}</span>
+                          <div className="text-right">
+                            <span className="font-medium">
+                              {formatPrice(
+                                confirmationData.breakdown.services.reduce(
+                                  (sum: number, service: any) => sum + service.convertedAmount,
+                                  0,
+                                ),
+                                currency,
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Total */}
+                      <div className="border-t border-amber-200 dark:border-amber-800/50 pt-2 flex justify-between font-semibold">
+                        <span>{t("venueBook.total") || "Total"}</span>
+                        <div className="text-right">
+                          <span className="text-lg">
+                            {formatPrice(confirmationData.breakdown.totals.total, currency)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Currency Summary */}
+
+                  {/* Booking Summary with USD Info */}
+                  <div className="border border-orange-200 dark:border-orange-800/30 rounded-lg p-4 bg-orange-50 dark:bg-orange-900/20">
+                    <h4 className="font-medium mb-3 text-orange-800 dark:text-orange-200">
+                      💰 {t("venueBook.finalBookingTotal") || "Final Booking Total"}
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">{t("venueBook.youWillPay") || "You will pay"}:</span>
+                        <span className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                          {formatPrice(confirmationData.breakdown.totals.total, currency)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">
+                          {t("venueBook.equivalentInUSD") || "Equivalent in USD"}:
+                        </span>
+                        <span className="font-medium text-muted-foreground">
+                          ${confirmationData.breakdown.totals.totalUSD.toFixed(2)} USD
+                        </span>
+                      </div>
+                      <div className="text-xs text-muted-foreground pt-2 border-t border-orange-200 dark:border-orange-800/50">
+                        <strong>{t("venueBook.note")}:</strong> {t("venueBook.noteMessage")}{" "}
+                        <strong>${confirmationData.breakdown.totals.totalUSD.toFixed(2)} USD</strong>{" "}
+                        {t("venueBook.noteMessage2")}.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Booking Details Summary */}
+                  <div className="border border-amber-100 dark:border-amber-800/30 rounded-lg p-4">
+                    <h4 className="font-medium mb-3">{t("venueBook.bookingDetails") || "Booking Details"}</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">{t("venueBook.eventType")}:</span>
+                        <div className="font-medium">{t(`venueBook.${eventType}`)}</div>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">{t("venueBook.guests")}:</span>
+                        <div className="font-medium">{guests} guests</div>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">{t("venueBook.startDate")}:</span>
+                        <div className="font-medium">{startDate ? format(startDate, "PPP p") : ""}</div>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">{t("venueBook.endDate")}:</span>
+                        <div className="font-medium">{endDate ? format(endDate, "PPP p") : ""}</div>
+                      </div>
+                    </div>
+                    {/* Special Requests */}
+                    {confirmationData.bookingData.specialRequests && (
+                      <div className="mt-4 pt-4 border-t border-amber-100 dark:border-amber-800/30">
+                        <div className="text-sm">
+                          <span className="font-medium text-muted-foreground">
+                            {t("venueBook.specialRequests") || "Special Requests"}:
+                          </span>
+                          <p className="mt-1 text-foreground">{confirmationData.bookingData.specialRequests}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Modal Actions */}
+                <div className="flex gap-3 mt-6 pt-6 border-t border-amber-100 dark:border-amber-800/30">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowConfirmationModal(false)
+                      setConfirmationData(null)
+                    }}
+                    className="flex-1"
+                  >
+                    {t("common.cancel") || "Cancel"}
+                  </Button>
+                  <Button
+                    onClick={handleConfirmBooking}
+                    disabled={isSubmitting}
+                    className="flex-1 bg-amber-500 hover:bg-amber-600 text-white"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t("venueBook.processing") || "Processing..."}
+                      </>
+                    ) : (
+                      <>
+                        {t("venueBook.confirmAndBook") || "Confirm & Book"}
+                        <CheckCircle className="ml-2 h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </section>
     </>
