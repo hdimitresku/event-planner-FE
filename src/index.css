@@ -4,54 +4,54 @@
 
 @layer base {
   :root {
-    /* Modern Minimalist Light Mode Palette */
-    --background: 0 0% 100%; /* Pure white */
-    --foreground: 215 25% 27%; /* Charcoal gray #3e4756 */
-    --card: 0 0% 100%;
-    --card-foreground: 215 25% 27%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 27%;
-    --primary: 213 94% 68%; /* Deep professional blue #1e40af */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 262 83% 58%; /* Modern violet #7c3aed */
-    --secondary-foreground: 0 0% 100%;
-    --muted: 220 13% 97%; /* Very light gray #f8fafc */
-    --muted-foreground: 215 16% 47%; /* Medium gray #64748b */
-    --accent: 43 96% 56%; /* Warm amber #f59e0b */
-    --accent-foreground: 215 25% 27%;
+    /* Warm Earth Tones Palette - Version A */
+    --background: 30 15% 95%; /* Warm cream #f7f4f0 */
+    --foreground: 25 20% 25%; /* Deep warm brown #463e36 */
+    --card: 30 20% 98%; /* Almost white cream #faf8f6 */
+    --card-foreground: 25 20% 25%;
+    --popover: 30 20% 98%;
+    --popover-foreground: 25 20% 25%;
+    --primary: 25 25% 40%; /* Rich taupe #6b5f54 */
+    --primary-foreground: 30 15% 95%;
+    --secondary: 28 18% 60%; /* Warm mushroom #a0927f */
+    --secondary-foreground: 25 20% 25%;
+    --muted: 30 12% 92%; /* Light warm gray #f0ede8 */
+    --muted-foreground: 25 15% 50%; /* Medium warm gray #7a7068 */
+    --accent: 35 30% 70%; /* Warm sand #b8a690 */
+    --accent-foreground: 25 20% 25%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 13% 91%; /* Light border #e2e8f0 */
-    --input: 220 13% 91%;
-    --ring: 213 94% 68%;
+    --border: 30 15% 85%; /* Soft taupe border #e0d9d0 */
+    --input: 30 15% 85%;
+    --ring: 25 25% 40%;
     --radius: 0.75rem;
-    --success: 142 71% 45%;
-    --warning: 38 92% 50%;
+    --success: 120 40% 45%;
+    --warning: 38 85% 55%;
   }
 
   .dark {
-    /* Modern Minimalist Dark Mode Palette */
-    --background: 222 84% 5%; /* Very dark blue #0f172a */
-    --foreground: 210 40% 98%; /* Off-white #f1f5f9 */
-    --card: 215 28% 17%; /* Dark blue gray #1e293b */
-    --card-foreground: 210 40% 98%;
-    --popover: 215 28% 17%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 213 94% 68%; /* Bright blue for dark mode */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 262 83% 58%; /* Modern violet */
-    --secondary-foreground: 0 0% 100%;
-    --muted: 215 25% 27%; /* Dark muted */
-    --muted-foreground: 217 10% 65%; /* Light muted */
-    --accent: 43 96% 56%; /* Warm amber */
-    --accent-foreground: 222 84% 5%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 215 25% 27%;
-    --input: 215 25% 27%;
-    --ring: 213 94% 68%;
-    --success: 142 71% 45%;
-    --warning: 38 92% 50%;
+    /* Warm Earth Tones Dark Mode - Version A */
+    --background: 25 20% 8%; /* Deep warm brown #1a1611 */
+    --foreground: 30 15% 92%; /* Light warm cream #eae6e0 */
+    --card: 25 18% 12%; /* Dark warm brown #211e18 */
+    --card-foreground: 30 15% 92%;
+    --popover: 25 18% 12%;
+    --popover-foreground: 30 15% 92%;
+    --primary: 35 30% 70%; /* Warm sand for dark mode */
+    --primary-foreground: 25 20% 8%;
+    --secondary: 28 18% 35%; /* Darker mushroom #5a4f42 */
+    --secondary-foreground: 30 15% 92%;
+    --muted: 25 15% 18%; /* Dark warm muted #2e2924 */
+    --muted-foreground: 30 12% 65%; /* Light warm gray #a69c91 */
+    --accent: 28 18% 60%; /* Warm mushroom accent */
+    --accent-foreground: 25 20% 8%;
+    --destructive: 0 63% 45%;
+    --destructive-foreground: 30 15% 92%;
+    --border: 25 15% 22%; /* Dark warm border #3a342c */
+    --input: 25 15% 22%;
+    --ring: 35 30% 70%;
+    --success: 120 40% 50%;
+    --warning: 38 85% 60%;
   }
 }
 
@@ -66,36 +66,36 @@
   }
 }
 
-/* Minimalist card hover effects */
+/* Warm earth tone card hover effects */
 .card-hover {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(107, 95, 84, 0.15), 0 8px 10px -6px rgba(107, 95, 84, 0.1);
 }
 
 .dark .card-hover:hover {
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(184, 166, 144, 0.25), 0 8px 10px -6px rgba(184, 166, 144, 0.1);
 }
 
-/* Modern button styling */
+/* Modern button styling with warm tones */
 .btn-primary {
   @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(107, 95, 84, 0.2);
 }
 
 .btn-primary:hover {
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.15);
+  box-shadow: 0 4px 12px rgba(107, 95, 84, 0.25);
   transform: translateY(-1px);
 }
 
 .dark .btn-primary:hover {
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 4px 12px rgba(184, 166, 144, 0.35);
 }
 
-/* Minimalist navigation */
+/* Warm tone navigation */
 .nav-link {
   @apply relative text-foreground/70 hover:text-foreground transition-colors duration-200;
   position: relative;
@@ -125,7 +125,7 @@
   width: 100%;
 }
 
-/* Enhanced calendar styling */
+/* Enhanced calendar styling with warm tones */
 .rdp {
   --rdp-cell-size: 40px;
   --rdp-accent-color: hsl(var(--primary));
@@ -142,7 +142,7 @@
   color: hsl(var(--primary-foreground)) !important;
 }
 
-/* Minimalist form elements */
+/* Warm tone form elements */
 .form-input {
   @apply border border-border rounded-lg px-3 py-2 bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200;
 }
@@ -152,20 +152,20 @@
   box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
 }
 
-/* Venue card styling */
+/* Venue card styling with warm tones */
 .venue-card {
   @apply border border-border rounded-xl overflow-hidden bg-card;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(107, 95, 84, 0.1);
 }
 
 .venue-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(107, 95, 84, 0.15), 0 8px 10px -6px rgba(107, 95, 84, 0.1);
 }
 
 .dark .venue-card:hover {
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 25px -5px rgba(184, 166, 144, 0.3), 0 8px 10px -6px rgba(184, 166, 144, 0.2);
 }
 
 /* Enhanced micro-interactions */
@@ -257,20 +257,20 @@
   @apply border-primary/50;
 }
 
-/* Enhanced shadows */
+/* Enhanced shadows with warm tones */
 .shadow-soft {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px rgba(107, 95, 84, 0.1), 0 1px 2px rgba(107, 95, 84, 0.06);
 }
 
 .shadow-medium {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(107, 95, 84, 0.1), 0 2px 4px -1px rgba(107, 95, 84, 0.06);
 }
 
 .shadow-large {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(107, 95, 84, 0.1), 0 4px 6px -2px rgba(107, 95, 84, 0.05);
 }
 
-/* Gradient backgrounds */
+/* Gradient backgrounds with warm tones */
 .gradient-primary {
   background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
 }
@@ -279,7 +279,7 @@
   background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--primary)) 100%);
 }
 
-/* Text gradients */
+/* Text gradients with warm tones */
 .text-gradient {
   background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
   -webkit-background-clip: text;
