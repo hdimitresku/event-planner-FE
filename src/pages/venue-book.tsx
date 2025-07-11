@@ -1938,4 +1938,367 @@ export default function VenueBookPage() {
                    </Button>
 
                    <p className="text-xs text-muted-foreground text-center mt-4">{t("venueBook.cancellationPolicy")}</p>
-\
+               </div>
+
+               {/* Selected Services Summary */}
+               {Object.keys(selectedServices).length > 0 && (
+                   <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                       <h3 className="font-medium">{t("venueBook.selectedServices")}</h3>
+                       <div className="space-y-3">
+                           {Object.entries(selectedServices).map(([serviceId, optionIds]) => {
+                               const service = services.find((s) => s.id === serviceId)
+                               if (!service) return null
+
+                               return optionIds.map(optionId => {
+                                   const option = service.options.find((opt) => opt.id === optionId)
+                                   if (!option) return null
+
+                                   return (
+                                       <div key={`${serviceId}-${optionId}`} className="flex items-center justify-between text-sm">
+                                           <div className="flex-1 min-w-0">
+                                               <p className="font-medium truncate">{option.name[language]}</p>
+                                               <p className="text-muted-foreground text-xs truncate">
+                                                   {service.provider.firstName} {service.provider.lastName}
+                                               </p>
+                                           </div>
+                                           <span className="font-medium ml-2">
+                                               {formatPrice(convertPrice(option.price.amount, (option.price.currency || "USD") as Currency), currency)}
+                                           </span>
+                                       </div>
+                                   )
+                               })
+                           })}
+                       </div>
+                   </div>
+               )}
+
+               {/* Pricing Breakdown */}
+               <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                   <h3 className="font-medium">{t("venueBook.pricingBreakdown")}</h3>
+                   <div className="space-y-3">
+                       <div className="flex justify-between text-sm">
+                           <span>{t("venueBook.venuePrice")}</span>
+                           <span>{basePrice}</span>
+                       </div>
+                       {Object.keys(selectedServices).length > 0 && (
+                           <div className="flex justify-between text-sm">
+                               <span>{t("venueBook.servicesPrice")}</span>
+                               <span>{servicesCost}</span>
+                           </div>
+                       )}
+                       <div className="border-t pt-3">
+                           <div className="flex justify-between font-semibold">
+                               <span>{t("venueBook.total")}</span>
+                               <span>{total}</span>
+                           </div>
+                       </div>
+                   </div>
+               </div>
+           </div>
+       </div>
+     </div>
+   </section>
+
+   {/* Service Option Details Modal */}
+   {selectedOptionDetails && (
+       <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+           <div className="bg-white dark:bg-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+               <div className="p-6">
+                   <div className="flex items-center justify-between mb-4">
+                       <h3 className="text-xl font-semibold">{selectedOptionDetails.option.name[language]}</h3>
+                       <Button variant="ghost" size="icon" onClick={closeOptionDetails}>
+                           <ArrowLeft className="h-4 w-4" />
+                       </Button>
+                   </div>
+
+                   {/* Service Images */}
+                   {selectedOptionDetails.service.media && selectedOptionDetails.service.media.length > 0 && (
+                       <div className="mb-6">
+                           <div className="relative h-64 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
+                               <img
+                                   src={formatImageUrl(selectedOptionDetails.service.media[currentImageIndex]?.url) || "/placeholder.svg"}
+                                   alt={selectedOptionDetails.option.name[language]}
+                                   className="w-full h-full object-cover"
+                               />
+                               {selectedOptionDetails.service.media.length > 1 && (
+                                   <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                                       {selectedOptionDetails.service.media.map((_, index) => (
+                                           <button
+                                               key={index}
+                                               className={cn(
+                                                   "w-2 h-2 rounded-full transition-colors",
+                                                   index === currentImageIndex ? "bg-white" : "bg-white/50"
+                                               )}
+                                               onClick={() => setCurrentImageIndex(index)}
+                                           />
+                                       ))}
+                                   </div>
+                               )}
+                           </div>
+                       </div>
+                   )}
+
+                   {/* Provider Info */}
+                   <div className="flex items-center mb-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                       <Avatar className="h-10 w-10 mr-3">
+                           <AvatarImage
+                               src={
+                                   selectedOptionDetails.service.provider?.profilePicture
+                                       ? formatImageUrl(selectedOptionDetails.service.provider.profilePicture)
+                                       : "/placeholder.svg?height=40&width=40"
+                               }
+                               alt={`${selectedOptionDetails.service.provider?.firstName} ${selectedOptionDetails.service.provider?.lastName}`}
+                           />
+                           <AvatarFallback>
+                               {selectedOptionDetails.service.provider?.firstName?.charAt(0)}
+                               {selectedOptionDetails.service.provider?.lastName?.charAt(0)}
+                           </AvatarFallback>
+                       </Avatar>
+                       <div className="flex-1">
+                           <h4 className="font-medium">
+                               {selectedOptionDetails.service.provider?.firstName} {selectedOptionDetails.service.provider?.lastName}
+                           </h4>
+                           <p className="text-sm text-muted-foreground">{selectedOptionDetails.service.name[language]}</p>
+                       </div>
+                       <Button variant="outline" size="sm">
+                           <MessageSquare className="h-4 w-4 mr-2" />
+                           {t("venueBook.contact")}
+                       </Button>
+                   </div>
+
+                   {/* Option Details */}
+                   <div className="space-y-4">
+                       <div>
+                           <h4 className="font-medium mb-2">{t("venueBook.description")}</h4>
+                           <p className="text-muted-foreground">{selectedOptionDetails.option.description[language]}</p>
+                       </div>
+
+                       <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                           <div>
+                               <div className="flex items-center mb-2">
+                                   <Badge className={`${getPriceTypeBadge(selectedOptionDetails.option.price.type).bgColor} mr-2`}>
+                                       {getPriceTypeBadge(selectedOptionDetails.option.price.type).text}
+                                   </Badge>
+                                   <span className="font-semibold">
+                                       {formatPrice(convertPrice(selectedOptionDetails.option.price.amount, (selectedOptionDetails.option.price.currency || "USD") as Currency), currency)}
+                                   </span>
+                               </div>
+                               {selectedOptionDetails.option.metadata && (
+                                   <div className="text-sm text-muted-foreground">
+                                       {selectedOptionDetails.option.metadata.duration && (
+                                           <p>{t("venueBook.duration")}: {selectedOptionDetails.option.metadata.duration} {t("venueBook.hours")}</p>
+                                       )}
+                                       {selectedOptionDetails.option.metadata.capacity && (
+                                           <p>
+                                               {t("venueBook.capacity")}: {selectedOptionDetails.option.metadata.capacity.min}-{selectedOptionDetails.option.metadata.capacity.max} {t("venueBook.people")}
+                                           </p>
+                                       )}
+                                   </div>
+                               )}
+                           </div>
+                       </div>
+
+                       {/* Requirements */}
+                       {selectedOptionDetails.option.metadata?.requirements && selectedOptionDetails.option.metadata.requirements.length > 0 && (
+                           <div>
+                               <h4 className="font-medium mb-2">{t("venueBook.requirements")}</h4>
+                               <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                                   {selectedOptionDetails.option.metadata.requirements.map((requirement: string, index: number) => (
+                                       <li key={index}>{requirement}</li>
+                                   ))}
+                               </ul>
+                           </div>
+                       )}
+                   </div>
+
+                   {/* Action Buttons */}
+                   <div className="flex gap-3 mt-6">
+                       <Button
+                           variant="outline"
+                           className="flex-1 bg-transparent"
+                           onClick={closeOptionDetails}
+                       >
+                           {t("common.close")}
+                       </Button>
+                       <Button
+                           className="flex-1 bg-primary hover:bg-primary/90"
+                           onClick={() => {
+                               toggleService(selectedOptionDetails.service.id, selectedOptionDetails.option.id)
+                               closeOptionDetails()
+                           }}
+                       >
+                           {selectedServices[selectedOptionDetails.service.id]?.includes(selectedOptionDetails.option.id)
+                               ? t("venueBook.removeService")
+                               : t("venueBook.addService")}
+                       </Button>
+                   </div>
+               </div>
+           </div>
+       </div>
+   )}
+
+   {/* Confirmation Modal */}
+   {showConfirmationModal && confirmationData && (
+       <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+           <div className="bg-white dark:bg-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+               <div className="p-6">
+                   <div className="flex items-center justify-between mb-6">
+                       <h3 className="text-xl font-semibold">{t("venueBook.confirmBooking")}</h3>
+                       <Button variant="ghost" size="icon" onClick={() => setShowConfirmationModal(false)}>
+                           <ArrowLeft className="h-4 w-4" />
+                       </Button>
+                   </div>
+
+                   {/* Booking Summary */}
+                   <div className="space-y-6">
+                       {/* Venue Details */}
+                       <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                           <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
+                               <img
+                                   src={venue.media && venue.media.length > 0 ? formatImageUrl(venue.media[0].url) : "/placeholder.svg"}
+                                   alt={venue.name[language]}
+                                   className="w-full h-full object-cover"
+                               />
+                           </div>
+                           <div className="flex-1">
+                               <h4 className="font-medium">{venue.name[language]}</h4>
+                               <p className="text-sm text-muted-foreground">
+                                   {venue.address ? `${venue.address.city}, ${venue.address.country}` : ""}
+                               </p>
+                               <div className="flex items-center mt-2 text-sm">
+                                   <CalendarIcon className="mr-1 h-4 w-4 text-muted-foreground" />
+                                   <span>{startDate ? format(startDate, "PPP") : ""}</span>
+                               </div>
+                               <div className="flex items-center mt-1 text-sm">
+                                   <Clock className="mr-1 h-4 w-4 text-muted-foreground" />
+                                   <span>
+                                       {startDate ? format(startDate, "p") : ""} - {endDate ? format(endDate, "p") : ""}
+                                   </span>
+                               </div>
+                               <div className="flex items-center mt-1 text-sm">
+                                   <Users className="mr-1 h-4 w-4 text-muted-foreground" />
+                                   <span>{guests} {t("venueBook.guests")}</span>
+                               </div>
+                           </div>
+                       </div>
+
+                       {/* Contact Information */}
+                       <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                           <h4 className="font-medium mb-3">{t("venueBook.contactInformation")}</h4>
+                           <div className="grid grid-cols-2 gap-4 text-sm">
+                               <div>
+                                   <span className="text-muted-foreground">{t("venueBook.name")}:</span>
+                                   <p className="font-medium">{formValues.firstName} {formValues.lastName}</p>
+                               </div>
+                               <div>
+                                   <span className="text-muted-foreground">{t("venueBook.email")}:</span>
+                                   <p className="font-medium">{formValues.email}</p>
+                               </div>
+                               <div>
+                                   <span className="text-muted-foreground">{t("venueBook.phone")}:</span>
+                                   <p className="font-medium">{formValues.phonePrefix}{formValues.phone}</p>
+                               </div>
+                               <div>
+                                   <span className="text-muted-foreground">{t("venueBook.eventType")}:</span>
+                                   <p className="font-medium">{t(`venueBook.${eventType}`)}</p>
+                               </div>
+                           </div>
+                       </div>
+
+                       {/* Selected Services */}
+                       {Object.keys(selectedServices).length > 0 && (
+                           <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                               <h4 className="font-medium mb-3">{t("venueBook.selectedServices")}</h4>
+                               <div className="space-y-2">
+                                   {Object.entries(selectedServices).map(([serviceId, optionIds]) => {
+                                       const service = services.find((s) => s.id === serviceId)
+                                       if (!service) return null
+
+                                       return optionIds.map(optionId => {
+                                           const option = service.options.find((opt) => opt.id === optionId)
+                                           if (!option) return null
+
+                                           return (
+                                               <div key={`${serviceId}-${optionId}`} className="flex justify-between text-sm">
+                                                   <span>{option.name[language]}</span>
+                                                   <span className="font-medium">
+                                                       {formatPrice(convertPrice(option.price.amount, (option.price.currency || "USD") as Currency), currency)}
+                                                   </span>
+                                               </div>
+                                           )
+                                       })
+                                   })}
+                               </div>
+                           </div>
+                       )}
+
+                       {/* Special Requests */}
+                       {specialRequests && (
+                           <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                               <h4 className="font-medium mb-2">{t("venueBook.specialRequests")}</h4>
+                               <p className="text-sm text-muted-foreground">{specialRequests}</p>
+                           </div>
+                       )}
+
+                       {/* Final Pricing */}
+                       <div className="p-4 bg-primary/5 dark:bg-primary/10 rounded-lg border border-primary/20">
+                           <h4 className="font-medium mb-3">{t("venueBook.finalPricing")}</h4>
+                           <div className="space-y-2 text-sm">
+                               <div className="flex justify-between">
+                                   <span>{t("venueBook.venuePrice")}</span>
+                                   <span>{basePrice}</span>
+                               </div>
+                               {Object.keys(selectedServices).length > 0 && (
+                                   <div className="flex justify-between">
+                                       <span>{t("venueBook.servicesPrice")}</span>
+                                       <span>{servicesCost}</span>
+                                   </div>
+                               )}
+                               <div className="border-t border-primary/20 pt-2 mt-2">
+                                   <div className="flex justify-between font-semibold text-base">
+                                       <span>{t("venueBook.total")}</span>
+                                       <span>{total}</span>
+                                   </div>
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+
+                   {/* Action Buttons */}
+                   <div className="flex gap-3 mt-6">
+                       <Button
+                           variant="outline"
+                           className="flex-1 bg-transparent"
+                           onClick={() => setShowConfirmationModal(false)}
+                           disabled={isSubmitting}
+                       >
+                           {t("common.cancel")}
+                       </Button>
+                       <Button
+                           className="flex-1 bg-primary hover:bg-primary/90"
+                           onClick={handleConfirmBooking}
+                           disabled={isSubmitting}
+                       >
+                           {isSubmitting ? (
+                               <>
+                                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                   {t("venueBook.processing")}
+                               </>
+                           ) : (
+                               <>
+                                   {t("venueBook.confirmAndPay")}
+                                   <ArrowRight className="ml-2 h-4 w-4" />
+                               </>
+                           )}
+                       </Button>
+                   </div>
+               </div>
+           </div>
+       </div>
+   )}
+
+   {/* Custom Styles */}
+   <style jsx>{scrollbarStyles}</style>
+ </>
+)\
+}
