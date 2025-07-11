@@ -1,256 +1,106 @@
 "use client"
+import { useState, useEffect } from "react"
 
-import React, { useEffect, useState, useRef } from "react"
-import { useParams, useNavigate, useLocation } from "react-router-dom"
+import { useParams, Link, useLocation, useNavigate } from "react-router-dom"
 import { Button } from "../components/ui/button"
-import { Input } from "../components/ui/input"
-import { Textarea } from "../components/ui/textarea"
-import { format, addHours, isValid, parseISO, parse, set, isBefore, isAfter, addDays } from "date-fns"
+import { Badge } from "../components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
+import { Calendar } from "../components/ui/calendar"
+import { useLanguage } from "../context/language-context"
+import { useCurrency, type Currency } from "../context/currency-context"
+import { cn } from "../components/ui/utils"
 import {
-  CalendarIcon,
-  Clock,
-  Users,
-  Info,
-  ArrowRight,
-  Check,
-  ChevronDown,
-  MessageSquare,
-  ChevronRight,
-  ChevronLeft,
   MapPin,
   Star,
-  DollarSign,
-  ArrowLeft,
-  Utensils,
+  Users,
+  Clock,
+  CalendarIcon,
+  Wifi,
+  ParkingMeterIcon as Parking,
   Music,
-  Camera,
-  Video,
-  Car,
-  Sparkles,
-  ShieldCheck,
+  Utensils,
+  Tv,
+  Heart,
+  Share2,
+  Info,
+  CheckCircle2,
+  DollarSign,
   User,
-  PartyPopper,
   Lightbulb,
-  AlertCircle,
-  CheckCircle,
-  Loader2,
-  X,
-  ChevronUp,
-  Building2,
+  ShieldCheck,
+  PartyPopper,
+  Car,
+  Camera,
+  Sparkles,
+  ArrowLeft,
+  Plus,
+  Minus,
 } from "lucide-react"
-import { useLanguage } from "../context/language-context"
-import { EXCHANGE_RATES, useCurrency, type Currency } from "../context/currency-context"
-import { cn } from "../lib/utils"
-import { Badge } from "../components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar"
-import { toast } from "sonner"
+import { Input } from "../components/ui/input"
+import { Textarea } from "../components/ui/textarea"
+import { format, isAfter, isBefore, parseISO, parse, set, addDays, addHours } from "date-fns"
+import { isValid } from "date-fns"
+import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover"
+import { useFavorites } from "../context/favorites-context"
 import * as venueService from "../services/venueService"
 import * as serviceService from "../services/serviceService"
-import * as bookingService from "../services/bookingService"
-import { EventType } from "@/models"
-import * as userService from "../services/userService"
-import { useAuth } from "../context/auth-context"
-import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover"
-import { Calendar } from "../components/ui/calendar"
+import { type Venue, VenueAmenity } from "../models/venue"
+import { PricingType } from "../models/common"
+import { Separator } from "../components/ui/separator"
 import { Label } from "../components/ui/label"
-import { User as UserType } from "../models/user"
 
-// Define interfaces for the API data structure
-interface LocalizedText {
-  en: string
-  sq: string
-}
-
-interface Address {
-  city: string
-  state: string
-  street: string
-  country: string
-  zipCode: string
-  location: any | null
-}
-
-interface Person {
-  id: string
-  email: string
-  firstName: string
-  lastName: string
-  phoneNumber: string
-  birthday: string | null
-  profilePicture: string | null
-  role: string
-  createdAt: string
-  updatedAt: string
-  address: Address
-}
-
-interface Price {
+// Define service type interface
+interface ServiceTypeData {
   type: string
-  amount: number
-  currency: string
+  icon: string
 }
 
-interface Media {
-  id: string
-  url: string
-  type: string
-  entityType: string
-  entityId: string
-  createdAt: string
-  updatedAt: string
-}
-
-interface DayAvailability {
-  monday: string
-  tuesday: string
-  wednesday: string
-  thursday: string
-  friday: string
-  saturday: string
-  sunday: string
-}
-
-interface BlockedDate {
-  startDate: string
-  endDate: string
-  isConfirmed: boolean
-}
-
-interface Metadata {
-  blockedDates?: BlockedDate[]
-  [key: string]: any
-}
-
-interface Review {
-  id: string
-  rating: number
-  comment: string
-  isVerified: boolean
-  createdAt: string
-  updatedAt: string
-}
-
-interface Venue {
-  id: string
-  owner: Person
-  name: LocalizedText
-  description: LocalizedText
-  type: string
-  address: Address
-  capacity: {
-    max: number
-    min: number
-    recommended: number
-  }
-  price: Price
-  amenities: string[]
-  dayAvailability: DayAvailability
-  isActive: boolean
-  metadata: Metadata
-  bookings: any[]
-  media: Media[]
-  reviews: Review[]
-  createdAt: string
-  updatedAt: string
-}
-
-interface ServiceOption {
-  id: string
-  name: LocalizedText
-  description: LocalizedText
-  price: Price
-  metadata: Record<string, any>
-  createdAt: string
-  updatedAt: string
-}
-
+// Define service interface
 interface Service {
   id: string
-  name: LocalizedText
-  description: LocalizedText
-  type: string
-  icon: string
-  venueTypes: string[]
-  dayAvailability: DayAvailability
-  isActive: boolean
-  metadata: Metadata
-  provider: Person
-  options: ServiceOption[]
-  media: Media[]
-  createdAt: string
-  updatedAt: string
-}
-
-interface ServiceType {
-  type: string
-  icon: string
-}
-
-// Validation errors interface
-interface ValidationErrors {
-  eventType?: string
-  startDate?: string
-  endDate?: string
-  guests?: string
-  firstName?: string
-  lastName?: string
-  email?: string
-  phone?: string
-}
-
-// Helper function to get icon component by name
-const getIconByName = (iconName: string) => {
-  const icons: Record<string, React.ElementType> = {
-    Utensils: Utensils,
-    Music: Music,
-    Sparkles: Sparkles,
-    Camera: Camera,
-    Video: Video,
-    Car: Car,
-    ShieldCheck: ShieldCheck,
-    User: User,
-    PartyPopper: PartyPopper,
-    Lightbulb: Lightbulb,
+  name: { [key: string]: string }
+  description: { [key: string]: string }
+  price: {
+    amount: number
+    currency: string
+    type: PricingType
   }
-
-  return icons[iconName] || Info
+  type: string
+  isAvailable: boolean
+  metadata?: {
+    duration?: number
+    capacity?: {
+      min: number
+      max: number
+    }
+    requirements?: string[]
+  }
 }
 
-// Service type mapping for display names
-const serviceTypeNames: Record<string, { en: string; sq: string }> = {
-  catering: { en: "Catering", sq: "Katering" },
-  music: { en: "Music & Entertainment", sq: "Muzikë dhe Argëtim" },
-  photography: { en: "Photography", sq: "Fotografi" },
-  videography: { en: "Videography", sq: "Videografi" },
-  transportation: { en: "Transportation", sq: "Transport" },
-  decoration: { en: "Decoration", sq: "Dekorim" },
-  security: { en: "Security", sq: "Siguri" },
-  staffing: { en: "Staffing", sq: "Staf" },
-  entertainment: { en: "Entertainment", sq: "Argëtim" },
-  lighting: { en: "Lighting", sq: "Ndriçim" },
-}
-
-// Update the ServiceTypesResponse interface
-interface ServiceTypesResponse {
-  serviceTypes: ServiceType[]
+// Define booking form data interface
+interface BookingFormData {
+  startDate: Date | undefined
+  endDate: Date | undefined
+  guests: number
+  eventType: string
+  selectedServices: { [serviceId: string]: number }
+  specialRequests: string
+  contactInfo: {
+    firstName: string
+    lastName: string
+    email: string
+    phone: string
+  }
 }
 
 export default function VenueBookPage() {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const location = useLocation()
   const { t, language } = useLanguage()
-  const { formatPrice, convertPrice, currency } = useCurrency()
-  const { user } = useAuth()
-
-  // Refs for scrolling to fields
-  const eventTypeRef = useRef<HTMLDivElement>(null)
-  const dateRangeRef = useRef<HTMLDivElement>(null)
-  const guestsRef = useRef<HTMLDivElement>(null)
-  const firstNameRef = useRef<HTMLDivElement>(null)
-  const lastNameRef = useRef<HTMLDivElement>(null)
-  const emailRef = useRef<HTMLDivElement>(null)
-  const phoneRef = useRef<HTMLDivElement>(null)
+  const { isFavorite, toggleFavorite } = useFavorites()
+  const { id } = useParams<{ id: string }>()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { formatPrice } = useCurrency()
 
   // Extract data from location state
   const {
@@ -261,14 +111,12 @@ export default function VenueBookPage() {
     selectedServices: initialSelectedServices,
   } = location.state || {}
 
-  // Parse dates from location state
+  // Helper functions
   const parseDate = (dateValue: any): Date | undefined => {
     if (!dateValue) return undefined
 
-    // If it's already a Date object
     if (dateValue instanceof Date) return dateValue
 
-    // If it's a string (ISO format)
     try {
       const parsedDate = typeof dateValue === "string" ? parseISO(dateValue) : new Date(dateValue)
       return isValid(parsedDate) ? parsedDate : undefined
@@ -278,388 +126,375 @@ export default function VenueBookPage() {
     }
   }
 
-  const [startDate, setStartDate] = useState<Date | undefined>(parseDate(initialStartDate) || new Date())
-  const [endDate, setEndDate] = useState<Date | undefined>(parseDate(initialEndDate) || addHours(new Date(), 3))
-  const [guests, setGuests] = useState(initialGuests || 50)
-  const [selectedServices, setSelectedServices] = useState<Record<string, string[]>>({})
-  const [services, setServices] = useState<Service[]>([])
-  const [serviceTypes, setServiceTypes] = useState<Record<string, ServiceType>>({})
+  // Get blocked dates from venue metadata
+  const getBlockedDates = () => {
+    if (!venue || !venue.metadata || !venue.metadata.blockedDates) return []
+
+    return venue.metadata.blockedDates.map((date) => {
+      // Handle both string and ISO date formats
+      const startDate =
+        typeof date.startDate === "string"
+          ? date.startDate.includes("T")
+            ? parseISO(date.startDate)
+            : new Date(date.startDate)
+          : date.startDate
+
+      const endDate =
+        typeof date.endDate === "string"
+          ? date.endDate.includes("T")
+            ? parseISO(date.endDate)
+            : new Date(date.endDate)
+          : date.endDate
+
+      return {
+        start: startDate,
+        end: endDate || startDate, // If no end date, use start date as end date
+      }
+    })
+  }
+
+  // Helper function to check if date is available
+  const isDateAvailable = (date: Date) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    if (date < today) return false
+
+    // Check if the date falls within any blocked range
+    return !blockedDates.some(({ start, end }) => {
+      const startDate = new Date(start)
+      const endDate = new Date(end)
+      startDate.setHours(0, 0, 0, 0)
+      endDate.setHours(23, 59, 59, 999)
+      return date >= startDate && date <= endDate
+    })
+  }
+
+  // State declarations
   const [venue, setVenue] = useState<Venue | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [eventType, setEventType] = useState(initialEventType || "")
-  const [expandedTypes, setExpandedTypes] = useState<string[]>([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [selectedOptionDetails, setSelectedOptionDetails] = useState<{
-    service: Service
-    option: ServiceOption
-  } | null>(null)
-  const [selectedImageGallery, setSelectedImageGallery] = useState<Media[] | null>(null)
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [userData, setUserData] = useState<UserType | null>(null)
-  const [formValues, setFormValues] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    phonePrefix: "+355", // Albanian prefix as default
-  })
-  const [specialRequests, setSpecialRequests] = useState("")
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
-  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({})
-  const [blockedDates, setBlockedDates] = useState<Date[]>([])
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false)
-  const [confirmationData, setConfirmationData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [blockedDates, setBlockedDates] = useState<Array<{ start: Date; end: Date }>>([])
 
-  // Phone prefixes with country codes and flags
-  const phonePrefix = [
-    { code: "+355", country: "AL", name: "Albania", flag: "🇦🇱" },
-    { code: "+1", country: "US", name: "United States", flag: "🇺🇸" },
-    { code: "+44", country: "GB", name: "United Kingdom", flag: "🇬🇧" },
-    { code: "+49", country: "DE", name: "Germany", flag: "🇩🇪" },
-    { code: "+33", country: "FR", name: "France", flag: "🇫🇷" },
-    { code: "+39", country: "IT", name: "Italy", flag: "🇮🇹" },
-    { code: "+34", country: "ES", name: "Spain", flag: "🇪🇸" },
-    { code: "+31", country: "NL", name: "Netherlands", flag: "🇳🇱" },
-    { code: "+41", country: "CH", name: "Switzerland", flag: "🇨🇭" },
-    { code: "+43", country: "AT", name: "Austria", flag: "🇦🇹" },
-    { code: "+61", country: "AU", name: "Australia", flag: "🇦🇺" },
-    { code: "+81", country: "JP", name: "Japan", flag: "🇯🇵" },
-    { code: "+49", country: "AT", name: "Austria", flag: "🇦🇹" },
-    { code: "+86", country: "CN", name: "China", flag: "🇨🇳" },
-    { code: "+91", country: "IN", name: "India", flag: "🇮🇳" },
-    { code: "+7", country: "RU", name: "Russia", flag: "🇷🇺" },
-    { code: "+27", country: "ZA", name: "South Africa", flag: "🇿🇦" },
-    { code: "+64", country: "NZ", name: "New Zealand", flag: "🇳🇿" },
-    { code: "+82", country: "KR", name: "South Korea", flag: "🇰🇷" },
-    { code: "+47", country: "NO", name: "Norway", flag: "🇳🇴" },
-    { code: "+46", country: "SE", name: "Sweden", flag: "🇸🇪" },
-    { code: "+48", country: "PL", name: "Poland", flag: "🇵🇱" },
-    { code: "+420", country: "CZ", name: "Czech Republic", flag: "🇨🇿" },
-    { code: "+36", country: "HU", name: "Hungary", flag: "🇭🇺" },
-    { code: "+370", country: "LT", name: "Lithuania", flag: "🇱🇹" },
-    { code: "+371", country: "LV", name: "Latvia", flag: "🇱🇻" },
-    { code: "+372", country: "EE", name: "Estonia", flag: "🇪🇪" },
-    { code: "+358", country: "FI", name: "Finland", flag: "🇫🇮" },
-    { code: "+45", country: "DK", name: "Denmark", flag: "🇩🇰" },
-    { code: "+40", country: "RO", name: "Romania", flag: "🇷🇴" },
-    { code: "+48", country: "PL", name: "Poland", flag: "🇵🇱" },
-    { code: "+351", country: "PT", name: "Portugal", flag: "🇵🇹" },
-    { code: "+352", country: "LU", name: "Luxembourg", flag: "🇱🇺" },
-    { code: "+353", country: "IE", name: "Ireland", flag: "🇮🇪" },
-    { code: "+380", country: "UA", name: "Ukraine", flag: "🇺🇦" },
-    { code: "+254", country: "KE", name: "Kenya", flag: "🇰🇪" },
-    { code: "+234", country: "NG", name: "Nigeria", flag: "🇳🇬" },
-    { code: "+966", country: "SA", name: "Saudi Arabia", flag: "🇸🇦" },
-    { code: "+972", country: "IL", name: "Israel", flag: "🇮🇱" },
-    { code: "+65", country: "SG", name: "Singapore", flag: "🇸🇬" },
-    { code: "+60", country: "MY", name: "Malaysia", flag: "🇲🇾" },
-    { code: "+351", country: "PT", name: "Portugal", flag: "🇵🇹" },
-    { code: "+358", country: "FI", name: "Finland", flag: "🇫🇮" },
-    { code: "+65", country: "SG", name: "Singapore", flag: "🇸🇬" }
-  ];
-  
+  // Helper function to get earliest available date based on blocked dates
+  const getEarliestAvailableDate = () => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
 
-  // Handle phone number input with automatic 0 removal
-  const handlePhoneChange = (value: string) => {
-    // Remove leading 0 if present (common in local formats)
-    const cleanedValue = value.startsWith('0') ? value.substring(1) : value
-    handleFormChange("phone", cleanedValue)
-  }
-
-  const handleViewOptionDetails = (service: Service, option: ServiceOption) => {
-    setSelectedOptionDetails({ service, option })
-  }
-
-  const closeOptionDetails = () => {
-    setSelectedOptionDetails(null)
-  }
-
-  // Validation functions
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
-  }
-
-  const validatePhone = (phone: string): boolean => {
-    const phoneRegex = /^[+]?[1-9][\d]{0,15}$/
-    // Clean the phone number: remove spaces, dashes, brackets, and leading 0
-    let cleanedPhone = phone.replace(/[\s\-$$$$]/g, "")
-    // Remove leading 0 if present (common in local formats like Albanian)
-    if (cleanedPhone.startsWith('0')) {
-      cleanedPhone = cleanedPhone.substring(1)
-    }
-    return phoneRegex.test(cleanedPhone)
-  }
-
-  const validateField = (fieldName: string, value: any): string | undefined => {
-    switch (fieldName) {
-      case "eventType":
-        return !value ? t("venueBook.validation.eventTypeRequired") || "Event type is required" : undefined
-
-      case "startDate":
-        if (!value) return t("venueBook.validation.startDateRequired") || "Start date is required"
-        // Compare dates without time component
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        const selectedDate = new Date(value)
-        selectedDate.setHours(0, 0, 0, 0)
-        if (selectedDate < today) return t("venueBook.validation.startDateFuture") || "Start date must be in the future"
-        return undefined
-
-      case "endDate":
-        if (!value) return t("venueBook.validation.endDateRequired") || "End date is required"
-        if (startDate && value <= startDate)
-          return t("venueBook.validation.endDateAfterStart") || "End date must be after start date"
-        return undefined
-
-      case "guests":
-        if (!value || value < 1) return t("venueBook.validation.guestsRequired") || "Number of guests is required"
-        if (venue && value < venue.capacity.min)
-          return (
-              t("venueBook.validation.guestsMin", { min: venue.capacity.min }) ||
-              `Minimum ${venue.capacity.min} guests required`
-          )
-        if (venue && value > venue.capacity.max)
-          return (
-              t("venueBook.validation.guestsMax", { max: venue.capacity.max }) ||
-              `Maximum ${venue.capacity.max} guests allowed`
-          )
-        return undefined
-
-      case "firstName":
-        return !value?.trim() ? t("venueBook.validation.firstNameRequired") || "First name is required" : undefined
-
-      case "lastName":
-        return !value?.trim() ? t("venueBook.validation.lastNameRequired") || "Last name is required" : undefined
-
-      case "email":
-        if (!value?.trim()) return t("venueBook.validation.emailRequired") || "Email is required"
-        if (!validateEmail(value)) return t("venueBook.validation.emailInvalid") || "Please enter a valid email address"
-        return undefined
-
-      case "phone":
-        if (!value?.trim()) return t("venueBook.validation.phoneRequired") || "Phone number is required"
-        if (!validatePhone(value)) return t("venueBook.validation.phoneInvalid") || "Please enter a valid phone number"
-        return undefined
-
-      default:
-        return undefined
-    }
-  }
-
-  const validateAllFields = (): ValidationErrors => {
-    const errors: ValidationErrors = {}
-
-    const eventTypeError = validateField("eventType", eventType)
-    if (eventTypeError) errors.eventType = eventTypeError
-
-    const startDateError = validateField("startDate", startDate)
-    if (startDateError) errors.startDate = startDateError
-
-    const endDateError = validateField("endDate", endDate)
-    if (endDateError) errors.endDate = endDateError
-
-    const guestsError = validateField("guests", guests)
-    if (guestsError) errors.guests = guestsError
-
-    const firstNameError = validateField("firstName", formValues.firstName)
-    if (firstNameError) errors.firstName = firstNameError
-
-    const lastNameError = validateField("lastName", formValues.lastName)
-    if (lastNameError) errors.lastName = lastNameError
-
-    const emailError = validateField("email", formValues.email)
-    if (emailError) errors.email = emailError
-
-    const phoneError = validateField("phone", formValues.phone)
-    if (phoneError) errors.phone = phoneError
-
-    return errors
-  }
-
-  const scrollToField = (fieldName: string) => {
-    const refs: Record<string, React.RefObject<HTMLDivElement>> = {
-      eventType: eventTypeRef,
-      startDate: dateRangeRef,
-      endDate: dateRangeRef,
-      guests: guestsRef,
-      firstName: firstNameRef,
-      lastName: lastNameRef,
-      email: emailRef,
-      phone: phoneRef,
-    }
-
-    const ref = refs[fieldName]
-    if (ref?.current) {
-      ref.current.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
+    // If today is not blocked, return today
+    if (
+      !blockedDates.some(({ start, end }) => {
+        const startDate = new Date(start)
+        const endDate = new Date(end)
+        startDate.setHours(0, 0, 0, 0)
+        endDate.setHours(23, 59, 59, 999)
+        return today >= startDate && today <= endDate
       })
-
-      // Focus the input if it exists
-      setTimeout(() => {
-        const input = ref.current?.querySelector("input, select, textarea") as HTMLElement
-        if (input) {
-          input.focus()
-        }
-      }, 500)
+    ) {
+      return today
     }
-  }
 
-  const handleFieldBlur = (fieldName: string, value: any) => {
-    setTouchedFields((prev) => ({ ...prev, [fieldName]: true }))
-
-    const error = validateField(fieldName, value)
-    setValidationErrors((prev) => ({
-      ...prev,
-      [fieldName]: error,
-    }))
-  }
-
-  const handleFieldChange = (fieldName: string, value: any) => {
-    // Clear error when user starts typing
-    if (validationErrors[fieldName as keyof ValidationErrors]) {
-      setValidationErrors((prev) => ({
-        ...prev,
-        [fieldName]: undefined,
-      }))
+    // Find the first available date after today
+    let currentDate = addDays(today, 1)
+    while (
+      blockedDates.some(({ start, end }) => {
+        const startDate = new Date(start)
+        const endDate = new Date(end)
+        startDate.setHours(0, 0, 0, 0)
+        endDate.setHours(23, 59, 59, 999)
+        return currentDate >= startDate && currentDate <= endDate
+      })
+    ) {
+      currentDate = addDays(currentDate, 1)
     }
+    return currentDate
   }
 
-  // Fetch venue and services data
+  // Booking form state
+  const [bookingForm, setBookingForm] = useState<BookingFormData>({
+    startDate: parseDate(initialStartDate) || getEarliestAvailableDate(),
+    endDate: parseDate(initialEndDate) || addHours(parseDate(initialStartDate) || getEarliestAvailableDate(), 3),
+    guests: initialGuests || 1,
+    eventType: initialEventType || "",
+    selectedServices: initialSelectedServices || {},
+    specialRequests: "",
+    contactInfo: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+    },
+  })
+
+  // Update dates when blocked dates change
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
+    if (blockedDates.length > 0) {
+      const earliestDate = getEarliestAvailableDate()
+      if (!bookingForm.startDate || !isDateAvailable(bookingForm.startDate)) {
+        setBookingForm((prev) => ({
+          ...prev,
+          startDate: earliestDate,
+          endDate: addHours(earliestDate, 3),
+        }))
+      }
+    }
+  }, [blockedDates])
+
+  // Update date selection handlers
+  const handleStartDateSelect = (date: Date | undefined) => {
+    // If trying to deselect, set to earliest available date
+    if (!date) {
+      const earliestDate = getEarliestAvailableDate()
+      setBookingForm((prev) => ({
+        ...prev,
+        startDate: earliestDate,
+        endDate: addHours(earliestDate, 3),
+      }))
+      return
+    }
+    setBookingForm((prev) => ({
+      ...prev,
+      startDate: date,
+      endDate: prev.endDate && prev.endDate > date ? prev.endDate : addHours(date, 3),
+    }))
+    if (date) {
+      setValidationErrors((prev) => ({ ...prev, startDate: undefined, startTime: undefined }))
+    }
+  }
+
+  const handleEndDateSelect = (date: Date | undefined) => {
+    // If trying to deselect, set to start date + 3 hours
+    if (!date && bookingForm.startDate) {
+      setBookingForm((prev) => ({
+        ...prev,
+        endDate: addHours(prev.startDate!, 3),
+      }))
+      return
+    }
+    setBookingForm((prev) => ({
+      ...prev,
+      endDate: date,
+    }))
+    if (date) {
+      setValidationErrors((prev) => ({ ...prev, endDate: undefined, endTime: undefined }))
+    }
+  }
+
+  const [availableServiceTypes, setAvailableServiceTypes] = useState<ServiceTypeData[]>([])
+  const [availableServices, setAvailableServices] = useState<Service[]>([])
+  const [activeTab, setActiveTab] = useState("details")
+  const [validationErrors, setValidationErrors] = useState<{
+    startDate?: string
+    endDate?: string
+    startTime?: string
+    endTime?: string
+    guests?: string
+    contactInfo?: {
+      firstName?: string
+      lastName?: string
+      email?: string
+      phone?: string
+    }
+  }>({})
+
+  // Updated function to check if a given date/time is within operating hours
+  const isTimeWithinOperatingHours = (date: Date) => {
+    if (!venue?.dayAvailability) return true
+
+    // Get the day name in lowercase (e.g., "monday")
+    const dayName = date.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase()
+    const operatingHours = venue.dayAvailability[dayName]
+    if (!operatingHours || operatingHours === "Closed") return false
+
+    // Parse the operating hours (e.g., "9:00 AM - 10:00 PM")
+    const [openTimeStr, closeTimeStr] = operatingHours.split(" - ")
+
+    // Parse opening and closing times using date-fns
+    const baseDate = new Date() // Use a dummy date for parsing
+    const openTime = parse(openTimeStr, "h:mm a", baseDate)
+    let closeTime = parse(closeTimeStr, "h:mm a", baseDate)
+
+    // Handle cases where closing time is past midnight (e.g., "12:00 AM")
+    if (closeTimeStr === "12:00 AM") {
+      closeTime = set(closeTime, { hours: 0, minutes: 0 }) // Set to 00:00 of the same day
+      closeTime.setDate(closeTime.getDate() + 1) // Move to the next day
+    }
+
+    // Extract the hours and minutes from the input date
+    const selectedTime = set(baseDate, {
+      hours: date.getHours(),
+      minutes: date.getMinutes(),
+      seconds: 0,
+      milliseconds: 0,
+    })
+
+    // Compare the times
+    // If closing time is on the next day, adjust the comparison
+    if (isBefore(closeTime, openTime)) {
+      // Closing time is on the next day (e.g., 12:00 AM is after 9:00 AM)
+      return (
+        isAfter(selectedTime, openTime) ||
+        selectedTime.getTime() === openTime.getTime() ||
+        isBefore(selectedTime, closeTime) ||
+        selectedTime.getTime() === closeTime.getTime()
+      )
+    } else {
+      // Same-day comparison
+      return (
+        (isAfter(selectedTime, openTime) || selectedTime.getTime() === openTime.getTime()) &&
+        (isBefore(selectedTime, closeTime) || selectedTime.getTime() === closeTime.getTime())
+      )
+    }
+  }
+
+  // Validation function
+  const validateBookingInputs = () => {
+    const errors: typeof validationErrors = {}
+
+    // Validate start date
+    if (!bookingForm.startDate) {
+      errors.startDate = t("venueDetail.validation.startDateRequired")
+    } else if (!isDateAvailable(bookingForm.startDate)) {
+      errors.startDate = t("venueDetail.validation.dateNotAvailable")
+    } else if (!isTimeWithinOperatingHours(bookingForm.startDate)) {
+      errors.startTime = t("venueDetail.validation.timeOutsideOperatingHours")
+    }
+
+    // Validate end date
+    if (!bookingForm.endDate) {
+      errors.endDate = t("venueDetail.validation.endDateRequired")
+    } else if (!isDateAvailable(bookingForm.endDate)) {
+      errors.endDate = t("venueDetail.validation.dateNotAvailable")
+    } else if (!isTimeWithinOperatingHours(bookingForm.endDate)) {
+      errors.endTime = t("venueDetail.validation.timeOutsideOperatingHours")
+    } else if (bookingForm.startDate && bookingForm.endDate <= bookingForm.startDate) {
+      errors.endDate = t("venueDetail.validation.endDateAfterStart")
+    }
+
+    // Validate guests
+    if (venue) {
+      if (bookingForm.guests < venue.capacity.min) {
+        errors.guests = t("venueDetail.validation.guestsMinimum", { min: venue.capacity.min })
+      } else if (bookingForm.guests > venue.capacity.max) {
+        errors.guests = t("venueDetail.validation.guestsMaximum", { max: venue.capacity.max })
+      }
+    }
+
+    // Validate contact info
+    const contactErrors: any = {}
+    if (!bookingForm.contactInfo.firstName.trim()) {
+      contactErrors.firstName = t("venueBook.validation.firstNameRequired")
+    }
+    if (!bookingForm.contactInfo.lastName.trim()) {
+      contactErrors.lastName = t("venueBook.validation.lastNameRequired")
+    }
+    if (!bookingForm.contactInfo.email.trim()) {
+      contactErrors.email = t("venueBook.validation.emailRequired")
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(bookingForm.contactInfo.email)) {
+      contactErrors.email = t("venueBook.validation.emailInvalid")
+    }
+    if (!bookingForm.contactInfo.phone.trim()) {
+      contactErrors.phone = t("venueBook.validation.phoneRequired")
+    }
+
+    if (Object.keys(contactErrors).length > 0) {
+      errors.contactInfo = contactErrors
+    }
+
+    setValidationErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  const handleGuestsChange = (value: number) => {
+    setBookingForm((prev) => ({
+      ...prev,
+      guests: value,
+    }))
+    // Clear validation errors for guests
+    setValidationErrors((prev) => ({ ...prev, guests: undefined }))
+  }
+
+  // Effects
+  useEffect(() => {
+    const fetchVenueData = async () => {
+      setLoading(true)
       try {
         if (id) {
           const venueData = await venueService.getVenueById(id)
-          if (venueData) {
-            // Cast venueData to Venue type since we know it has all required properties
-            const fullVenueData = {
-              ...venueData,
-              owner: venueData.owner || {} as Person,
-              description: venueData.description || { en: '', sq: '' },
-              dayAvailability: venueData.dayAvailability || {} as DayAvailability,
-              isActive: venueData.isActive || true,
-              metadata: venueData.metadata || {},
-              bookings: venueData.bookings || [],
-              media: venueData.media || [],
-              reviews: venueData.reviews || [],
-            } 
-            setVenue(fullVenueData)
+          const serviceTypesResult = await serviceService.getServiceTypesByVenueType(venueData?.type)
+          const servicesResult = await serviceService.getServicesByVenueId(id)
 
-            // Set initial guests to min capacity if available
-            if (venueData.capacity?.min && !initialGuests) {
-              setGuests(venueData.capacity.min)
-            }
+          // Get unique service types only (remove duplicates)
+          const uniqueServiceTypes = serviceTypesResult.filter(
+            (serviceType, index, self) => index === self.findIndex((st) => st.type === serviceType.type),
+          )
 
-            // Fetch service types for this venue type
-            if (venueData.type) {
-              const serviceTypesData = await serviceService.getServiceTypesByVenueType(venueData.type) as ServiceTypesResponse
-              
-              // Convert service types array to a map for easier lookup
-              const serviceTypesMap: Record<string, ServiceType> = {}
-              serviceTypesData.forEach((type: ServiceType) => {
-                serviceTypesMap[type.type] = type
-              })
-              setServiceTypes(serviceTypesMap)
+          setAvailableServiceTypes(uniqueServiceTypes)
+          setAvailableServices(servicesResult)
+          setVenue(venueData)
 
-              // Fetch services for this venue type
-              const servicesData = await serviceService.getServicesByVenue(venueData.id)
-              console.log(servicesData)
-              const fullServices = servicesData.services.map(service => ({
-                ...service,
-                icon: service.icon || 'Info',
-                venueTypes: service.venueTypes || [],
-                dayAvailability: service.dayAvailability || {} as DayAvailability,
-                metadata: service.metadata || {},
-                provider: service.provider || {} as Person,
-              })) as Service[]
-              setServices(fullServices)
-
-              // Expand the first service type by default if there are any
-              if (serviceTypesData.length > 0) {
-                setExpandedTypes([serviceTypesData[0].type])
-              }
-            }
+          if (venueData?.capacity?.min && !initialGuests) {
+            setBookingForm((prev) => ({
+              ...prev,
+              guests: venueData.capacity.min,
+            }))
           }
         }
       } catch (error) {
-        console.error("Error fetching data:", error)
-        toast.error(t("common.error"), {
-          description: t("venueBook.errorFetchingData"),
-          icon: <AlertCircle className="h-4 w-4" />,
-        })
+        console.error("Error fetching venue:", error)
       } finally {
-        setIsLoading(false)
+        setLoading(false)
       }
     }
 
-    fetchData()
-  }, [id, initialGuests, t])
+    fetchVenueData()
+  }, [id, initialGuests])
 
-  // Fetch user data and autofill form
+  // Update blocked dates when venue changes
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (user?.id) {
-        try {
-          const currentUser = await userService.getUserById(user.id)
-          if (currentUser) {
-            setUserData(currentUser)
-            // Autofill form with user data
-            setFormValues({
-              firstName: currentUser.firstName || "",
-              lastName: currentUser.lastName || "",
-              email: currentUser.email || "",
-              phone: currentUser.phoneNumber || "",
-              phonePrefix: "+355", // Albanian prefix as default
-            })
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error)
-          // If user is logged in but we can't fetch data, try to use auth context data
-          if (user) {
-            setFormValues({
-              firstName: user.firstName || "",
-              lastName: user.lastName || "",
-              email: user.email || "",
-              phone: user.phoneNumber || "",
-              phonePrefix: "+355", // Albanian prefix as default
-            })
-          }
-        }
+    if (venue) {
+      setBlockedDates(getBlockedDates())
+      // Update selected date to earliest available if current selection is blocked
+      if (bookingForm.startDate && !isDateAvailable(bookingForm.startDate)) {
+        const earliestDate = getEarliestAvailableDate()
+        setBookingForm((prev) => ({
+          ...prev,
+          startDate: earliestDate,
+          endDate: addHours(earliestDate, 3),
+        }))
+      }
+      // Update end date to 3 hours after start date if current selection is blocked
+      if (bookingForm.endDate && !isDateAvailable(bookingForm.endDate)) {
+        setBookingForm((prev) => ({
+          ...prev,
+          endDate: addHours(prev.startDate || getEarliestAvailableDate(), 3),
+        }))
       }
     }
+  }, [venue])
 
-    fetchUserData()
-  }, [user])
+  if (loading) {
+    return (
+      <div className="container px-4 md:px-6 py-8 flex justify-center items-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">{t("common.loading")}</p>
+        </div>
+      </div>
+    )
+  }
 
-  // Group services by type
-  const servicesByType = React.useMemo(() => {
-    const grouped: Record<string, Service[]> = {}
-
-    services.forEach((service) => {
-      const serviceType = service.type
-      if (!grouped[serviceType]) {
-        grouped[serviceType] = []
-      }
-      grouped[serviceType].push(service)
-    })
-
-    return grouped
-  }, [services])
-
-  // Count selected options for a service type
-  const countSelectedOptionsForType = (type: string) => {
-    let count = 0
-    const servicesOfType = servicesByType[type] || []
-
-    servicesOfType.forEach((service) => {
-      count += selectedServices[service.id]?.length || 0
-    })
-
-    return count
+  if (!venue) {
+    return (
+      <div className="container px-4 md:px-6 py-8 flex justify-center items-center min-h-[400px]">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">{t("venueDetail.notFound")}</h2>
+          <p className="text-muted-foreground mb-6">{t("venueDetail.venueNotFound")}</p>
+          <Link to="/venues">
+            <Button>{t("venueDetail.backToVenues")}</Button>
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   // Format image URL to handle relative paths
@@ -674,408 +509,47 @@ export default function VenueBookPage() {
     return `${apiUrl}/${url.replace(/\\/g, "/")}`
   }
 
-  const toggleTypeExpansion = (type: string) => {
-    setExpandedTypes((prev) => {
-      if (prev.includes(type)) {
-        return prev.filter((t) => t !== type)
-      } else {
-        return [...prev, type]
-      }
-    })
-  }
+  // Get price display based on price type and language
+  const getPriceDisplay = (venue: Venue) => {
+    if (!venue || !venue.price) return ""
 
-  const handleFormChange = (field: string, value: string) => {
-    setFormValues((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-    handleFieldChange(field, value)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-
-    try {
-      // Validate all fields
-      const errors = validateAllFields()
-
-      if (Object.keys(errors).length > 0) {
-        setValidationErrors(errors)
-
-        // Find the first error and scroll to it
-        const errorFields = Object.keys(errors)
-        const firstErrorField = errorFields[0]
-
-        toast.error(t("common.error"), {
-          description: t("venueBook.validation.pleaseFixErrors") || "Please fix the errors below",
-          icon: <AlertCircle className="h-4 w-4" />,
-        })
-
-        // Scroll to the first error field
-        scrollToField(firstErrorField)
-        setIsSubmitting(false)
-        return
-      }
-
-      // Calculate detailed breakdown and prepare confirmation data
-      const breakdown = calculateDetailedBreakdown()
-      
-      // Debug logging to verify pricing calculations
-      console.log("=== PRICING BREAKDOWN DEBUG ===")
-      console.log("User selected currency:", currency)
-      console.log("Venue pricing:", {
-        original: `${breakdown.venue?.originalAmount} ${breakdown.venue?.originalCurrency}`,
-        selectedCurrency: `${breakdown.venue?.convertedAmount} ${currency}`,
-        USD: `${breakdown.venue?.convertedAmountUSD} USD`
-      })
-      breakdown.services.forEach((service: any, index: number) => {
-        console.log(`Service ${index + 1}:`, {
-          name: `${service.serviceName.en} - ${service.optionName.en}`,
-          original: `${service.originalAmount} ${service.originalCurrency}`,
-          selectedCurrency: `${service.convertedAmount} ${currency}`,
-          USD: `${service.convertedAmountUSD} USD`
-        })
-      })
-      console.log("Totals:", {
-        subtotalSelectedCurrency: `${breakdown.totals.subtotal} ${currency}`,
-        subtotalUSD: `${breakdown.totals.subtotalUSD} USD`,
-        totalSelectedCurrency: `${breakdown.totals.total} ${currency}`,
-        totalUSD: `${breakdown.totals.totalUSD} USD`
-      })
-      console.log("================================")
-
-      // Use form values from state
-      const { firstName, lastName, email, phone, phonePrefix } = formValues
-      // Remove leading 0 from phone number before combining with prefix
-      const cleanPhone = phone.startsWith('0') ? phone.substring(1) : phone
-      const fullPhoneNumber = `${phonePrefix}${cleanPhone}`
-
-      // Format dates and times
-      const formattedStartDate = startDate ? format(startDate, "yyyy-MM-dd") : ""
-      const formattedEndDate = endDate ? format(endDate, "yyyy-MM-dd") : ""
-      const formattedStartTime = startDate ? format(startDate, "HH:mm") : ""
-      const formattedEndTime = endDate ? format(endDate, "HH:mm") : ""
-
-      // Collect all selected service option IDs
-      const serviceOptionIds = Object.values(selectedServices).flat()
-
-      // Prepare booking data with pricing breakdown
-      const bookingData = {
-        venueId: id || "",
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        startTime: formattedStartTime,
-        endTime: formattedEndTime,
-        numberOfGuests: guests,
-        serviceOptionIds,
-        specialRequests,
-        eventType,
-        pricing: {
-          venue: breakdown.venue,
-          services: breakdown.services,
-          totals: breakdown.totals,
-          breakdown: breakdown,
-          // Ensure USD total is always included at top level
-          totalUSD: breakdown.totals.totalUSD,
-          totalSelectedCurrency: breakdown.totals.total,
-          currency: currency
-        },
-        metadata: {
-          contactDetails: {
-            firstName,
-            lastName,
-            email,
-            phone: fullPhoneNumber,
-          },
-        },
-      }
-
-      // Set confirmation data and show modal
-      setConfirmationData({ bookingData, breakdown })
-      setShowConfirmationModal(true)
-      setIsSubmitting(false)
-
-    } catch (error: any) {
-      console.error("Error preparing booking:", error)
-      toast.error(t("common.error"), {
-        description: t("venueBook.bookingFailed"),
-        icon: <AlertCircle className="h-4 w-4" />,
-      })
-      setIsSubmitting(false)
+    const price = venue.price.amount
+    switch (venue.price.type) {
+      case PricingType.HOURLY:
+        return `$${price}/${t("business.pricing.hourly")}`
+      case PricingType.PER_PERSON:
+        return `$${price}/${t("business.pricing.perPerson")}`
+      case PricingType.FIXED:
+        return `$${price}`
+      case PricingType.CUSTOM:
+        return t("business.pricing.custom")
+      default:
+        return `$${price}`
     }
   }
-
-  const handleConfirmBooking = async () => {
-    if (!confirmationData) return
-    
-    setIsSubmitting(true)
-    try {
-      const response = await bookingService.createBooking(confirmationData.bookingData)
-
-      if (response.success && response.bookingId) {
-        toast.success(t("common.success"), {
-          description: t("venueBook.bookingCreated"),
-          icon: <CheckCircle className="h-4 w-4" />,
-        })
-
-        // Redirect to dashboard with success state
-        navigate("/dashboard", {
-          state: {
-            bookingId: response.bookingId,
-            bookingSuccess: true,
-            ...confirmationData.bookingData,
-          },
-        })
-      } else {
-        throw new Error(response.error || t("venueBook.bookingFailed"))
-      }
-    } catch (error: any) {
-      console.error("Error creating booking:", error)
-
-      // Extract error message from response
-      let errorMessage = t("venueBook.bookingFailed")
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message
-      } else if (error.message) {
-        errorMessage = error.message
-      }
-
-      toast.error(t("common.error"), {
-        description: errorMessage,
-        icon: <AlertCircle className="h-4 w-4" />,
-      })
-    } finally {
-      setIsSubmitting(false)
-      setShowConfirmationModal(false)
-      setConfirmationData(null)
-    }
-  }
-
-  const calculateDuration = () => {
-    if (!startDate || !endDate) return 0
-    return Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60)))
-  }
-
-  // Calculate total price for the booking
-  const calculateTotal = () => {
-    const { formatPrice, convertPrice, currency } = useCurrency()
-    let basePrice = 0
-    let servicesCost = 0
-    const defaultCurrency = "USD" // Fallback currency
-
-    // Add venue price
-    if (venue) {
-      const venuePrice = venue.price.amount
-      const venueCurrency = venue.price.currency || defaultCurrency
-      if (venue.price.type === "perPerson") {
-        basePrice = convertPrice(venuePrice * (guests || 0), venueCurrency as Currency)
-      } else {
-        basePrice = convertPrice(venuePrice, venueCurrency as Currency)
-      }
-    }
-
-    // Add selected services prices
-    Object.entries(selectedServices).forEach(([serviceId, optionIds]) => {
-      const service = services.find((s) => s.id === serviceId)
-      if (service) {
-        optionIds.forEach(optionId => {
-          const selectedOption = service.options.find((opt) => opt.id === optionId)
-          if (selectedOption) {
-            const optionPrice = selectedOption.price.amount
-            const optionCurrency = selectedOption.price.currency || defaultCurrency
-            if (selectedOption.price.type === "perPerson") {
-              servicesCost += convertPrice(optionPrice * (guests || 0), optionCurrency as Currency)
-            } else {
-              servicesCost += convertPrice(optionPrice, optionCurrency as Currency)
-            }
-          }
-        })
-      }
-    })
-
-    // Calculate service fee (e.g., 10% of total)
-
-    // Calculate total
-    const total = basePrice + servicesCost
-
-    // Use the current selected currency for formatting all amounts
-    return {
-      basePrice: formatPrice(basePrice, currency),
-      servicesCost: formatPrice(servicesCost, currency),
-      total: formatPrice(total, currency)
-    }
-  }
-
-  // Calculate detailed price breakdown in all currencies
-  const calculateDetailedBreakdown = () => {
-    const defaultCurrency = "USD"
-    
-    const convertToUSD = (amount: number, fromCurrency: string): number => {
-      if (fromCurrency === "USD") return amount
-      return amount * EXCHANGE_RATES[fromCurrency as Currency]["USD"]
-    }
-    
-    let totalInSelectedCurrency = 0
-    let totalInUSD = 0
-    const breakdown: any = {
-      venue: null,
-      services: [],
-      totals: {}
-    }
-
-    // Calculate duration in hours for hourly pricing
-    const calculateDuration = () => {
-      if (!startDate || !endDate) return 0
-      return Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60)))
-    }
-
-    // Venue pricing
-    if (venue) {
-      const venuePrice = venue.price.amount
-      const venueCurrency = venue.price.currency || defaultCurrency
-      let finalVenuePrice = venuePrice
-      
-      // Calculate venue price based on type
-      if (venue.price.type === "perPerson") {
-        finalVenuePrice = venuePrice * (guests || 0)
-      } else if (venue.price.type === "hourly") {
-        const hours = calculateDuration()
-        finalVenuePrice = venuePrice * hours
-      }
-      // For "fixed" type, finalVenuePrice remains as venuePrice
-      
-      const convertedVenuePrice = convertPrice(finalVenuePrice, venueCurrency as Currency)
-      const convertedVenuePriceUSD = convertToUSD(finalVenuePrice, venueCurrency)
-      totalInSelectedCurrency += convertedVenuePrice
-      totalInUSD += convertedVenuePriceUSD
-      
-      breakdown.venue = {
-        originalAmount: venuePrice,
-        originalCurrency: venueCurrency,
-        finalAmount: finalVenuePrice,
-        convertedAmount: convertedVenuePrice,
-        convertedAmountUSD: convertedVenuePriceUSD,
-        type: venue.price.type,
-        guests: guests,
-        hours: venue.price.type === "hourly" ? calculateDuration() : undefined
-      }
-    }
-
-    // Service options pricing
-    Object.entries(selectedServices).forEach(([serviceId, optionIds]) => {
-      const service = services.find((s) => s.id === serviceId)
-      if (service) {
-        optionIds.forEach(optionId => {
-          const selectedOption = service.options.find((opt) => opt.id === optionId)
-          if (selectedOption) {
-            const optionPrice = selectedOption.price.amount
-            const optionCurrency = selectedOption.price.currency || defaultCurrency
-            let finalOptionPrice = optionPrice
-            
-            // Calculate service option price based on type
-            if (selectedOption.price.type === "perPerson") {
-              finalOptionPrice = optionPrice * (guests || 0)
-            } else if (selectedOption.price.type === "hourly") {
-              const hours = calculateDuration()
-              finalOptionPrice = optionPrice * hours
-            }
-            // For "fixed" type, finalOptionPrice remains as optionPrice
-            
-            const convertedOptionPrice = convertPrice(finalOptionPrice, optionCurrency as Currency)
-            const convertedOptionPriceUSD = convertToUSD(finalOptionPrice, optionCurrency)
-            totalInSelectedCurrency += convertedOptionPrice
-            totalInUSD += convertedOptionPriceUSD
-            
-            breakdown.services.push({
-              serviceName: service.name,
-              optionName: selectedOption.name,
-              originalAmount: optionPrice,
-              originalCurrency: optionCurrency,
-              finalAmount: finalOptionPrice,
-              convertedAmount: convertedOptionPrice,
-              convertedAmountUSD: convertedOptionPriceUSD,
-              type: selectedOption.price.type,
-              guests: guests,
-              hours: selectedOption.price.type === "hourly" ? calculateDuration() : undefined
-            })
-          }
-        })
-      }
-    })
-
-
-
-    breakdown.totals = {
-      subtotal: totalInSelectedCurrency,
-      subtotalUSD: totalInUSD,
-      total: totalInSelectedCurrency,
-      totalUSD: totalInUSD,
-      currency: currency
-    }
-
-    return breakdown
-  }
-
-  // Update the toggleService function to allow deselection
-  const toggleService = (serviceId: string, optionId: string) => {
-    setSelectedServices((prev) => {
-      const newServices = { ...prev }
-      
-      // If this option is already selected, deselect it
-      if (newServices[serviceId]?.includes(optionId)) {
-        delete newServices[serviceId]
-        return newServices
-      }
-      
-      // Otherwise, select only this option for this service
-      return {
-        ...newServices,
-        [serviceId]: [optionId]
-      }
-    })
-  }
-
-  // Handle navigation back to venue detail with state
-  const handleBackToVenueDetail = () => {
-    navigate(`/venues/${id}`, {
-      state: {
-        startDate,
-        endDate,
-        guests,
-        eventType,
-        selectedServices,
-      },
-    })
-  }
-
-  const { basePrice, servicesCost, total } = calculateTotal()
-  const duration = calculateDuration()
-
-
 
   // Get badge color and text for price type
-  const getPriceTypeBadge = (priceType: string) => {
+  const getPriceTypeBadge = (priceType: PricingType) => {
     switch (priceType) {
-      case "hourly":
+      case PricingType.HOURLY:
         return {
           text: t("business.pricing.hourly"),
-          bgColor: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-400",
+          bgColor: "bg-primary/10 text-primary border-primary/20",
         }
-      case "perPerson":
+      case PricingType.PER_PERSON:
         return {
           text: t("business.pricing.perPerson"),
-          bgColor: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-400",
+          bgColor: "bg-secondary/10 text-secondary border-secondary/20",
         }
-      case "fixed":
+      case PricingType.FIXED:
         return {
           text: t("business.pricing.fixed"),
-          bgColor: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-400",
+          bgColor: "bg-accent/10 text-accent border-accent/20",
         }
-      case "custom":
+      case PricingType.CUSTOM:
         return {
           text: t("business.pricing.custom"),
-          bgColor: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-400",
+          bgColor: "bg-muted text-muted-foreground border-border",
         }
       default:
         return {
@@ -1085,1374 +559,752 @@ export default function VenueBookPage() {
     }
   }
 
-  // Custom scrollbar styling
-  const scrollbarStyles = `
-  .services-container::-webkit-scrollbar {
-    width: 6px;
-  }
-  .services-container::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .services-container::-webkit-scrollbar-thumb {
-    background-color: rgba(156, 163, 175, 0.5);
-    border-radius: 20px;
-  }
-  .services-container::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(156, 163, 175, 0.7);
-  }
-  .dark .services-container::-webkit-scrollbar-thumb {
-    background-color: rgba(100, 116, 139, 0.5);
-  }
-  .dark .services-container::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(100, 116, 139, 0.7);
-  }
-`
-
-  // Auto-scroll effect for service images
-  useEffect(() => {
-    if (selectedOptionDetails?.service.media && selectedOptionDetails.service.media.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentImageIndex((prev) => (prev + 1) % selectedOptionDetails.service.media.length)
-      }, 3000) // Change image every 3 seconds
-
-      return () => clearInterval(interval)
+  // Get icon for amenity
+  const getAmenityIcon = (amenity: string) => {
+    switch (amenity) {
+      case VenueAmenity.WIFI:
+        return <Wifi className="h-4 w-4 mr-2" />
+      case VenueAmenity.PARKING:
+        return <Parking className="h-4 w-4 mr-2" />
+      case VenueAmenity.SOUND_SYSTEM:
+        return <Music className="h-4 w-4 mr-2" />
+      case VenueAmenity.KITCHEN:
+        return <Utensils className="h-4 w-4 mr-2" />
+      case VenueAmenity.AV_EQUIPMENT:
+        return <Tv className="h-4 w-4 mr-2" />
+      default:
+        return <CheckCircle2 className="h-4 w-4 mr-2" />
     }
-  }, [selectedOptionDetails])
+  }
 
-  // Get blocked dates from venue metadata
-  const getBlockedDates = () => {
-    if (!venue || !venue.metadata || !venue.metadata.blockedDates) return []
+  // Get icon for price type
+  const getPriceTypeIcon = (priceType: PricingType) => {
+    switch (priceType) {
+      case PricingType.HOURLY:
+        return <Clock className="h-4 w-4 mr-2" />
+      case PricingType.PER_PERSON:
+        return <User className="h-4 w-4 mr-2" />
+      case PricingType.FIXED:
+      case PricingType.CUSTOM:
+      default:
+        return <DollarSign className="h-4 w-4 mr-2" />
+    }
+  }
 
-    return venue.metadata.blockedDates.map((date) => {
-      // Handle both string and ISO date formats
-      const startDate = typeof date.startDate === "string"
-        ? date.startDate.includes("T")
-          ? parseISO(date.startDate)
-          : new Date(date.startDate)
-        : date.startDate
+  // Calculate total price based on price type
+  const calculateVenueTotal = () => {
+    if (!venue || !venue.price) return 0
 
-      const endDate = typeof date.endDate === "string"
-        ? date.endDate.includes("T")
-          ? parseISO(date.endDate)
-          : new Date(date.endDate)
-        : date.endDate
+    const duration = calculateDuration()
 
-      return {
-        start: startDate,
-        end: endDate || startDate // If no end date, use start date as end date
+    switch (venue.price.type) {
+      case PricingType.HOURLY:
+        return venue.price.amount * duration
+      case PricingType.PER_PERSON:
+        return venue.price.amount * bookingForm.guests
+      case PricingType.FIXED:
+      case PricingType.CUSTOM:
+      default:
+        return venue.price.amount
+    }
+  }
+
+  // Calculate services total
+  const calculateServicesTotal = () => {
+    return availableServices.reduce((total, service) => {
+      const quantity = bookingForm.selectedServices[service.id] || 0
+      if (quantity > 0) {
+        switch (service.price.type) {
+          case PricingType.HOURLY:
+            return total + service.price.amount * quantity * calculateDuration()
+          case PricingType.PER_PERSON:
+            return total + service.price.amount * quantity * bookingForm.guests
+          case PricingType.FIXED:
+          default:
+            return total + service.price.amount * quantity
+        }
       }
-    })
+      return total
+    }, 0)
   }
 
-  // Helper function to check if date is available
-  const isDateAvailable = (date: Date) => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    
-    if (date < today) return false
-
-    // Check if the date falls within any blocked range
-    return !blockedDates.some(({ start, end }) => {
-      const startDate = new Date(start)
-      const endDate = new Date(end)
-      startDate.setHours(0, 0, 0, 0)
-      endDate.setHours(23, 59, 59, 999)
-      return date >= startDate && date <= endDate
-    })
+  // Calculate total price
+  const calculateTotal = () => {
+    return calculateVenueTotal() + calculateServicesTotal()
   }
 
-  // Helper function to check if time is within operating hours
-  const isTimeWithinOperatingHours = (date: Date) => {
-    if (!venue?.dayAvailability) return true
+  // Calculate duration between start and end date
+  const calculateDuration = () => {
+    if (!bookingForm.startDate || !bookingForm.endDate) return 0
+    return Math.max(1, Math.ceil((bookingForm.endDate.getTime() - bookingForm.startDate.getTime()) / (1000 * 60 * 60)))
+  }
 
-    const dayName = date.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase()
-    const operatingHours = venue.dayAvailability[dayName]
-    if (!operatingHours || operatingHours === "Closed") return false
-
-    const [openTimeStr, closeTimeStr] = operatingHours.split(" - ")
-    const baseDate = new Date()
-    const openTime = parse(openTimeStr, "h:mm a", baseDate)
-    let closeTime = parse(closeTimeStr, "h:mm a", baseDate)
-
-    if (closeTimeStr === "12:00 AM") {
-      closeTime = set(closeTime, { hours: 0, minutes: 0 })
-      closeTime.setDate(closeTime.getDate() + 1)
-    }
-
-    const selectedTime = set(baseDate, {
-      hours: date.getHours(),
-      minutes: date.getMinutes(),
-      seconds: 0,
-      milliseconds: 0,
-    })
-
-    if (isBefore(closeTime, openTime)) {
-      return (
-        isAfter(selectedTime, openTime) ||
-        selectedTime.getTime() === openTime.getTime() ||
-        isBefore(selectedTime, closeTime) ||
-        selectedTime.getTime() === closeTime.getTime()
-      )
-    } else {
-      return (
-        (isAfter(selectedTime, openTime) || selectedTime.getTime() === openTime.getTime()) &&
-        (isBefore(selectedTime, closeTime) || selectedTime.getTime() === closeTime.getTime())
-      )
+  // Get service icon based on service type
+  const getServiceTypeIcon = (iconName: string) => {
+    switch (iconName) {
+      case "Utensils":
+        return <Utensils className="h-5 w-5 text-primary mr-2" />
+      case "Music":
+        return <Music className="h-5 w-5 text-primary mr-2" />
+      case "Sparkles":
+        return <Sparkles className="h-5 w-5 text-primary mr-2" />
+      case "Camera":
+        return <Camera className="h-5 w-5 text-primary mr-2" />
+      case "PartyPopper":
+        return <PartyPopper className="h-5 w-5 text-primary mr-2" />
+      case "Tv":
+        return <Tv className="h-5 w-5 text-primary mr-2" />
+      case "Car":
+        return <Car className="h-5 w-5 text-primary mr-2" />
+      case "ShieldCheck":
+        return <ShieldCheck className="h-5 w-5 text-primary mr-2" />
+      case "User":
+        return <User className="h-5 w-5 text-primary mr-2" />
+      case "Lightbulb":
+        return <Lightbulb className="h-5 w-5 text-primary mr-2" />
+      default:
+        return <Info className="h-5 w-5 text-primary mr-2" />
     }
   }
 
-  // Update date selection handlers
-  const handleStartDateSelect = (date: Date | undefined) => {
-    // If trying to deselect, set to earliest available date
-    if (!date) {
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      const earliestDate = isDateAvailable(today) ? today : addDays(today, 1)
-      setStartDate(earliestDate)
+  // Get venue rating from reviews
+  const getVenueRating = () => {
+    if (!venue || !venue.reviews || venue.reviews.length === 0) {
+      return { average: 0, count: 0 }
+    }
+
+    const totalRating = venue.reviews.reduce((sum, review) => sum + review.rating, 0)
+    const average = totalRating / venue.reviews.length
+
+    return {
+      average: Number.parseFloat(average.toFixed(1)),
+      count: venue.reviews.length,
+    }
+  }
+
+  // Handle service quantity change
+  const handleServiceQuantityChange = (serviceId: string, change: number) => {
+    setBookingForm((prev) => ({
+      ...prev,
+      selectedServices: {
+        ...prev.selectedServices,
+        [serviceId]: Math.max(0, (prev.selectedServices[serviceId] || 0) + change),
+      },
+    }))
+  }
+
+  // Handle form submission
+  const handleSubmit = async () => {
+    if (!validateBookingInputs()) {
       return
     }
-    setStartDate(date)
-    if (date) {
-      setValidationErrors((prev) => ({ ...prev, startDate: undefined, startTime: undefined }))
+
+    try {
+      // Here you would typically submit the booking to your API
+      console.log("Booking form data:", bookingForm)
+
+      // Navigate to confirmation page
+      navigate(`/venues/${id}/confirmation`, {
+        state: {
+          venue,
+          bookingForm,
+          total: calculateTotal(),
+          venueTotal: calculateVenueTotal(),
+          servicesTotal: calculateServicesTotal(),
+          duration: calculateDuration(),
+        },
+      })
+    } catch (error) {
+      console.error("Error submitting booking:", error)
     }
   }
 
-  const handleEndDateSelect = (date: Date | undefined) => {
-    // If trying to deselect, set to start date + 3 hours
-    if (!date && startDate) {
-      setEndDate(addHours(startDate, 3))
-      return
-    }
-    setEndDate(date)
-    if (date) {
-      setValidationErrors((prev) => ({ ...prev, endDate: undefined, endTime: undefined }))
-    }
-  }
-
-  // Update useEffect to set blocked dates
-  useEffect(() => {
-    if (venue) {
-      setBlockedDates(getBlockedDates())
-    }
-  }, [venue])
-
-  if (isLoading || !venue) {
-    return (
-        <div className="container px-4 md:px-6 py-8">
-          <div className="flex items-center justify-center h-[60vh]">
-            <div className="text-center">
-              <div className="w-16 h-16 border-4 border-t-sky-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-muted-foreground">{t("common.loading")}</p>
-            </div>
-          </div>
-        </div>
-    )
-  }
+  const rating = getVenueRating()
 
   return (
-    <>
-      <section className="relative w-full py-16 md:py-24 lg:py-32 overflow-hidden bg-gradient-to-br from-gray-100 via-sky-50 to-emerald-50 dark:from-slate-900 dark:to-slate-800">
-        {/* Enhanced abstract background elements with better contrast */}
-        <div className="absolute inset-0 overflow-hidden opacity-40 dark:opacity-10">
-          <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-sky-300 to-sky-400 dark:bg-sky-700 blur-3xl"></div>
-          <div className="absolute top-40 -left-20 w-60 h-60 rounded-full bg-gradient-to-tr from-emerald-300 to-emerald-400 dark:bg-emerald-700 blur-3xl"></div>
-          <div className="absolute bottom-20 left-1/2 w-40 h-40 rounded-full bg-gradient-to-r from-violet-200 to-purple-300 dark:bg-purple-700 blur-2xl opacity-60"></div>
-        </div>
+    <div className="relative min-h-screen bg-background">
+      {/* Beautiful background styling */}
+      <div className="fixed inset-0 overflow-hidden opacity-40 dark:opacity-10 pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-primary/30 to-secondary/40 blur-3xl"></div>
+        <div className="absolute top-40 -left-20 w-60 h-60 rounded-full bg-gradient-to-tr from-accent/30 to-primary/40 blur-3xl"></div>
+        <div className="absolute bottom-20 left-1/2 w-40 h-40 rounded-full bg-gradient-to-r from-secondary/20 to-accent/30 blur-2xl opacity-60"></div>
+      </div>
 
-        {/* Subtle texture overlay for light mode */}
-        <div className="absolute inset-0 opacity-[0.03] dark:opacity-0 bg-[radial-gradient(circle_at_1px_1px,_rgba(0,0,0,0.15)_1px,_transparent_0)] bg-[length:20px_20px]"></div>
+      {/* Subtle texture overlay for light mode */}
+      <div className="fixed inset-0 opacity-[0.03] dark:opacity-0 bg-[radial-gradient(circle_at_1px_1px,_rgba(0,0,0,0.15)_1px,_transparent_0)] bg-[length:20px_20px] pointer-events-none"></div>
 
-        <div className="container px-4 md:px-8 py-8 md:py-12 relative">
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-8 flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold md:text-3xl mb-2">{t("venueBook.title")}</h1>
-                <p className="text-muted-foreground">{t("venueBook.subtitle", { venue: venue.name[language] })}</p>
+      <div className="relative z-10">
+        <div className="container max-w-7xl mx-auto px-4 py-6">
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-4">
+                <Link to={`/venues/${id}`}>
+                  <Button variant="outline" size="icon" className="rounded-full bg-transparent">
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <div>
+                  <h1 className="text-2xl font-bold">{t("venueBook.title")}</h1>
+                  <p className="text-muted-foreground">{venue.name[language]}</p>
+                </div>
               </div>
-              <Button variant="outline" onClick={handleBackToVenueDetail} className="flex items-center">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                {t("venueBook.backToVenue")}
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className={`rounded-full ${isFavorite(id || "") ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-red-500"}`}
+                  onClick={() => toggleFavorite(id || "", venue?.name[language] || "")}
+                >
+                  <Heart className={`h-5 w-5 ${isFavorite(id || "") ? "fill-current" : ""}`} />
+                  <span className="sr-only">{t("venues.addToFavorites")}</span>
+                </Button>
+                <Button variant="outline" size="icon" className="rounded-full bg-transparent">
+                  <Share2 className="h-5 w-5 text-muted-foreground" />
+                  <span className="sr-only">{t("venues.share")}</span>
+                </Button>
+              </div>
             </div>
 
-            <div className="grid gap-8 md:grid-cols-[1fr_350px]">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Venue Information Card */}
-                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold">{t("venueBook.venueDetails")}</h2>
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                      <span className="text-sm font-medium">
-                      {venue.reviews && venue.reviews.length > 0
-                          ? (
-                              venue.reviews.reduce((sum, review) => sum + review.rating, 0) / venue.reviews.length
-                          ).toFixed(1)
-                          : "0.0"}
-                    </span>
-                      <span className="text-xs text-muted-foreground ml-1">({venue.reviews?.length || 0})</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <div className="w-full sm:w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
+            <div className="grid gap-8 md:grid-cols-[1fr_400px]">
+              <div className="space-y-8">
+                {/* Venue Summary */}
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-start space-x-4">
                       <img
-                          src={
-                            venue.media && venue.media.length > 0
-                                ? formatImageUrl(venue.media[0].url)
-                                : "/placeholder.svg?height=96&width=96&text=Venue"
-                          }
-                          alt={venue.name[language]}
-                          className="w-full h-full object-cover"
+                        src={
+                          venue.media && venue.media.length > 0
+                            ? formatImageUrl(venue.media[0].url)
+                            : `/placeholder.svg?height=120&width=120&text=${venue.name[language]}`
+                        }
+                        alt={venue.name[language]}
+                        className="h-24 w-24 rounded-lg object-cover flex-shrink-0"
                       />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-medium">{venue.name[language]}</h3>
-                      <div className="flex items-center text-sm text-muted-foreground mt-1">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        <span>{venue.address ? `${venue.address.city}, ${venue.address.country}` : ""}</span>
-                      </div>
-                      <div className="flex items-center mt-2">
-                        <Badge className={`${getPriceTypeBadge(venue.price.type).bgColor} mr-2`}>
-                          {getPriceTypeBadge(venue.price.type).text}
-                        </Badge>
-                        <span className="font-medium">{basePrice}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Event Details Card */}
-                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
-                  <h2 className="text-xl font-semibold">{t("venueBook.eventDetails")}</h2>
-
-                  <div ref={eventTypeRef} className="space-y-3">
-                    <label className="text-sm font-medium" htmlFor="event-type">
-                      {t("venueBook.eventType")} <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <select
-                          id="event-type"
-                          value={eventType}
-                          onChange={(e) => {
-                            setEventType(e.target.value)
-                            handleFieldChange("eventType", e.target.value)
-                          }}
-                          onBlur={(e) => handleFieldBlur("eventType", e.target.value)}
-                          className={cn(
-                              "hover:border-primary hover:shadow-sm w-full p-3 pr-10 border rounded-md bg-background appearance-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
-                              validationErrors.eventType && touchedFields.eventType
-                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                                  : "",
-                          )}
-                          required
-                      >
-                        <option value="">{t("venueBook.selectEventType")}</option>
-                        {Object.values(EventType).map((type) => (
-                            <option key={type} value={type}>
-                              {t(`venueBook.${type}`)}
-                            </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                    </div>
-                    {validationErrors.eventType && touchedFields.eventType && (
-                        <p className="text-sm text-red-500 flex items-center">
-                          <AlertCircle className="h-4 w-4 mr-1" />
-                          {validationErrors.eventType}
-                        </p>
-                    )}
-                  </div>
-
-                  <div className="grid gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="start-date" className="flex items-center gap-2">
-                        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                        {t("business.bookings.startDate") || "Start Date & Time"}
-                      </Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !startDate && "text-muted-foreground",
-                              validationErrors.startDate && "border-destructive"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {startDate ? format(startDate, "PPP p") : <span>{t("venueBook.selectDate") || "Select date"}</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={startDate}
-                            onSelect={handleStartDateSelect}
-                            initialFocus
-                            modifiers={{
-                              available: isDateAvailable,
-                              unavailable: (date) => !isDateAvailable(date),
-                            }}
-                            modifiersClassNames={{
-                              available: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50",
-                              unavailable: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
-                            }}
-                            disabled={(date) => !isDateAvailable(date)}
-                            className="rounded-md border"
-                          />
-                          <div className="p-3 border-t">
-                            <Input
-                              type="time"
-                              value={startDate ? format(startDate, "HH:mm") : ""}
-                              onChange={(e) => {
-                                if (startDate) {
-                                  const [hours, minutes] = e.target.value.split(":")
-                                  const newDate = new Date(startDate)
-                                  newDate.setHours(parseInt(hours), parseInt(minutes))
-                                  handleStartDateSelect(newDate)
-                                }
-                              }}
-                            />
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Badge className={`${getPriceTypeBadge(venue.price.type).bgColor} mr-2`}>
+                              {getPriceTypeBadge(venue.price.type).text}
+                            </Badge>
+                            <h2 className="text-xl font-semibold mt-1">{venue.name[language]}</h2>
                           </div>
-                        </PopoverContent>
-                      </Popover>
-                      {validationErrors.startDate && (
-                        <p className="text-sm text-destructive">{validationErrors.startDate}</p>
-                      )}
-                    </div>
-
-                    <div className="grid gap-2">
-                      <Label htmlFor="end-date" className="flex items-center gap-2">
-                        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                        {t("business.bookings.endDate") || "End Date & Time"}
-                      </Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !endDate && "text-muted-foreground",
-                              validationErrors.endDate && "border-destructive"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {endDate ? format(endDate, "PPP p") : <span>{t("venueBook.selectDate") || "Select date"}</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={endDate}
-                            onSelect={handleEndDateSelect}
-                            initialFocus
-                            modifiers={{
-                              available: isDateAvailable,
-                              unavailable: (date) => !isDateAvailable(date),
-                            }}
-                            modifiersClassNames={{
-                              available: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50",
-                              unavailable: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
-                            }}
-                            disabled={(date) => !isDateAvailable(date)}
-                            className="rounded-md border"
-                          />
-                          <div className="p-3 border-t">
-                            <Input
-                              type="time"
-                              value={endDate ? format(endDate, "HH:mm") : ""}
-                              onChange={(e) => {
-                                if (endDate) {
-                                  const [hours, minutes] = e.target.value.split(":")
-                                  const newDate = new Date(endDate)
-                                  newDate.setHours(parseInt(hours), parseInt(minutes))
-                                  handleEndDateSelect(newDate)
-                                }
-                              }}
-                            />
+                          <div className="text-right">
+                            <div className="text-lg font-semibold">{getPriceDisplay(venue)}</div>
+                            <div className="flex items-center text-sm">
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+                              <span>
+                                {rating.average} ({rating.count})
+                              </span>
+                            </div>
                           </div>
-                        </PopoverContent>
-                      </Popover>
-                      {validationErrors.endDate && (
-                        <p className="text-sm text-destructive">{validationErrors.endDate}</p>
-                      )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                          <div className="flex items-center">
+                            <MapPin className="h-4 w-4 mr-1" />
+                            <span>{venue.address ? `${venue.address.city}, ${venue.address.country}` : ""}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Users className="h-4 w-4 mr-1" />
+                            <span>
+                              {venue.capacity.min}-{venue.capacity.max} {t("venueDetail.guests")}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  </CardContent>
+                </Card>
 
-                  <div ref={guestsRef} className="space-y-3">
-                    <label className="text-sm font-medium">
-                      {t("venueBook.guests")} <span className="text-red-500">*</span>
-                    </label>
-                    <div
-                        className={cn(
-                            "flex items-center border rounded-md bg-background overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-colors hover:border-primary hover:shadow-sm",
-                            validationErrors.guests
-                                ? "border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20"
-                                : "",
-                        )}
-                    >
-                      <Users className="ml-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                          type="number"
-                          min={venue.capacity.min}
-                          max={venue.capacity.max}
-                          value={guests}
-                          onChange={(e) => {
-                            const value = Number.parseInt(e.target.value)
-                            setGuests(value)
-                            handleFieldChange("guests", value)
-                          }}
-                          onBlur={(e) => handleFieldBlur("guests", Number.parseInt(e.target.value))}
-                          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                          required
-                      />
-                    </div>
-                    {validationErrors.guests && (
-                        <p className="text-sm text-red-500 flex items-center">
-                          <AlertCircle className="h-4 w-4 mr-1" />
-                          {validationErrors.guests}
-                        </p>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      {t("venueBook.guestCapacity", { min: venue.capacity.min, max: venue.capacity.max })}
-                    </p>
-                  </div>
-                </div>
+                {/* Booking Form Tabs */}
+                <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="grid grid-cols-3 mb-6">
+                    <TabsTrigger value="details">{t("venueBook.bookingDetails")}</TabsTrigger>
+                    <TabsTrigger value="services">{t("venueBook.services")}</TabsTrigger>
+                    <TabsTrigger value="contact">{t("venueBook.contactInfo")}</TabsTrigger>
+                  </TabsList>
 
-                {/* Services Section - Grouped by Type */}
-                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
-                  <div>
-                    <h2 className="text-xl font-semibold">{t("venueBook.services")}</h2>
-                    <p className="text-muted-foreground text-sm mt-1">{t("venueBook.servicesSubtitle")}</p>
-                  </div>
-
-                  {/* Scrollable Services Container */}
-                  <div className="services-container max-h-[500px] overflow-y-auto pr-2 space-y-6">
-                    {/* Render services grouped by type */}
-                    {Object.keys(serviceTypes).length > 0 ? (
-                        Object.entries(serviceTypes).map(([type, serviceType]) => {
-                          const isTypeExpanded = expandedTypes.includes(type)
-                          const selectedCount = countSelectedOptionsForType(type)
-                          const typeDisplayName = serviceTypeNames[type]?.[language] || type
-
-                          // Get the icon from the service type data
-                          const IconComponent = getIconByName(serviceType.icon)
-
-                          // Count unique providers
-                          const uniqueProviders = new Set(services.filter((s) => s.type === type).map((s) => s.provider.id)).size
-
-                          return (
-                              <div
-                                  key={type}
-                                  className="service-type-section border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden"
-                              >
-                                {/* Service Type Header */}
-                                <div
-                                    className="service-type-header p-4 bg-gray-50 dark:bg-gray-800/50 flex items-center justify-between cursor-pointer"
-                                    onClick={() => toggleTypeExpansion(type)}
-                                >
-                                  <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center space-x-2">
-                                      <div className="h-10 w-10 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center">
-                                        {React.createElement(getIconByName(serviceType.icon), {
-                                          className: "h-5 w-5 text-sky-500 dark:text-sky-400"
-                                        })}
-                                      </div>
-                                      <h3 className="font-medium">{serviceTypeNames[type]?.[language] || type}</h3>
-                                    </div>
-                                    <div className="flex items-center space-x-2 min-w-[100px] justify-end">
-                                      {countSelectedOptionsForType(type) > 0 && (
-                                        <Badge variant="secondary" className="text-xs">
-                                          {countSelectedOptionsForType(type)} {t("venueBook.selected")}
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* All Providers and Services for this type */}
-                                {isTypeExpanded && (
-                                    <div className="service-content p-4 space-y-4 border-t border-gray-100 dark:border-gray-700">
-                                      {/* Group services by provider */}
-                                      {(() => {
-                                        // Group services by provider
-                                        const servicesByProvider: Record<string, Service[]> = {}
-                                        services.forEach((service) => {
-                                          if (service.type === type) {
-                                            const providerId = service.provider.id
-                                            if (!servicesByProvider[providerId]) {
-                                              servicesByProvider[providerId] = []
-                                            }
-                                            servicesByProvider[providerId].push(service)
-                                          }
-                                        })
-
-                                        return Object.entries(servicesByProvider).map(([providerId, providerServices]) => {
-                                          const provider = providerServices[0].provider
-                                          const totalSelectedForProvider = providerServices.reduce(
-                                              (sum, service) => sum + (selectedServices[service.id]?.length || 0),
-                                              0,
-                                          )
-
-                                          return (
-                                              <div key={providerId} className="provider-section space-y-3">
-                                                {/* Provider Header */}
-                                                <div className="provider-header flex items-center justify-between p-3 bg-gray-50/50 dark:bg-gray-800/30 rounded-lg">
-                                                  <div className="flex items-center">
-                                                    <Avatar className="h-8 w-8 mr-3">
-                                                      <AvatarImage
-                                                          src={
-                                                            provider?.profilePicture
-                                                                ? formatImageUrl(provider?.profilePicture)
-                                                                : "/placeholder.svg?height=32&width=32"
-                                                          }
-                                                          alt={`${provider?.firstName} ${provider?.lastName}`}
-                                                      />
-                                                      <AvatarFallback>
-                                                        {provider?.firstName?.charAt(0)}
-                                                        {provider?.lastName?.charAt(0)}
-                                                      </AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                      <h4 className="font-medium text-sm">
-                                                        {provider?.firstName} {provider?.lastName}
-                                                      </h4>
-                                                      <p className="text-xs text-muted-foreground">
-                                                        {providerServices.length}{" "}
-                                                        {providerServices.length === 1
-                                                            ? t("venueBook.service")
-                                                            : t("venueBook.services")}
-                                                      </p>
-                                                    </div>
-                                                  </div>
-                                                  <div className="flex items-center">
-                                                    <Button variant="outline" size="sm" className="text-xs">
-                                                      <MessageSquare className="h-3 w-3 mr-1" />
-                                                      {t("venueBook.contactProvider")}
-                                                    </Button>
-                                                  </div>
-                                                </div>
-
-                                                {/* All Services from this Provider */}
-                                                <div className="provider-services space-y-4">
-                                                  {providerServices.map((service) => (
-                                                      <div key={service.id} className="service-section">
-                                                        {/* Service Name (if provider has multiple services) */}
-                                                        {providerServices.length > 1 && (
-                                                            <div className="service-header mb-2">
-                                                              <h5 className="font-medium text-sm">{service.name[language]}</h5>
-                                                              <p className="text-xs text-muted-foreground">
-                                                                {service.description[language]}
-                                                              </p>
-                                                            </div>
-                                                        )}
-
-                                                        {/* Service Options */}
-                                                        {service.options && service.options.length > 0 ? (
-                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                              {service.options.map((option) => {
-                                                                const isSelected = selectedServices[service.id]?.includes(option.id)
-                                                                return (
-                                                                    <div
-                                                                        key={option.id}
-                                                                        className={cn(
-                                                                            "service-option flex flex-col p-3 relative rounded-lg border-2 border-transparent hover:border-sky-200 dark:hover:border-sky-800 transition-all duration-200 h-[140px]",
-                                                                            isSelected
-                                                                                ? "bg-sky-50 dark:bg-sky-900/30 border-sky-200 dark:border-sky-800"
-                                                                                : "bg-gray-50 dark:bg-slate-800/50 hover:bg-gray-100 dark:hover:bg-slate-700/70",
-                                                                        )}
-                                                                    >
-                                                                      {isSelected && (
-                                                                          <Check className="h-4 w-4 text-primary absolute top-2 right-2" />
-                                                                      )}
-                                                                      <div className="flex-1 min-h-0">
-                                                                        <span className="font-medium text-sm mb-2 line-clamp-1 block">
-                                                                          {option.name[language]}
-                                                                        </span>
-                                                                        <div className="flex items-center mb-3">
-                                                                          <Badge
-                                                                            className={`text-xs ${getPriceTypeBadge(option.price.type).bgColor} mr-2`}
-                                                                          >
-                                                                            {getPriceTypeBadge(option.price.type).text}
-                                                                          </Badge>
-                                                                          <span className="font-medium">{formatPrice(convertPrice(option.price.amount, (option.price.currency || "USD") as Currency), currency)}</span>
-                                                                        </div>
-                                                                      </div>
-                                                                      <div className="flex gap-2 mt-auto">
-                                                                        <button
-                                                                          type="button"
-                                                                          onClick={() => toggleService(service.id, option.id)}
-                                                                          className={cn(
-                                                                              "flex-1 px-3 py-2 text-xs rounded-md transition-colors",
-                                                                              isSelected
-                                                                                  ? "bg-sky-500 text-white hover:bg-sky-600"
-                                                                                  : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600",
-                                                                          )}
-                                                                        >
-                                                                          {isSelected ? t("venueBook.selected") : t("venueBook.select")}
-                                                                        </button>
-                                                                        <button
-                                                                          type="button"
-                                                                          onClick={() => handleViewOptionDetails(service, option)}
-                                                                          className="px-3 py-2 text-xs rounded-md bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                                                                        >
-                                                                          <Info className="h-3 w-3" />
-                                                                        </button>
-                                                                      </div>
-                                                                    </div>
-                                                                )
-                                                              })}
-                                                            </div>
-                                                        ) : (
-                                                            <p className="text-sm text-muted-foreground">
-                                                              {t("venueBook.noOptionsAvailable")}
-                                                            </p>
-                                                        )}
-                                                      </div>
-                                                  ))}
-                                                </div>
-                                              </div>
-                                          )
-                                        })
-                                      })()}
-                                    </div>
+                  {/* Booking Details Tab */}
+                  <TabsContent value="details" className="space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>{t("venueBook.eventDetails")}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {/* Start Date/Time */}
+                        <div className="space-y-3">
+                          <Label className="text-sm font-medium">{t("venueDetail.startDateTime")}</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full justify-start text-left font-normal border-dashed",
+                                  validationErrors.startDate || validationErrors.startTime
+                                    ? "border-red-500 bg-red-50 dark:bg-red-950/20"
+                                    : "",
                                 )}
-                              </div>
-                          )
-                        })
-                    ) : (
-                        <div className="text-center p-8 bg-gray-50 dark:bg-gray-800/30 rounded-lg">
-                          <p className="text-muted-foreground">{t("venueDetail.noServices")}</p>
-                        </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
-                  <h2 className="text-xl font-semibold">{t("venueBook.contactDetails")}</h2>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div ref={firstNameRef} className="space-y-2">
-                      <label className="text-sm font-medium" htmlFor="first-name">
-                        {t("venueBook.firstName")} <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                          id="first-name"
-                          value={formValues.firstName}
-                          onChange={(e) => handleFormChange("firstName", e.target.value)}
-                          onBlur={(e) => handleFieldBlur("firstName", e.target.value)}
-                          className={cn(
-                              "hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
-                              validationErrors.firstName && touchedFields.firstName
-                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                                  : "",
-                          )}
-                          required
-                      />
-                      {validationErrors.firstName && touchedFields.firstName && (
-                          <p className="text-sm text-red-500 flex items-center">
-                            <AlertCircle className="h-4 w-4 mr-1" />
-                            {validationErrors.firstName}
-                          </p>
-                      )}
-                    </div>
-
-                    <div ref={lastNameRef} className="space-y-2">
-                      <label className="text-sm font-medium" htmlFor="last-name">
-                        {t("venueBook.lastName")} <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                          id="last-name"
-                          value={formValues.lastName}
-                          onChange={(e) => handleFormChange("lastName", e.target.value)}
-                          onBlur={(e) => handleFieldBlur("lastName", e.target.value)}
-                          className={cn(
-                              "hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
-                              validationErrors.lastName && touchedFields.lastName
-                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                                  : "",
-                          )}
-                          required
-                      />
-                      {validationErrors.lastName && touchedFields.lastName && (
-                          <p className="text-sm text-red-500 flex items-center">
-                            <AlertCircle className="h-4 w-4 mr-1" />
-                            {validationErrors.lastName}
-                          </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div ref={emailRef} className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="email">
-                      {t("venueBook.email")} <span className="text-red-500">*</span>
-                    </label>
-                    <Input
-                        id="email"
-                        type="email"
-                        value={formValues.email}
-                        onChange={(e) => handleFormChange("email", e.target.value)}
-                        onBlur={(e) => handleFieldBlur("email", e.target.value)}
-                        className={cn(
-                            "hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
-                            validationErrors.email && touchedFields.email
-                                ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                                : "",
-                        )}
-                        required
-                    />
-                    {validationErrors.email && touchedFields.email && (
-                        <p className="text-sm text-red-500 flex items-center">
-                          <AlertCircle className="h-4 w-4 mr-1" />
-                          {validationErrors.email}
-                        </p>
-                    )}
-                  </div>
-
-                  <div ref={phoneRef} className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="phone">
-                      {t("venueBook.phone")} <span className="text-red-500">*</span>
-                    </label>
-                    <div className="flex gap-2">
-                      <select
-                        value={formValues.phonePrefix}
-                        onChange={(e) => handleFormChange("phonePrefix", e.target.value)}
-                        className={cn(
-                          "h-10 w-32 px-3 py-2 text-sm border border-input bg-background rounded-md ring-offset-background",
-                          "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                          "disabled:cursor-not-allowed disabled:opacity-50",
-                          "hover:border-primary hover:shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-                        )}
-                      >
-                        {phonePrefix.map((prefix) => (
-                          <option key={prefix.code} value={prefix.code}>
-                            {prefix.flag} {prefix.code}
-                          </option>
-                        ))}
-                      </select>
-                      <Input
-                          id="phone"
-                          type="tel"
-                          value={formValues.phone}
-                          onChange={(e) => handlePhoneChange(e.target.value)}
-                          onBlur={(e) => handleFieldBlur("phone", e.target.value)}
-                          className={cn(
-                              "flex-1 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors",
-                              validationErrors.phone && touchedFields.phone
-                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                                  : "",
-                          )}
-                          placeholder="69 123 4567"
-                          required
-                      />
-                    </div>
-                    {validationErrors.phone && touchedFields.phone && (
-                        <p className="text-sm text-red-500 flex items-center">
-                          <AlertCircle className="h-4 w-4 mr-1" />
-                          {validationErrors.phone}
-                        </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
-                  <h2 className="text-xl font-semibold">{t("venueBook.additionalInfo")}</h2>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="special-requests">
-                      {t("venueBook.specialRequests")}
-                    </label>
-                    <Textarea
-                        id="special-requests"
-                        value={specialRequests}
-                        onChange={(e) => setSpecialRequests(e.target.value)}
-                        placeholder={t("venueBook.specialRequestsPlaceholder")}
-                        className="min-h-[100px] focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-                    />
-                  </div>
-                </div>
-              </form>
-
-              <div className="space-y-6">
-                {/* Booking Summary Card */}
-                <div className="sticky top-6 venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm">
-                    <h2 className="text-xl font-semibold">{t("venueBook.summary")}</h2>
-
-                    <div className="space-y-4">
-                        <div className="flex items-start gap-4">
-                            <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
-                                <img
-                                    src={venue.media && venue.media.length > 0 ? formatImageUrl(venue.media[0].url) : "/placeholder.svg"}
-                                    alt={venue.name[language]}
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <h3 className="font-medium truncate">{venue.name[language]}</h3>
-                                <p className="text-sm text-muted-foreground truncate">
-                                    {venue.address ? `${venue.address.city}, ${venue.address.country}` : ""}
-                                </p>
-                                <div className="flex items-center mt-2">
-                                    <Badge className={`${getPriceTypeBadge(venue.price.type).bgColor} mr-2`}>
-                                        {getPriceTypeBadge(venue.price.type).text}
-                                    </Badge>
-                                    <span className="font-medium">{basePrice}</span>
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {bookingForm.startDate ? (
+                                  format(bookingForm.startDate, "PPP p")
+                                ) : (
+                                  <span>{t("venueDetail.pickStartDateTime")}</span>
+                                )}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={bookingForm.startDate}
+                                onSelect={handleStartDateSelect}
+                                initialFocus
+                                modifiers={{
+                                  available: isDateAvailable,
+                                  unavailable: (date) => !isDateAvailable(date),
+                                }}
+                                modifiersClassNames={{
+                                  available:
+                                    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50",
+                                  unavailable:
+                                    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
+                                }}
+                                disabled={(date) => !isDateAvailable(date)}
+                                className="rounded-md border"
+                              />
+                              <div className="p-3 border-t border-border">
+                                <div className="space-y-2">
+                                  <Label className="text-sm font-medium">{t("venueDetail.time")}</Label>
+                                  <Input
+                                    type="time"
+                                    value={bookingForm.startDate ? format(bookingForm.startDate, "HH:mm") : "10:00"}
+                                    onChange={(e) => {
+                                      if (e.target.value && bookingForm.startDate) {
+                                        const [hours, minutes] = e.target.value.split(":").map(Number)
+                                        const newDate = new Date(bookingForm.startDate)
+                                        newDate.setHours(hours, minutes)
+                                        handleStartDateSelect(newDate)
+                                      }
+                                    }}
+                                    className={cn("w-full", validationErrors.startTime ? "border-red-500" : "")}
+                                  />
+                                  {venue?.dayAvailability && (
+                                    <p className="text-xs text-muted-foreground">
+                                      {t("venueDetail.operatingHours")}:{" "}
+                                      {venue.dayAvailability[
+                                        bookingForm.startDate
+                                          ?.toLocaleDateString("en-US", { weekday: "long" })
+                                          .toLowerCase()
+                                      ] || "Closed"}
+                                    </p>
+                                  )}
                                 </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                          {(validationErrors.startDate || validationErrors.startTime) && (
+                            <div className="flex items-center text-red-600 dark:text-red-400 text-sm">
+                              <Info className="h-4 w-4 mr-1" />
+                              <span>{validationErrors.startDate || validationErrors.startTime}</span>
                             </div>
+                          )}
                         </div>
 
-                        <div className="space-y-3 pt-2">
-                            <div className="flex items-center text-sm">
-                                <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <span className="truncate">{startDate ? format(startDate, "PPP") : t("venueBook.date")}</span>
+                        {/* End Date/Time */}
+                        <div className="space-y-3">
+                          <Label className="text-sm font-medium">{t("venueDetail.endDateTime")}</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full justify-start text-left font-normal border-dashed",
+                                  validationErrors.endDate || validationErrors.endTime
+                                    ? "border-red-500 bg-red-50 dark:bg-red-950/20"
+                                    : "",
+                                )}
+                              >
+                                <Clock className="mr-2 h-4 w-4" />
+                                {bookingForm.endDate ? (
+                                  format(bookingForm.endDate, "PPP p")
+                                ) : (
+                                  <span>{t("venueDetail.pickEndDateTime")}</span>
+                                )}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={bookingForm.endDate}
+                                onSelect={handleEndDateSelect}
+                                initialFocus
+                                modifiers={{
+                                  available: isDateAvailable,
+                                  unavailable: (date) => !isDateAvailable(date),
+                                }}
+                                modifiersClassNames={{
+                                  available:
+                                    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50",
+                                  unavailable:
+                                    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
+                                }}
+                                disabled={(date) => !isDateAvailable(date)}
+                                className="rounded-md border"
+                              />
+                              <div className="p-3 border-t border-border">
+                                <div className="space-y-2">
+                                  <Label className="text-sm font-medium">{t("venueDetail.time")}</Label>
+                                  <Input
+                                    type="time"
+                                    value={bookingForm.endDate ? format(bookingForm.endDate, "HH:mm") : "13:00"}
+                                    onChange={(e) => {
+                                      if (e.target.value && bookingForm.endDate) {
+                                        const [hours, minutes] = e.target.value.split(":").map(Number)
+                                        const newDate = new Date(bookingForm.endDate)
+                                        newDate.setHours(hours, minutes)
+                                        handleEndDateSelect(newDate)
+                                      }
+                                    }}
+                                    className={cn("w-full", validationErrors.endTime ? "border-red-500" : "")}
+                                  />
+                                  {venue?.dayAvailability && (
+                                    <p className="text-xs text-muted-foreground">
+                                      {t("venueDetail.operatingHours")}:{" "}
+                                      {venue.dayAvailability[
+                                        bookingForm.endDate
+                                          ?.toLocaleDateString("en-US", { weekday: "long" })
+                                          .toLowerCase()
+                                      ] || "Closed"}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                          {(validationErrors.endDate || validationErrors.endTime) && (
+                            <div className="flex items-center text-red-600 dark:text-red-400 text-sm">
+                              <Info className="h-4 w-4 mr-1" />
+                              <span>{validationErrors.endDate || validationErrors.endTime}</span>
                             </div>
-
-                            <div className="flex items-center text-sm">
-                                <Clock className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <span className="truncate">
-                                    {startDate ? format(startDate, "p") : ""} - {endDate ? format(endDate, "p") : ""}
-                                    {duration > 0 && ` (${duration} ${t("venueBook.hours")})`}
-                                </span>
-                            </div>
-
-                            <div className="flex items-center text-sm">
-                                <Users className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <span className="truncate">
-                                    {guests} {t("venueBook.guests")}
-                                </span>
-                            </div>
+                          )}
                         </div>
-                    </div>
 
-                    <Button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="w-full cta-button mt-6 bg-sky-500 hover:bg-sky-600 hover:translate-y-[-2px] transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                        onClick={handleSubmit}
-                    >
-                        {isSubmitting ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                {t("venueBook.processing")}
-                            </>
+                        {/* Guests */}
+                        <div className="space-y-3">
+                          <Label className="text-sm font-medium">{t("venueDetail.guests")}</Label>
+                          <Input
+                            type="number"
+                            min={venue.capacity.min}
+                            max={venue.capacity.max}
+                            value={bookingForm.guests}
+                            onChange={(e) => handleGuestsChange(Number.parseInt(e.target.value))}
+                            className={cn("w-full", validationErrors.guests ? "border-red-500" : "")}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            {t("venueDetail.capacityRange", {
+                              min: venue.capacity.min,
+                              max: venue.capacity.max,
+                            })}
+                          </p>
+                          {validationErrors.guests && (
+                            <div className="flex items-center text-red-600 dark:text-red-400 text-sm">
+                              <Info className="h-4 w-4 mr-1" />
+                              <span>{validationErrors.guests}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Event Type */}
+                        <div className="space-y-3">
+                          <Label className="text-sm font-medium">{t("venueDetail.eventType")}</Label>
+                          <Input
+                            type="text"
+                            placeholder={t("venueDetail.eventTypePlaceholder")}
+                            value={bookingForm.eventType}
+                            onChange={(e) => setBookingForm((prev) => ({ ...prev, eventType: e.target.value }))}
+                            className="w-full"
+                          />
+                        </div>
+
+                        {/* Special Requests */}
+                        <div className="space-y-3">
+                          <Label className="text-sm font-medium">{t("venueBook.specialRequests")}</Label>
+                          <Textarea
+                            placeholder={t("venueBook.specialRequestsPlaceholder")}
+                            value={bookingForm.specialRequests}
+                            onChange={(e) => setBookingForm((prev) => ({ ...prev, specialRequests: e.target.value }))}
+                            className="w-full min-h-[100px]"
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  {/* Services Tab */}
+                  <TabsContent value="services" className="space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>{t("venueBook.additionalServices")}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {availableServices.length === 0 ? (
+                          <div className="text-center p-8">
+                            <p className="text-muted-foreground">{t("venueDetail.noServices")}</p>
+                          </div>
                         ) : (
-                            <>
-                                {t("venueBook.continueToBook")} <ArrowRight className="ml-2 h-4 w-4" />
-                            </>
+                          <div className="space-y-4">
+                            {availableServices.map((service) => (
+                              <div key={service.id} className="flex items-center justify-between p-4 border rounded-lg">
+                                <div className="flex-1">
+                                  <div className="flex items-center mb-2">
+                                    {getServiceTypeIcon("Info")}
+                                    <h4 className="font-medium">{service.name[language]}</h4>
+                                    <Badge className="ml-2 text-xs">
+                                      {formatPrice(service.price.amount, service.price.currency as Currency)}
+                                      {service.price.type === PricingType.HOURLY && `/${t("business.pricing.hourly")}`}
+                                      {service.price.type === PricingType.PER_PERSON &&
+                                        `/${t("business.pricing.perPerson")}`}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">{service.description[language]}</p>
+                                  {service.metadata?.duration && (
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      {t("venueBook.duration")}: {service.metadata.duration} {t("venueDetail.hours")}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex items-center space-x-2 ml-4">
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8 bg-transparent"
+                                    onClick={() => handleServiceQuantityChange(service.id, -1)}
+                                    disabled={!bookingForm.selectedServices[service.id]}
+                                  >
+                                    <Minus className="h-4 w-4" />
+                                  </Button>
+                                  <span className="w-8 text-center text-sm">
+                                    {bookingForm.selectedServices[service.id] || 0}
+                                  </span>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8 bg-transparent"
+                                    onClick={() => handleServiceQuantityChange(service.id, 1)}
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         )}
-                    </Button>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
 
-                    <p className="text-xs text-muted-foreground text-center mt-4">{t("venueBook.cancellationPolicy")}</p>
+                  {/* Contact Info Tab */}
+                  <TabsContent value="contact" className="space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>{t("venueBook.contactInformation")}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="firstName">{t("venueBook.firstName")}</Label>
+                            <Input
+                              id="firstName"
+                              value={bookingForm.contactInfo.firstName}
+                              onChange={(e) =>
+                                setBookingForm((prev) => ({
+                                  ...prev,
+                                  contactInfo: { ...prev.contactInfo, firstName: e.target.value },
+                                }))
+                              }
+                              className={cn(validationErrors.contactInfo?.firstName ? "border-red-500" : "")}
+                            />
+                            {validationErrors.contactInfo?.firstName && (
+                              <p className="text-sm text-red-600 dark:text-red-400">
+                                {validationErrors.contactInfo.firstName}
+                              </p>
+                            )}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="lastName">{t("venueBook.lastName")}</Label>
+                            <Input
+                              id="lastName"
+                              value={bookingForm.contactInfo.lastName}
+                              onChange={(e) =>
+                                setBookingForm((prev) => ({
+                                  ...prev,
+                                  contactInfo: { ...prev.contactInfo, lastName: e.target.value },
+                                }))
+                              }
+                              className={cn(validationErrors.contactInfo?.lastName ? "border-red-500" : "")}
+                            />
+                            {validationErrors.contactInfo?.lastName && (
+                              <p className="text-sm text-red-600 dark:text-red-400">
+                                {validationErrors.contactInfo.lastName}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="email">{t("venueBook.email")}</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={bookingForm.contactInfo.email}
+                            onChange={(e) =>
+                              setBookingForm((prev) => ({
+                                ...prev,
+                                contactInfo: { ...prev.contactInfo, email: e.target.value },
+                              }))
+                            }
+                            className={cn(validationErrors.contactInfo?.email ? "border-red-500" : "")}
+                          />
+                          {validationErrors.contactInfo?.email && (
+                            <p className="text-sm text-red-600 dark:text-red-400">
+                              {validationErrors.contactInfo.email}
+                            </p>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="phone">{t("venueBook.phone")}</Label>
+                          <Input
+                            id="phone"
+                            type="tel"
+                            value={bookingForm.contactInfo.phone}
+                            onChange={(e) =>
+                              setBookingForm((prev) => ({
+                                ...prev,
+                                contactInfo: { ...prev.contactInfo, phone: e.target.value },
+                              }))
+                            }
+                            className={cn(validationErrors.contactInfo?.phone ? "border-red-500" : "")}
+                          />
+                          {validationErrors.contactInfo?.phone && (
+                            <p className="text-sm text-red-600 dark:text-red-400">
+                              {validationErrors.contactInfo.phone}
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
+              </div>
+
+              {/* Booking Summary */}
+              <div className="space-y-6">
+                <div className="sticky top-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{t("venueBook.bookingSummary")}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Venue Details */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>{t("venueBook.venue")}</span>
+                          <span className="font-medium">{venue.name[language]}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span>{t("venueDetail.duration")}</span>
+                          <span>
+                            {calculateDuration()} {t("venueDetail.hours")}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span>{t("venueDetail.guests")}</span>
+                          <span>{bookingForm.guests}</span>
+                        </div>
+                        {bookingForm.startDate && (
+                          <div className="flex justify-between text-sm">
+                            <span>{t("venueDetail.startDateTime")}</span>
+                            <span>{format(bookingForm.startDate, "PPP p")}</span>
+                          </div>
+                        )}
+                        {bookingForm.endDate && (
+                          <div className="flex justify-between text-sm">
+                            <span>{t("venueDetail.endDateTime")}</span>
+                            <span>{format(bookingForm.endDate, "PPP p")}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <Separator />
+
+                      {/* Pricing Breakdown */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>{t("venueBook.venuePrice")}</span>
+                          <span>{formatPrice(calculateVenueTotal(), venue.price.currency as Currency)}</span>
+                        </div>
+
+                        {/* Services */}
+                        {Object.entries(bookingForm.selectedServices).some(([_, quantity]) => quantity > 0) && (
+                          <>
+                            <div className="text-sm font-medium">{t("venueBook.services")}:</div>
+                            {availableServices.map((service) => {
+                              const quantity = bookingForm.selectedServices[service.id] || 0
+                              if (quantity > 0) {
+                                let serviceTotal = 0
+                                switch (service.price.type) {
+                                  case PricingType.HOURLY:
+                                    serviceTotal = service.price.amount * quantity * calculateDuration()
+                                    break
+                                  case PricingType.PER_PERSON:
+                                    serviceTotal = service.price.amount * quantity * bookingForm.guests
+                                    break
+                                  case PricingType.FIXED:
+                                  default:
+                                    serviceTotal = service.price.amount * quantity
+                                }
+                                return (
+                                  <div key={service.id} className="flex justify-between text-sm pl-4">
+                                    <span>
+                                      {service.name[language]} x{quantity}
+                                    </span>
+                                    <span>{formatPrice(serviceTotal, service.price.currency as Currency)}</span>
+                                  </div>
+                                )
+                              }
+                              return null
+                            })}
+                            <div className="flex justify-between text-sm">
+                              <span>{t("venueBook.servicesTotal")}</span>
+                              <span>{formatPrice(calculateServicesTotal(), venue.price.currency as Currency)}</span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      <Separator />
+
+                      {/* Total */}
+                      <div className="flex justify-between font-semibold">
+                        <span>{t("venueDetail.total")}</span>
+                        <span>{formatPrice(calculateTotal(), venue.price.currency as Currency)}</span>
+                      </div>
+
+                      <Button
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                        onClick={handleSubmit}
+                      >
+                        {t("venueBook.confirmBooking")}
+                      </Button>
+
+                      <p className="text-xs text-muted-foreground text-center">{t("venueBook.bookingTerms")}</p>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        {/* Service Option Details Modal */}
-        {selectedOptionDetails && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white dark:bg-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                  {/* Modal Header */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h3 className="text-xl font-semibold">{selectedOptionDetails.option.name[language]}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {t("venueBook.serviceBy")} {selectedOptionDetails.service.provider.firstName}{" "}
-                        {selectedOptionDetails.service.provider.lastName}
-                      </p>
-                    </div>
-                    <button
-                        onClick={closeOptionDetails}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  </div>
-
-                  {/* Option Details */}
-                  <div className="space-y-6">
-                    {/* Description */}
-                    <div>
-                      <h4 className="font-medium mb-2">{t("venueBook.description")}</h4>
-                      <p className="text-sm text-muted-foreground">{selectedOptionDetails.option.description[language]}</p>
-                    </div>
-
-                    {/* Pricing */}
-                    <div>
-                      <h4 className="font-medium mb-2">{t("venueBook.pricing")}</h4>
-                      <div className="flex items-center gap-2">
-                        <Badge className={`${getPriceTypeBadge(selectedOptionDetails.option.price.type).bgColor}`}>
-                          {getPriceTypeBadge(selectedOptionDetails.option.price.type).text}
-                        </Badge>
-                        <span className="font-medium text-lg">{formatPrice(convertPrice(selectedOptionDetails.option.price.amount, (selectedOptionDetails.option.price.currency || "USD") as Currency), currency)}</span>
-                      </div>
-                      {selectedOptionDetails.option.price.type === "perPerson" && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                              {t("venueBook.totalForGuests", {
-                                  total: formatPrice(convertPrice(selectedOptionDetails.option.price.amount * guests, (selectedOptionDetails.option.price.currency || "USD") as Currency), currency),
-                                  guests: guests,
-                              })}
-                          </p>
-                      )}
-                    </div>
-
-                    {/* Service Information */}
-                    <div>
-                      <h4 className="font-medium mb-2">{t("venueBook.serviceInformation")}</h4>
-                      <div className="space-y-2 text-sm">
-                        <div>
-                          <span className="font-medium">{t("venueBook.serviceName")}: </span>
-                          <span>{selectedOptionDetails.service.name[language]}</span>
-                        </div>
-                        <div>
-                          <span className="font-medium">{t("venueBook.serviceType")}: </span>
-                          <span>
-                        {serviceTypeNames[selectedOptionDetails.service.type]?.[language] ||
-                            selectedOptionDetails.service.type}
-                      </span>
-                        </div>
-                        <div>
-                          <span className="font-medium">{t("venueBook.serviceDescription")}: </span>
-                          <span className="text-muted-foreground">
-                        {selectedOptionDetails.service.description[language]}
-                      </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Provider Information */}
-                    <div>
-                      <h4 className="font-medium mb-2">{t("venueBook.providerInformation")}</h4>
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage
-                              src={
-                                selectedOptionDetails.service.provider.profilePicture
-                                    ? formatImageUrl(selectedOptionDetails.service.provider.profilePicture)
-                                    : "/placeholder.svg?height=48&width=48"
-                              }
-                              alt={`${selectedOptionDetails.service.provider.firstName} ${selectedOptionDetails.service.provider.lastName}`}
-                          />
-                          <AvatarFallback>
-                            {selectedOptionDetails.service.provider.firstName?.charAt(0)}
-                            {selectedOptionDetails.service.provider.lastName?.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <h5 className="font-medium">
-                            {selectedOptionDetails.service.provider.firstName}{" "}
-                            {selectedOptionDetails.service.provider.lastName}
-                          </h5>
-                          <p className="text-sm text-muted-foreground">{selectedOptionDetails.service.provider.email}</p>
-                          {selectedOptionDetails.service.provider.phoneNumber && (
-                              <p className="text-sm text-muted-foreground">
-                                {selectedOptionDetails.service.provider.phoneNumber}
-                              </p>
-                          )}
-                        </div>
-                        <Button variant="outline" size="sm">
-                          <MessageSquare className="h-4 w-4 mr-1" />
-                          {t("venueBook.contact")}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Additional Metadata */}
-                    {selectedOptionDetails.option.metadata &&
-                        Object.keys(selectedOptionDetails.option.metadata).length > 0 && (
-                            <div>
-                              <h4 className="font-medium mb-2">{t("venueBook.additionalDetails")}</h4>
-                              <div className="space-y-1 text-sm">
-                                {Object.entries(selectedOptionDetails.option.metadata).map(([key, value]) => (
-                                    <div key={key}>
-                                      <span className="font-medium capitalize">{key.replace(/([A-Z])/g, " $1")}: </span>
-                                      <span className="text-muted-foreground">{String(value)}</span>
-                                    </div>
-                                ))}
-                              </div>
-                            </div>
-                        )}
-
-                    {/* Service Media */}
-                    {selectedOptionDetails.service.media && selectedOptionDetails.service.media.length > 0 && (
-                        <div>
-                          <h4 className="font-medium mb-2">{t("venueBook.serviceImages")}</h4>
-                          <div className="relative">
-                            <div
-                                className="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 cursor-pointer"
-                                onClick={() => {
-                                  setSelectedImageGallery(selectedOptionDetails.service.media)
-                                  setCurrentImageIndex(0)
-                                }}
-                            >
-                              <img
-                                  src={
-                                      formatImageUrl(selectedOptionDetails.service.media[currentImageIndex]?.url) ||
-                                      "/placeholder.svg" ||
-                                      "/placeholder.svg" ||
-                                      "/placeholder.svg"
-                                  }
-                                  alt="Service"
-                                  className="w-full h-full object-cover transition-opacity duration-500"
-                              />
-                            </div>
-                            {selectedOptionDetails.service.media.length > 1 && (
-                                <div className="flex justify-center mt-2 gap-1">
-                                  {selectedOptionDetails.service.media.map((_, index) => (
-                                      <button
-                                          key={index}
-                                          onClick={() => setCurrentImageIndex(index)}
-                                          className={cn(
-                                              "w-2 h-2 rounded-full transition-colors",
-                                              index === currentImageIndex ? "bg-sky-500" : "bg-gray-300 dark:bg-gray-600",
-                                          )}
-                                      />
-                                  ))}
-                                </div>
-                            )}
-                            <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full text-sm">
-                              {currentImageIndex + 1} / {selectedOptionDetails.service.media.length}
-                            </div>
-                          </div>
-                        </div>
-                    )}
-                  </div>
-
-                  {/* Modal Actions */}
-                  <div className="flex gap-3 mt-6 pt-6 border-t">
-                    <Button variant="outline" onClick={closeOptionDetails} className="flex-1">
-                      {t("common.close")}
-                    </Button>
-                    <Button
-                        onClick={() => {
-                          const isSelected = selectedServices[selectedOptionDetails.service.id]?.includes(
-                              selectedOptionDetails.option.id,
-                          )
-                          toggleService(selectedOptionDetails.service.id, selectedOptionDetails.option.id)
-                          if (!isSelected) {
-                            closeOptionDetails()
-                          }
-                        }}
-                        className={cn(
-                            "flex-1",
-                            selectedServices[selectedOptionDetails.service.id]?.includes(selectedOptionDetails.option.id)
-                                ? "bg-red-500 hover:bg-red-600 text-white"
-                                : "bg-sky-500 hover:bg-sky-600 text-white",
-                        )}
-                    >
-                      {selectedServices[selectedOptionDetails.service.id]?.includes(selectedOptionDetails.option.id)
-                          ? t("venueBook.removeFromSelection")
-                          : t("venueBook.addToSelection")}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-        )}
-        {/* Image Gallery Modal */}
-        {selectedImageGallery && (
-            <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
-              <div className="relative w-full h-full flex items-center justify-center p-4">
-                {/* Close button */}
-                <button
-                    onClick={() => setSelectedImageGallery(null)}
-                    className="absolute top-4 right-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-
-                {/* Navigation buttons */}
-                {selectedImageGallery.length > 1 && (
-                    <>
-                      <button
-                          onClick={() =>
-                              setCurrentImageIndex((prev) => (prev === 0 ? selectedImageGallery.length - 1 : prev - 1))
-                          }
-                          className="absolute left-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
-                      >
-                        <ChevronLeft className="h-6 w-6" />
-                      </button>
-                      <button
-                          onClick={() => setCurrentImageIndex((prev) => (prev + 1) % selectedImageGallery.length)}
-                          className="absolute right-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
-                      >
-                        <ChevronRight className="h-6 w-6" />
-                      </button>
-                    </>
-                )}
-
-                {/* Main image */}
-                <div className="max-w-4xl max-h-full">
-                  <img
-                      src={formatImageUrl(selectedImageGallery[currentImageIndex]?.url) || "/placeholder.svg"}
-                      alt="Service Gallery"
-                      className="max-w-full max-h-full object-contain"
-                  />
-                </div>
-
-                {/* Image counter */}
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-                  {currentImageIndex + 1} / {selectedImageGallery.length}
-                </div>
-
-                {/* Thumbnail strip */}
-                {selectedImageGallery.length > 1 && (
-                    <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex gap-2 max-w-md overflow-x-auto">
-                      {selectedImageGallery.map((media, index) => (
-                          <button
-                              key={media.id}
-                              onClick={() => setCurrentImageIndex(index)}
-                              className={cn(
-                                  "flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors",
-                                  index === currentImageIndex ? "border-sky-500" : "border-transparent hover:border-gray-400",
-                              )}
-                          >
-                            <img
-                                src={formatImageUrl(media.url) || "/placeholder.svg"}
-                                alt="Thumbnail"
-                                className="w-full h-full object-cover"
-                            />
-                          </button>
-                      ))}
-                    </div>
-                )}
-              </div>
-            </div>
-        )}
-        {/* Confirmation Modal */}
-        {showConfirmationModal && confirmationData && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white dark:bg-slate-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                  {/* Modal Header */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h3 className="text-xl font-semibold">{t("venueBook.confirmBooking") || "Confirm Your Booking"}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {t("venueBook.reviewDetailsBeforeConfirming") || "Please review the details below before confirming your booking"}
-                      </p>
-                    </div>
-                    <button
-                        onClick={() => {
-                          setShowConfirmationModal(false)
-                          setConfirmationData(null)
-                        }}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  </div>
-
-                  {/* Price Breakdown */}
-                  <div className="space-y-6">
-                    {/* Venue Details */}
-                    <div className="border rounded-lg p-4">
-                      <h4 className="font-medium mb-3 flex items-center">
-                        <Building2 className="h-4 w-4 mr-2" />
-                        {t("venueBook.venueRental") || "Venue Rental"}
-                      </h4>
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="text-sm font-medium">{venue?.name[language]}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {confirmationData.breakdown.venue.type === "perPerson" 
-                                ? `${formatPrice(confirmationData.breakdown.venue.originalAmount, confirmationData.breakdown.venue.originalCurrency as Currency)} ${t("venueBook.perPerson")}`
-                                : confirmationData.breakdown.venue.type === "hourly"
-                                ? `${formatPrice(confirmationData.breakdown.venue.originalAmount, confirmationData.breakdown.venue.originalCurrency as Currency)} ${t("venueBook.perHour")}`
-                                : t("business.pricing.fixed")
-                              }
-                              {confirmationData.breakdown.venue.type === "perPerson" && ` × ${guests} ${t("venueBook.guests")}`}
-                              {confirmationData.breakdown.venue.type === "hourly" && ` × ${confirmationData.breakdown.venue.hours} ${t("venueBook.hours")}`}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm font-medium">
-                              {formatPrice(confirmationData.breakdown.venue.convertedAmount, currency)}
-                            </div>
-
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Service Options */}
-                    {confirmationData.breakdown.services.length > 0 && (
-                      <div className="border rounded-lg p-4">
-                        <h4 className="font-medium mb-3 flex items-center">
-                          <Sparkles className="h-4 w-4 mr-2" />
-                          {t("venueBook.selectedServices") || "Selected Services"}
-                        </h4>
-                        <div className="space-y-3">
-                          {confirmationData.breakdown.services.map((service: any, index: number) => (
-                            <div key={index} className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <div className="text-sm font-medium">
-                                  {service.serviceName[language]} - {service.optionName[language]}
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  {service.type === "perPerson" 
-                                    ? `${formatPrice(service.originalAmount, service.originalCurrency as Currency)} ${t("venueBook.perPerson")}`
-                                    : service.type === "hourly"
-                                    ? `${formatPrice(service.originalAmount, service.originalCurrency as Currency)} ${t("venueBook.perHour")}`
-                                    : t("business.pricing.fixed")
-                                  }
-                                  {service.type === "perPerson" && ` × ${guests} ${t("venueBook.guests")}`}
-                                  {service.type === "hourly" && ` × ${service.hours} ${t("venueBook.hours")}`}
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-sm font-medium">
-                                  {formatPrice(service.convertedAmount, currency)}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Price Breakdown */}
-                    <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
-                      <h4 className="font-medium mb-3 flex items-center">
-                        <DollarSign className="h-4 w-4 mr-2" />
-                        {t("venueBook.priceBreakdown") || "Price Breakdown"}
-                      </h4>
-                      <div className="space-y-2">
-                        {/* Venue Total */}
-                        <div className="flex justify-between text-sm">
-                          <span>{t("venueBook.venueTotal") || "Venue Total"}</span>
-                          <div className="text-right">
-                            <span className="font-medium">{formatPrice(confirmationData.breakdown.venue.convertedAmount, currency)}</span>
-                            
-                          </div>
-                        </div>
-
-                        {/* Services Total */}
-                        {confirmationData.breakdown.services.length > 0 && (
-                          <div className="flex justify-between text-sm">
-                            <span>{t("venueBook.servicesTotal") || "Services Total"}</span>
-                            <div className="text-right">
-                              <span className="font-medium">
-                                {formatPrice(
-                                  confirmationData.breakdown.services.reduce((sum: number, service: any) => sum + service.convertedAmount, 0),
-                                  currency
-                                )}
-                              </span>
-                              
-                            </div>
-                          </div>
-                        )}
-
-                        
-
-                        {/* Total */}
-                        <div className="border-t pt-2 flex justify-between font-semibold">
-                          <span>{t("venueBook.total") || "Total"}</span>
-                          <div className="text-right">
-                            <span className="text-lg">{formatPrice(confirmationData.breakdown.totals.total, currency)}</span>
-                            
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Currency Summary */}
-                  
-                    {/* Booking Summary with USD Info */}
-                    <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20">
-                      <h4 className="font-medium mb-3 text-blue-800 dark:text-blue-200">
-                        💰 {t("venueBook.finalBookingTotal") || "Final Booking Total"}
-                      </h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium">{t("venueBook.youWillPay") || "You will pay"}:</span>
-                          <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                            {formatPrice(confirmationData.breakdown.totals.total, currency)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-muted-foreground">{t("venueBook.equivalentInUSD") || "Equivalent in USD"}:</span>
-                          <span className="font-medium text-muted-foreground">
-                            ${confirmationData.breakdown.totals.totalUSD.toFixed(2)} USD
-                          </span>
-                        </div>
-                        <div className="text-xs text-muted-foreground pt-2 border-t">
-                          <strong>{t("venueBook.note")}:</strong> {t("venueBook.noteMessage")} <strong>${confirmationData.breakdown.totals.totalUSD.toFixed(2)} USD</strong> {t("venueBook.noteMessage2")}.
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Booking Details Summary */}
-                    <div className="border rounded-lg p-4">
-                      <h4 className="font-medium mb-3">{t("venueBook.bookingDetails") || "Booking Details"}</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">{t("venueBook.eventType")}:</span>
-                          <div className="font-medium">{t(`venueBook.${eventType}`)}</div>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">{t("venueBook.guests")}:</span>
-                          <div className="font-medium">{guests} guests</div>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">{t("venueBook.startDate")}:</span>
-                          <div className="font-medium">{startDate ? format(startDate, "PPP p") : ""}</div>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">{t("venueBook.endDate")}:</span>
-                          <div className="font-medium">{endDate ? format(endDate, "PPP p") : ""}</div>
-                        </div>
-                      </div>
-                      {/* Special Requests */}
-                      {confirmationData.bookingData.specialRequests && (
-                        <div className="mt-4 pt-4 border-t">
-                          <div className="text-sm">
-                            <span className="font-medium text-muted-foreground">{t("venueBook.specialRequests") || "Special Requests"}:</span>
-                            <p className="mt-1 text-foreground">{confirmationData.bookingData.specialRequests}</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Modal Actions */}
-                  <div className="flex gap-3 mt-6 pt-6 border-t">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => {
-                        setShowConfirmationModal(false)
-                        setConfirmationData(null)
-                      }} 
-                      className="flex-1"
-                    >
-                      {t("common.cancel") || "Cancel"}
-                    </Button>
-                    <Button
-                        onClick={handleConfirmBooking}
-                        disabled={isSubmitting}
-                        className="flex-1 bg-sky-500 hover:bg-sky-600 text-white"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {t("venueBook.processing") || "Processing..."}
-                        </>
-                      ) : (
-                        <>
-                          {t("venueBook.confirmAndBook") || "Confirm & Book"}
-                          <CheckCircle className="ml-2 h-4 w-4" />
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-        )}
-      </section>
-    </>
+      </div>
+    </div>
   )
 }
