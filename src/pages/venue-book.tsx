@@ -415,13 +415,13 @@ export default function VenueBookPage() {
         if (!value || value < 1) return t("venueBook.validation.guestsRequired") || "Number of guests is required"
         if (venue && value < venue.capacity.min)
           return (
-            t("venueBook.validation.guestsMin", { min: venue.capacity.min }) ||
-            `Minimum ${venue.capacity.min} guests required`
+              t("venueBook.validation.guestsMin", { min: venue.capacity.min }) ||
+              `Minimum ${venue.capacity.min} guests required`
           )
         if (venue && value > venue.capacity.max)
           return (
-            t("venueBook.validation.guestsMax", { max: venue.capacity.max }) ||
-            `Maximum ${venue.capacity.max} guests allowed`
+              t("venueBook.validation.guestsMax", { max: venue.capacity.max }) ||
+              `Maximum ${venue.capacity.max} guests allowed`
           )
         return undefined
 
@@ -555,7 +555,7 @@ export default function VenueBookPage() {
             // Fetch service types for this venue type
             if (venueData.type) {
               const serviceTypesData = (await serviceService.getServiceTypesByVenueType(
-                venueData.type,
+                  venueData.type,
               )) as ServiceTypesResponse
 
               // Convert service types array to a map for easier lookup
@@ -1121,18 +1121,18 @@ export default function VenueBookPage() {
     return venue.metadata.blockedDates.map((date) => {
       // Handle both string and ISO date formats
       const startDate =
-        typeof date.startDate === "string"
-          ? date.startDate.includes("T")
-            ? parseISO(date.startDate)
-            : new Date(date.startDate)
-          : date.startDate
+          typeof date.startDate === "string"
+              ? date.startDate.includes("T")
+                  ? parseISO(date.startDate)
+                  : new Date(date.startDate)
+              : date.startDate
 
       const endDate =
-        typeof date.endDate === "string"
-          ? date.endDate.includes("T")
-            ? parseISO(date.endDate)
-            : new Date(date.endDate)
-          : date.endDate
+          typeof date.endDate === "string"
+              ? date.endDate.includes("T")
+                  ? parseISO(date.endDate)
+                  : new Date(date.endDate)
+              : date.endDate
 
       return {
         start: startDate,
@@ -1185,15 +1185,15 @@ export default function VenueBookPage() {
 
     if (isBefore(closeTime, openTime)) {
       return (
-        isAfter(selectedTime, openTime) ||
-        selectedTime.getTime() === openTime.getTime() ||
-        isBefore(selectedTime, closeTime) ||
-        selectedTime.getTime() === closeTime.getTime()
+          isAfter(selectedTime, openTime) ||
+          selectedTime.getTime() === openTime.getTime() ||
+          isBefore(selectedTime, closeTime) ||
+          selectedTime.getTime() === closeTime.getTime()
       )
     } else {
       return (
-        (isAfter(selectedTime, openTime) || selectedTime.getTime() === openTime.getTime()) &&
-        (isBefore(selectedTime, closeTime) || selectedTime.getTime() === closeTime.getTime())
+          (isAfter(selectedTime, openTime) || selectedTime.getTime() === openTime.getTime()) &&
+          (isBefore(selectedTime, closeTime) || selectedTime.getTime() === closeTime.getTime())
       )
     }
   }
@@ -1235,696 +1235,80 @@ export default function VenueBookPage() {
 
   if (isLoading || !venue) {
     return (
-      <div className="container px-4 md:px-6 py-8">
-        <div className="flex items-center justify-center h-[60vh]">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-t-amber-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-muted-foreground">{t("common.loading")}</p>
+        <div className="container px-4 md:px-6 py-8">
+          <div className="flex items-center justify-center h-[60vh]">
+            <div className="text-center">
+              <div className="w-16 h-16 border-4 border-t-amber-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-muted-foreground">{t("common.loading")}</p>
+            </div>
           </div>
         </div>
-      </div>
     )
   }
 
   return (
-    <>
-      <section className="relative w-full py-16 md:py-24 lg:py-32 overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-stone-100 dark:from-slate-900 dark:to-slate-800">
-        {/* Enhanced abstract background elements with warm earth tones */}
-        <div className="absolute inset-0 overflow-hidden opacity-40 dark:opacity-10">
-          <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-amber-300 to-orange-400 dark:bg-amber-700 blur-3xl"></div>
-          <div className="absolute top-40 -left-20 w-60 h-60 rounded-full bg-gradient-to-tr from-orange-300 to-red-400 dark:bg-orange-700 blur-3xl"></div>
-          <div className="absolute bottom-20 left-1/2 w-40 h-40 rounded-full bg-gradient-to-r from-stone-200 to-amber-300 dark:bg-stone-700 blur-2xl opacity-60"></div>
-        </div>
+      <>
+        <section className="relative w-full py-16 md:py-24 lg:py-32 overflow-hidden bg-gradient-to-br  dark:bg">
+          {/* Enhanced abstract background elements with warm earth tones */}
+          <div className="absolute inset-0 overflow-hidden opacity-40 dark:opacity-10">
+            <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-amber-300 to-orange-400 dark:bg-amber-700 blur-3xl"></div>
+            <div className="absolute top-40 -left-20 w-60 h-60 rounded-full bg-gradient-to-tr from-orange-300 to-red-400 dark:bg-orange-700 blur-3xl"></div>
+            <div className="absolute bottom-20 left-1/2 w-40 h-40 rounded-full bg-gradient-to-r from-stone-200 to-amber-300 dark:bg-stone-700 blur-2xl opacity-60"></div>
+          </div>
 
-        {/* Subtle texture overlay for light mode */}
-        <div className="absolute inset-0 opacity-[0.03] dark:opacity-0 bg-[radial-gradient(circle_at_1px_1px,_rgba(0,0,0,0.15)_1px,_transparent_0)] bg-[length:20px_20px]"></div>
+          {/* Subtle texture overlay for light mode */}
+          <div className="absolute inset-0 opacity-[0.03] dark:opacity-0 bg-[radial-gradient(circle_at_1px_1px,_rgba(0,0,0,0.15)_1px,_transparent_0)] bg-[length:20px_20px]"></div>
 
-        <div className="container px-4 md:px-8 py-8 md:py-12 relative">
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-8 flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold md:text-3xl mb-2">{t("venueBook.title")}</h1>
-                <p className="text-muted-foreground">{t("venueBook.subtitle", { venue: venue.name[language] })}</p>
+          <div className="container px-4 md:px-8 py-8 md:py-12 relative">
+            <div className="max-w-4xl mx-auto">
+              <div className="mb-8 flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold md:text-3xl mb-2">{t("venueBook.title")}</h1>
+                  <p className="text-muted-foreground">{t("venueBook.subtitle", { venue: venue.name[language] })}</p>
+                </div>
+                <Button variant="outline" onClick={handleBackToVenueDetail} className="flex items-center bg-transparent">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  {t("venueBook.backToVenue")}
+                </Button>
               </div>
-              <Button variant="outline" onClick={handleBackToVenueDetail} className="flex items-center bg-transparent">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                {t("venueBook.backToVenue")}
-              </Button>
-            </div>
 
-            <div className="grid gap-8 md:grid-cols-[1fr_350px]">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Venue Information Card */}
-                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-amber-100 dark:border-slate-700 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold">{t("venueBook.venueDetails")}</h2>
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 text-amber-400 mr-1" />
-                      <span className="text-sm font-medium">
+              <div className="grid gap-8 md:grid-cols-[1fr_350px]">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Venue Information Card */}
+                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-bg00 rounded-xl border border-amber-100 dark:border-bg00 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-semibold">{t("venueBook.venueDetails")}</h2>
+                      <div className="flex items-center">
+                        <Star className="h-4 w-4 text-amber-400 mr-1" />
+                        <span className="text-sm font-medium">
                         {venue.reviews && venue.reviews.length > 0
-                          ? (
-                              venue.reviews.reduce((sum, review) => sum + review.rating, 0) / venue.reviews.length
+                            ? (
+                                venue.reviews.reduce((sum, review) => sum + review.rating, 0) / venue.reviews.length
                             ).toFixed(1)
-                          : "0.0"}
+                            : "0.0"}
                       </span>
-                      <span className="text-xs text-muted-foreground ml-1">({venue.reviews?.length || 0})</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <div className="w-full sm:w-24 h-24 rounded-lg overflow-hidden bg-amber-100 dark:bg-amber-900/20 flex-shrink-0">
-                      <img
-                        src={
-                          venue.media && venue.media.length > 0
-                            ? formatImageUrl(venue.media[0].url)
-                            : "/placeholder.svg?height=96&width=96&text=Venue"
-                        }
-                        alt={venue.name[language]}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-medium">{venue.name[language]}</h3>
-                      <div className="flex items-center text-sm text-muted-foreground mt-1">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        <span>{venue.address ? `${venue.address.city}, ${venue.address.country}` : ""}</span>
-                      </div>
-                      <div className="flex items-center mt-2">
-                        <Badge className={`${getPriceTypeBadge(venue.price.type).bgColor} mr-2`}>
-                          {getPriceTypeBadge(venue.price.type).text}
-                        </Badge>
-                        <span className="font-medium">{basePrice}</span>
+                        <span className="text-xs text-muted-foreground ml-1">({venue.reviews?.length || 0})</span>
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* Event Details Card */}
-                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-amber-100 dark:border-slate-700 shadow-sm">
-                  <h2 className="text-xl font-semibold">{t("venueBook.eventDetails")}</h2>
-
-                  <div ref={eventTypeRef} className="space-y-3">
-                    <label className="text-sm font-medium" htmlFor="event-type">
-                      {t("venueBook.eventType")} <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <select
-                        id="event-type"
-                        value={eventType}
-                        onChange={(e) => {
-                          setEventType(e.target.value)
-                          handleFieldChange("eventType", e.target.value)
-                        }}
-                        onBlur={(e) => handleFieldBlur("eventType", e.target.value)}
-                        className={cn(
-                          "hover:border-amber-300 hover:shadow-sm w-full p-3 pr-10 border rounded-md bg-background appearance-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
-                          validationErrors.eventType && touchedFields.eventType
-                            ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                            : "",
-                        )}
-                        required
-                      >
-                        <option value="">{t("venueBook.selectEventType")}</option>
-                        {Object.values(EventType).map((type) => (
-                          <option key={type} value={type}>
-                            {t(`venueBook.${type}`)}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                    </div>
-                    {validationErrors.eventType && touchedFields.eventType && (
-                      <p className="text-sm text-red-500 flex items-center">
-                        <AlertCircle className="h-4 w-4 mr-1" />
-                        {validationErrors.eventType}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="grid gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="start-date" className="flex items-center gap-2">
-                        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                        {t("business.bookings.startDate") || "Start Date & Time"}
-                      </Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal hover:border-amber-300",
-                              !startDate && "text-muted-foreground",
-                              validationErrors.startDate && "border-destructive",
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {startDate ? (
-                              format(startDate, "PPP p")
-                            ) : (
-                              <span>{t("venueBook.selectDate") || "Select date"}</span>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={startDate}
-                            onSelect={handleStartDateSelect}
-                            initialFocus
-                            modifiers={{
-                              available: isDateAvailable,
-                              unavailable: (date) => !isDateAvailable(date),
-                            }}
-                            modifiersClassNames={{
-                              available:
-                                "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50",
-                              unavailable:
-                                "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
-                            }}
-                            disabled={(date) => !isDateAvailable(date)}
-                            className="rounded-md border"
-                          />
-                          <div className="p-3 border-t">
-                            <Input
-                              type="time"
-                              value={startDate ? format(startDate, "HH:mm") : ""}
-                              onChange={(e) => {
-                                if (startDate) {
-                                  const [hours, minutes] = e.target.value.split(":")
-                                  const newDate = new Date(startDate)
-                                  newDate.setHours(Number.parseInt(hours), Number.parseInt(minutes))
-                                  handleStartDateSelect(newDate)
-                                }
-                              }}
-                            />
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                      {validationErrors.startDate && (
-                        <p className="text-sm text-destructive">{validationErrors.startDate}</p>
-                      )}
-                    </div>
-
-                    <div className="grid gap-2">
-                      <Label htmlFor="end-date" className="flex items-center gap-2">
-                        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                        {t("business.bookings.endDate") || "End Date & Time"}
-                      </Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal hover:border-amber-300",
-                              !endDate && "text-muted-foreground",
-                              validationErrors.endDate && "border-destructive",
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {endDate ? (
-                              format(endDate, "PPP p")
-                            ) : (
-                              <span>{t("venueBook.selectDate") || "Select date"}</span>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={endDate}
-                            onSelect={handleEndDateSelect}
-                            initialFocus
-                            modifiers={{
-                              available: isDateAvailable,
-                              unavailable: (date) => !isDateAvailable(date),
-                            }}
-                            modifiersClassNames={{
-                              available:
-                                "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50",
-                              unavailable:
-                                "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
-                            }}
-                            disabled={(date) => !isDateAvailable(date)}
-                            className="rounded-md border"
-                          />
-                          <div className="p-3 border-t">
-                            <Input
-                              type="time"
-                              value={endDate ? format(endDate, "HH:mm") : ""}
-                              onChange={(e) => {
-                                if (endDate) {
-                                  const [hours, minutes] = e.target.value.split(":")
-                                  const newDate = new Date(endDate)
-                                  newDate.setHours(Number.parseInt(hours), Number.parseInt(minutes))
-                                  handleEndDateSelect(newDate)
-                                }
-                              }}
-                            />
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                      {validationErrors.endDate && (
-                        <p className="text-sm text-destructive">{validationErrors.endDate}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div ref={guestsRef} className="space-y-3">
-                    <label className="text-sm font-medium">
-                      {t("venueBook.guests")} <span className="text-red-500">*</span>
-                    </label>
-                    <div
-                      className={cn(
-                        "flex items-center border rounded-md bg-background overflow-hidden focus-within:ring-2 focus-within:ring-amber-500/20 focus-within:border-amber-500 transition-colors hover:border-amber-300 hover:shadow-sm",
-                        validationErrors.guests
-                          ? "border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20"
-                          : "",
-                      )}
-                    >
-                      <Users className="ml-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type="number"
-                        min={venue.capacity.min}
-                        max={venue.capacity.max}
-                        value={guests}
-                        onChange={(e) => {
-                          const value = Number.parseInt(e.target.value)
-                          setGuests(value)
-                          handleFieldChange("guests", value)
-                        }}
-                        onBlur={(e) => handleFieldBlur("guests", Number.parseInt(e.target.value))}
-                        className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        required
-                      />
-                    </div>
-                    {validationErrors.guests && (
-                      <p className="text-sm text-red-500 flex items-center">
-                        <AlertCircle className="h-4 w-4 mr-1" />
-                        {validationErrors.guests}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      {t("venueBook.guestCapacity", { min: venue.capacity.min, max: venue.capacity.max })}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Services Section - Grouped by Type */}
-                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-amber-100 dark:border-slate-700 shadow-sm">
-                  <div>
-                    <h2 className="text-xl font-semibold">{t("venueBook.services")}</h2>
-                    <p className="text-muted-foreground text-sm mt-1">{t("venueBook.servicesSubtitle")}</p>
-                  </div>
-
-                  {/* Scrollable Services Container */}
-                  <div className="services-container max-h-[500px] overflow-y-auto pr-2 space-y-6">
-                    {/* Render services grouped by type */}
-                    {Object.keys(serviceTypes).length > 0 ? (
-                      Object.entries(serviceTypes).map(([type, serviceType]) => {
-                        const isTypeExpanded = expandedTypes.includes(type)
-                        const selectedCount = countSelectedOptionsForType(type)
-                        const typeDisplayName = serviceTypeNames[type]?.[language] || type
-
-                        // Get the icon from the service type data
-                        const IconComponent = getIconByName(serviceType.icon)
-
-                        // Count unique providers
-                        const uniqueProviders = new Set(
-                          services.filter((s) => s.type === type).map((s) => s.provider.id),
-                        ).size
-
-                        return (
-                          <div
-                            key={type}
-                            className="service-type-section border border-amber-100 dark:border-amber-800/30 rounded-lg overflow-hidden"
-                          >
-                            {/* Service Type Header */}
-                            <div
-                              className="service-type-header p-4 bg-amber-50 dark:bg-amber-900/20 flex items-center justify-between cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
-                              onClick={() => toggleTypeExpansion(type)}
-                            >
-                              <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center space-x-2">
-                                  <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                                    {React.createElement(getIconByName(serviceType.icon), {
-                                      className: "h-5 w-5 text-amber-600 dark:text-amber-400",
-                                    })}
-                                  </div>
-                                  <h3 className="font-medium">{serviceTypeNames[type]?.[language] || type}</h3>
-                                </div>
-                                <div className="flex items-center space-x-2 min-w-[100px] justify-end">
-                                  {countSelectedOptionsForType(type) > 0 && (
-                                    <Badge
-                                      variant="secondary"
-                                      className="text-xs bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-400"
-                                    >
-                                      {countSelectedOptionsForType(type)} {t("venueBook.selected")}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* All Providers and Services for this type */}
-                            {isTypeExpanded && (
-                              <div className="service-content p-4 space-y-4 border-t border-amber-100 dark:border-amber-800/30">
-                                {/* Group services by provider */}
-                                {(() => {
-                                  // Group services by provider
-                                  const servicesByProvider: Record<string, Service[]> = {}
-                                  services.forEach((service) => {
-                                    if (service.type === type) {
-                                      const providerId = service.provider.id
-                                      if (!servicesByProvider[providerId]) {
-                                        servicesByProvider[providerId] = []
-                                      }
-                                      servicesByProvider[providerId].push(service)
-                                    }
-                                  })
-
-                                  return Object.entries(servicesByProvider).map(([providerId, providerServices]) => {
-                                    const provider = providerServices[0].provider
-                                    const totalSelectedForProvider = providerServices.reduce(
-                                      (sum, service) => sum + (selectedServices[service.id]?.length || 0),
-                                      0,
-                                    )
-
-                                    return (
-                                      <div key={providerId} className="provider-section space-y-3">
-                                        {/* Provider Header */}
-                                        <div className="provider-header flex items-center justify-between p-3 bg-stone-50 dark:bg-stone-900/20 rounded-lg">
-                                          <div className="flex items-center">
-                                            <Avatar className="h-8 w-8 mr-3">
-                                              <AvatarImage
-                                                src={
-                                                  provider?.profilePicture
-                                                    ? formatImageUrl(provider?.profilePicture)
-                                                    : "/placeholder.svg?height=32&width=32"
-                                                }
-                                                alt={`${provider?.firstName} ${provider?.lastName}`}
-                                              />
-                                              <AvatarFallback>
-                                                {provider?.firstName?.charAt(0)}
-                                                {provider?.lastName?.charAt(0)}
-                                              </AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                              <h4 className="font-medium text-sm">
-                                                {provider?.firstName} {provider?.lastName}
-                                              </h4>
-                                              <p className="text-xs text-muted-foreground">
-                                                {providerServices.length}{" "}
-                                                {providerServices.length === 1
-                                                  ? t("venueBook.service")
-                                                  : t("venueBook.services")}
-                                              </p>
-                                            </div>
-                                          </div>
-                                          <div className="flex items-center">
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              className="text-xs hover:border-amber-300 bg-transparent"
-                                            >
-                                              <MessageSquare className="h-3 w-3 mr-1" />
-                                              {t("venueBook.contactProvider")}
-                                            </Button>
-                                          </div>
-                                        </div>
-
-                                        {/* All Services from this Provider */}
-                                        <div className="provider-services space-y-4">
-                                          {providerServices.map((service) => (
-                                            <div key={service.id} className="service-section">
-                                              {/* Service Name (if provider has multiple services) */}
-                                              {providerServices.length > 1 && (
-                                                <div className="service-header mb-2">
-                                                  <h5 className="font-medium text-sm">{service.name[language]}</h5>
-                                                  <p className="text-xs text-muted-foreground">
-                                                    {service.description[language]}
-                                                  </p>
-                                                </div>
-                                              )}
-
-                                              {/* Service Options */}
-                                              {service.options && service.options.length > 0 ? (
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                  {service.options.map((option) => {
-                                                    const isSelected = selectedServices[service.id]?.includes(option.id)
-                                                    return (
-                                                      <div
-                                                        key={option.id}
-                                                        className={cn(
-                                                          "service-option flex flex-col p-3 relative rounded-lg border-2 border-transparent hover:border-amber-200 dark:hover:border-amber-800 transition-all duration-200 h-[140px]",
-                                                          isSelected
-                                                            ? "bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800"
-                                                            : "bg-stone-50 dark:bg-slate-800/50 hover:bg-stone-100 dark:hover:bg-slate-700/70",
-                                                        )}
-                                                      >
-                                                        {isSelected && (
-                                                          <Check className="h-4 w-4 text-amber-600 absolute top-2 right-2" />
-                                                        )}
-                                                        <div className="flex-1 min-h-0">
-                                                          <span className="font-medium text-sm mb-2 line-clamp-1 block">
-                                                            {option.name[language]}
-                                                          </span>
-                                                          <div className="flex items-center mb-3">
-                                                            <Badge
-                                                              className={`text-xs ${getPriceTypeBadge(option.price.type).bgColor} mr-2`}
-                                                            >
-                                                              {getPriceTypeBadge(option.price.type).text}
-                                                            </Badge>
-                                                            <span className="font-medium">
-                                                              {formatPrice(
-                                                                convertPrice(
-                                                                  option.price.amount,
-                                                                  (option.price.currency || "USD") as Currency,
-                                                                ),
-                                                                currency,
-                                                              )}
-                                                            </span>
-                                                          </div>
-                                                        </div>
-                                                        <div className="flex gap-2 mt-auto">
-                                                          <button
-                                                            type="button"
-                                                            onClick={() => toggleService(service.id, option.id)}
-                                                            className={cn(
-                                                              "flex-1 px-3 py-2 text-xs rounded-md transition-colors",
-                                                              isSelected
-                                                                ? "bg-amber-500 text-white hover:bg-amber-600"
-                                                                : "bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-600",
-                                                            )}
-                                                          >
-                                                            {isSelected
-                                                              ? t("venueBook.selected")
-                                                              : t("venueBook.select")}
-                                                          </button>
-                                                          <button
-                                                            type="button"
-                                                            onClick={() => handleViewOptionDetails(service, option)}
-                                                            className="px-3 py-2 text-xs rounded-md bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
-                                                          >
-                                                            <Info className="h-3 w-3" />
-                                                          </button>
-                                                        </div>
-                                                      </div>
-                                                    )
-                                                  })}
-                                                </div>
-                                              ) : (
-                                                <p className="text-sm text-muted-foreground">
-                                                  {t("venueBook.noOptionsAvailable")}
-                                                </p>
-                                              )}
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )
-                                  })
-                                })()}
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })
-                    ) : (
-                      <div className="text-center p-8 bg-stone-50 dark:bg-stone-900/20 rounded-lg">
-                        <p className="text-muted-foreground">{t("venueDetail.noServices")}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-amber-100 dark:border-slate-700 shadow-sm">
-                  <h2 className="text-xl font-semibold">{t("venueBook.contactDetails")}</h2>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div ref={firstNameRef} className="space-y-2">
-                      <label className="text-sm font-medium" htmlFor="first-name">
-                        {t("venueBook.firstName")} <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        id="first-name"
-                        value={formValues.firstName}
-                        onChange={(e) => handleFormChange("firstName", e.target.value)}
-                        onBlur={(e) => handleFieldBlur("firstName", e.target.value)}
-                        className={cn(
-                          "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
-                          validationErrors.firstName && touchedFields.firstName
-                            ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                            : "",
-                        )}
-                        required
-                      />
-                      {validationErrors.firstName && touchedFields.firstName && (
-                        <p className="text-sm text-red-500 flex items-center">
-                          <AlertCircle className="h-4 w-4 mr-1" />
-                          {validationErrors.firstName}
-                        </p>
-                      )}
-                    </div>
-
-                    <div ref={lastNameRef} className="space-y-2">
-                      <label className="text-sm font-medium" htmlFor="last-name">
-                        {t("venueBook.lastName")} <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        id="last-name"
-                        value={formValues.lastName}
-                        onChange={(e) => handleFormChange("lastName", e.target.value)}
-                        onBlur={(e) => handleFieldBlur("lastName", e.target.value)}
-                        className={cn(
-                          "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
-                          validationErrors.lastName && touchedFields.lastName
-                            ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                            : "",
-                        )}
-                        required
-                      />
-                      {validationErrors.lastName && touchedFields.lastName && (
-                        <p className="text-sm text-red-500 flex items-center">
-                          <AlertCircle className="h-4 w-4 mr-1" />
-                          {validationErrors.lastName}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div ref={emailRef} className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="email">
-                      {t("venueBook.email")} <span className="text-red-500">*</span>
-                    </label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formValues.email}
-                      onChange={(e) => handleFormChange("email", e.target.value)}
-                      onBlur={(e) => handleFieldBlur("email", e.target.value)}
-                      className={cn(
-                        "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
-                        validationErrors.email && touchedFields.email
-                          ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                          : "",
-                      )}
-                      required
-                    />
-                    {validationErrors.email && touchedFields.email && (
-                      <p className="text-sm text-red-500 flex items-center">
-                        <AlertCircle className="h-4 w-4 mr-1" />
-                        {validationErrors.email}
-                      </p>
-                    )}
-                  </div>
-
-                  <div ref={phoneRef} className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="phone">
-                      {t("venueBook.phone")} <span className="text-red-500">*</span>
-                    </label>
-                    <div className="flex gap-2">
-                      <select
-                        value={formValues.phonePrefix}
-                        onChange={(e) => handleFormChange("phonePrefix", e.target.value)}
-                        className={cn(
-                          "h-10 w-32 px-3 py-2 text-sm border border-input bg-background rounded-md ring-offset-background",
-                          "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                          "disabled:cursor-not-allowed disabled:opacity-50",
-                          "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
-                        )}
-                      >
-                        {phonePrefix.map((prefix) => (
-                          <option key={prefix.code} value={prefix.code}>
-                            {prefix.flag} {prefix.code}
-                          </option>
-                        ))}
-                      </select>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={formValues.phone}
-                        onChange={(e) => handlePhoneChange(e.target.value)}
-                        onBlur={(e) => handleFieldBlur("phone", e.target.value)}
-                        className={cn(
-                          "flex-1 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
-                          validationErrors.phone && touchedFields.phone
-                            ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                            : "",
-                        )}
-                        placeholder="69 123 4567"
-                        required
-                      />
-                    </div>
-                    {validationErrors.phone && touchedFields.phone && (
-                      <p className="text-sm text-red-500 flex items-center">
-                        <AlertCircle className="h-4 w-4 mr-1" />
-                        {validationErrors.phone}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-amber-100 dark:border-slate-700 shadow-sm">
-                  <h2 className="text-xl font-semibold">{t("venueBook.additionalInfo")}</h2>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="special-requests">
-                      {t("venueBook.specialRequests")}
-                    </label>
-                    <Textarea
-                      id="special-requests"
-                      value={specialRequests}
-                      onChange={(e) => setSpecialRequests(e.target.value)}
-                      placeholder={t("venueBook.specialRequestsPlaceholder")}
-                      className="min-h-[100px] focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
-                    />
-                  </div>
-                </div>
-              </form>
-
-              <div className="space-y-6">
-                {/* Booking Summary Card */}
-                <div className="sticky top-6 venue-card p-6 space-y-5 bg-white dark:bg-slate-800 rounded-xl border border-amber-100 dark:border-slate-700 shadow-sm">
-                  <h2 className="text-xl font-semibold">{t("venueBook.summary")}</h2>
-
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-4">
-                      <div className="w-20 h-20 rounded-lg overflow-hidden bg-amber-100 dark:bg-amber-900/20 flex-shrink-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                      <div className="w-full sm:w-24 h-24 rounded-lg overflow-hidden bg-amber-100 dark:bg-amber-900/20 flex-shrink-0">
                         <img
-                          src={
-                            venue.media && venue.media.length > 0
-                              ? formatImageUrl(venue.media[0].url)
-                              : "/placeholder.svg"
-                          }
-                          alt={venue.name[language]}
-                          className="w-full h-full object-cover"
+                            src={
+                              venue.media && venue.media.length > 0
+                                  ? formatImageUrl(venue.media[0].url)
+                                  : "/placeholder.svg?height=96&width=96&text=Venue"
+                            }
+                            alt={venue.name[language]}
+                            className="w-full h-full object-cover"
                         />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium truncate">{venue.name[language]}</h3>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {venue.address ? `${venue.address.city}, ${venue.address.country}` : ""}
-                        </p>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-medium">{venue.name[language]}</h3>
+                        <div className="flex items-center text-sm text-muted-foreground mt-1">
+                          <MapPin className="h-4 w-4 mr-1" />
+                          <span>{venue.address ? `${venue.address.city}, ${venue.address.country}` : ""}</span>
+                        </div>
                         <div className="flex items-center mt-2">
                           <Badge className={`${getPriceTypeBadge(venue.price.type).bgColor} mr-2`}>
                             {getPriceTypeBadge(venue.price.type).text}
@@ -1933,583 +1317,1199 @@ export default function VenueBookPage() {
                         </div>
                       </div>
                     </div>
+                  </div>
 
-                    <div className="space-y-3 pt-2">
-                      <div className="flex items-center text-sm">
-                        <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <span className="truncate">{startDate ? format(startDate, "PPP") : t("venueBook.date")}</span>
+                  {/* Event Details Card */}
+                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-bg00 rounded-xl border border-amber-100 dark:border-bg00 shadow-sm">
+                    <h2 className="text-xl font-semibold">{t("venueBook.eventDetails")}</h2>
+
+                    <div ref={eventTypeRef} className="space-y-3">
+                      <label className="text-sm font-medium" htmlFor="event-type">
+                        {t("venueBook.eventType")} <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <select
+                            id="event-type"
+                            value={eventType}
+                            onChange={(e) => {
+                              setEventType(e.target.value)
+                              handleFieldChange("eventType", e.target.value)
+                            }}
+                            onBlur={(e) => handleFieldBlur("eventType", e.target.value)}
+                            className={cn(
+                                "hover:border-amber-300 hover:shadow-sm w-full p-3 pr-10 border rounded-md bg-background appearance-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
+                                validationErrors.eventType && touchedFields.eventType
+                                    ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                                    : "",
+                            )}
+                            required
+                        >
+                          <option value="">{t("venueBook.selectEventType")}</option>
+                          {Object.values(EventType).map((type) => (
+                              <option key={type} value={type}>
+                                {t(`venueBook.${type}`)}
+                              </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -tranbg-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      </div>
+                      {validationErrors.eventType && touchedFields.eventType && (
+                          <p className="text-sm text-red-500 flex items-center">
+                            <AlertCircle className="h-4 w-4 mr-1" />
+                            {validationErrors.eventType}
+                          </p>
+                      )}
+                    </div>
+
+                    <div className="grid gap-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="start-date" className="flex items-center gap-2">
+                          <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                          {t("business.bookings.startDate") || "Start Date & Time"}
+                        </Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                className={cn(
+                                    "w-full justify-start text-left font-normal hover:border-amber-300",
+                                    !startDate && "text-muted-foreground",
+                                    validationErrors.startDate && "border-destructive",
+                                )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {startDate ? (
+                                  format(startDate, "PPP p")
+                              ) : (
+                                  <span>{t("venueBook.selectDate") || "Select date"}</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={startDate}
+                                onSelect={handleStartDateSelect}
+                                initialFocus
+                                modifiers={{
+                                  available: isDateAvailable,
+                                  unavailable: (date) => !isDateAvailable(date),
+                                }}
+                                modifiersClassNames={{
+                                  available:
+                                      "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50",
+                                  unavailable:
+                                      "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
+                                }}
+                                disabled={(date) => !isDateAvailable(date)}
+                                className="rounded-md border"
+                            />
+                            <div className="p-3 border-t">
+                              <Input
+                                  type="time"
+                                  value={startDate ? format(startDate, "HH:mm") : ""}
+                                  onChange={(e) => {
+                                    if (startDate) {
+                                      const [hours, minutes] = e.target.value.split(":")
+                                      const newDate = new Date(startDate)
+                                      newDate.setHours(Number.parseInt(hours), Number.parseInt(minutes))
+                                      handleStartDateSelect(newDate)
+                                    }
+                                  }}
+                              />
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                        {validationErrors.startDate && (
+                            <p className="text-sm text-destructive">{validationErrors.startDate}</p>
+                        )}
                       </div>
 
-                      <div className="flex items-center text-sm">
-                        <Clock className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <span className="truncate">
-                          {startDate ? format(startDate, "p") : ""} - {endDate ? format(endDate, "p") : ""}
-                          {duration > 0 && ` (${duration} ${t("venueBook.hours")})`}
-                        </span>
+                      <div className="grid gap-2">
+                        <Label htmlFor="end-date" className="flex items-center gap-2">
+                          <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                          {t("business.bookings.endDate") || "End Date & Time"}
+                        </Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                className={cn(
+                                    "w-full justify-start text-left font-normal hover:border-amber-300",
+                                    !endDate && "text-muted-foreground",
+                                    validationErrors.endDate && "border-destructive",
+                                )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {endDate ? (
+                                  format(endDate, "PPP p")
+                              ) : (
+                                  <span>{t("venueBook.selectDate") || "Select date"}</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={endDate}
+                                onSelect={handleEndDateSelect}
+                                initialFocus
+                                modifiers={{
+                                  available: isDateAvailable,
+                                  unavailable: (date) => !isDateAvailable(date),
+                                }}
+                                modifiersClassNames={{
+                                  available:
+                                      "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50",
+                                  unavailable:
+                                      "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 line-through opacity-50 cursor-not-allowed",
+                                }}
+                                disabled={(date) => !isDateAvailable(date)}
+                                className="rounded-md border"
+                            />
+                            <div className="p-3 border-t">
+                              <Input
+                                  type="time"
+                                  value={endDate ? format(endDate, "HH:mm") : ""}
+                                  onChange={(e) => {
+                                    if (endDate) {
+                                      const [hours, minutes] = e.target.value.split(":")
+                                      const newDate = new Date(endDate)
+                                      newDate.setHours(Number.parseInt(hours), Number.parseInt(minutes))
+                                      handleEndDateSelect(newDate)
+                                    }
+                                  }}
+                              />
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                        {validationErrors.endDate && (
+                            <p className="text-sm text-destructive">{validationErrors.endDate}</p>
+                        )}
                       </div>
+                    </div>
 
-                      <div className="flex items-center text-sm">
-                        <Users className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <span className="truncate">
-                          {guests} {t("venueBook.guests")}
-                        </span>
+                    <div ref={guestsRef} className="space-y-3">
+                      <label className="text-sm font-medium">
+                        {t("venueBook.guests")} <span className="text-red-500">*</span>
+                      </label>
+                      <div
+                          className={cn(
+                              "flex items-center border rounded-md bg-background overflow-hidden focus-within:ring-2 focus-within:ring-amber-500/20 focus-within:border-amber-500 transition-colors hover:border-amber-300 hover:shadow-sm",
+                              validationErrors.guests
+                                  ? "border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20"
+                                  : "",
+                          )}
+                      >
+                        <Users className="ml-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            type="number"
+                            min={venue.capacity.min}
+                            max={venue.capacity.max}
+                            value={guests}
+                            onChange={(e) => {
+                              const value = Number.parseInt(e.target.value)
+                              setGuests(value)
+                              handleFieldChange("guests", value)
+                            }}
+                            onBlur={(e) => handleFieldBlur("guests", Number.parseInt(e.target.value))}
+                            className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            required
+                        />
                       </div>
+                      {validationErrors.guests && (
+                          <p className="text-sm text-red-500 flex items-center">
+                            <AlertCircle className="h-4 w-4 mr-1" />
+                            {validationErrors.guests}
+                          </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        {t("venueBook.guestCapacity", { min: venue.capacity.min, max: venue.capacity.max })}
+                      </p>
                     </div>
                   </div>
 
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full cta-button mt-6 bg-amber-500 hover:bg-amber-600 hover:translate-y-[-2px] transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    onClick={handleSubmit}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {t("venueBook.processing")}
-                      </>
-                    ) : (
-                      <>
-                        {t("venueBook.continueToBook")} <ArrowRight className="ml-2 h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
+                  {/* Services Section - Grouped by Type */}
+                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-bg00 rounded-xl border border-amber-100 dark:border-bg00 shadow-sm">
+                    <div>
+                      <h2 className="text-xl font-semibold">{t("venueBook.services")}</h2>
+                      <p className="text-muted-foreground text-sm mt-1">{t("venueBook.servicesSubtitle")}</p>
+                    </div>
 
-                  <p className="text-xs text-muted-foreground text-center mt-4">{t("venueBook.cancellationPolicy")}</p>
+                    {/* Scrollable Services Container */}
+                    <div className="services-container max-h-[500px] overflow-y-auto pr-2 space-y-6">
+                      {/* Render services grouped by type */}
+                      {Object.keys(serviceTypes).length > 0 ? (
+                          Object.entries(serviceTypes).map(([type, serviceType]) => {
+                            const isTypeExpanded = expandedTypes.includes(type)
+                            const selectedCount = countSelectedOptionsForType(type)
+                            const typeDisplayName = serviceTypeNames[type]?.[language] || type
+
+                            // Get the icon from the service type data
+                            const IconComponent = getIconByName(serviceType.icon)
+
+                            // Count unique providers
+                            const uniqueProviders = new Set(
+                                services.filter((s) => s.type === type).map((s) => s.provider.id),
+                            ).size
+
+                            return (
+                                <div
+                                    key={type}
+                                    className="service-type-section border border-amber-100 dark:border-amber-800/30 rounded-lg overflow-hidden"
+                                >
+                                  {/* Service Type Header */}
+                                  <div
+                                      className="service-type-header p-4 bg-amber-50 dark:bg-amber-900/20 flex items-center justify-between cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+                                      onClick={() => toggleTypeExpansion(type)}
+                                  >
+                                    <div className="flex items-center justify-between mb-4">
+                                      <div className="flex items-center space-x-2">
+                                        <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                                          {React.createElement(getIconByName(serviceType.icon), {
+                                            className: "h-5 w-5 text-amber-600 dark:text-amber-400",
+                                          })}
+                                        </div>
+                                        <h3 className="font-medium">{serviceTypeNames[type]?.[language] || type}</h3>
+                                      </div>
+                                      <div className="flex items-center space-x-2 min-w-[100px] justify-end">
+                                        {countSelectedOptionsForType(type) > 0 && (
+                                            <Badge
+                                                variant="secondary"
+                                                className="text-xs bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-400"
+                                            >
+                                              {countSelectedOptionsForType(type)} {t("venueBook.selected")}
+                                            </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* All Providers and Services for this type */}
+                                  {isTypeExpanded && (
+                                      <div className="service-content p-4 space-y-4 border-t border-amber-100 dark:border-amber-800/30">
+                                        {/* Group services by provider */}
+                                        {(() => {
+                                          // Group services by provider
+                                          const servicesByProvider: Record<string, Service[]> = {}
+                                          services.forEach((service) => {
+                                            if (service.type === type) {
+                                              const providerId = service.provider.id
+                                              if (!servicesByProvider[providerId]) {
+                                                servicesByProvider[providerId] = []
+                                              }
+                                              servicesByProvider[providerId].push(service)
+                                            }
+                                          })
+
+                                          return Object.entries(servicesByProvider).map(([providerId, providerServices]) => {
+                                            const provider = providerServices[0].provider
+                                            const totalSelectedForProvider = providerServices.reduce(
+                                                (sum, service) => sum + (selectedServices[service.id]?.length || 0),
+                                                0,
+                                            )
+
+                                            return (
+                                                <div key={providerId} className="provider-section space-y-3">
+                                                  {/* Provider Header */}
+                                                  <div className="provider-header flex items-center justify-between p-3 rounded-lg">
+                                                    <div className="flex items-center">
+                                                      <Avatar className="h-8 w-8 mr-3">
+                                                        <AvatarImage
+                                                            src={
+                                                              provider?.profilePicture
+                                                                  ? formatImageUrl(provider?.profilePicture)
+                                                                  : "/placeholder.svg?height=32&width=32"
+                                                            }
+                                                            alt={`${provider?.firstName} ${provider?.lastName}`}
+                                                        />
+                                                        <AvatarFallback>
+                                                          {provider?.firstName?.charAt(0)}
+                                                          {provider?.lastName?.charAt(0)}
+                                                        </AvatarFallback>
+                                                      </Avatar>
+                                                      <div>
+                                                        <h4 className="font-medium text-sm">
+                                                          {provider?.firstName} {provider?.lastName}
+                                                        </h4>
+                                                        <p className="text-xs text-muted-foreground">
+                                                          {providerServices.length}{" "}
+                                                          {providerServices.length === 1
+                                                              ? t("venueBook.service")
+                                                              : t("venueBook.services")}
+                                                        </p>
+                                                      </div>
+                                                    </div>
+                                                    <div className="flex items-center">
+                                                      <Button
+                                                          variant="outline"
+                                                          size="sm"
+                                                          className="text-xs hover:border-amber-300 bg-transparent"
+                                                      >
+                                                        <MessageSquare className="h-3 w-3 mr-1" />
+                                                        {t("venueBook.contactProvider")}
+                                                      </Button>
+                                                    </div>
+                                                  </div>
+
+                                                  {/* All Services from this Provider */}
+                                                  <div className="provider-services space-y-4">
+                                                    {providerServices.map((service) => (
+                                                        <div key={service.id} className="service-section">
+                                                          {/* Service Name (if provider has multiple services) */}
+                                                          {providerServices.length > 1 && (
+                                                              <div className="service-header mb-2">
+                                                                <h5 className="font-medium text-sm">{service.name[language]}</h5>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                  {service.description[language]}
+                                                                </p>
+                                                              </div>
+                                                          )}
+
+                                                          {/* Service Options */}
+                                                          {service.options && service.options.length > 0 ? (
+                                                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                                {service.options.map((option) => {
+                                                                  const isSelected = selectedServices[service.id]?.includes(option.id)
+                                                                  return (
+                                                                      <div
+                                                                          key={option.id}
+                                                                          className={cn(
+                                                                              "service-option flex flex-col p-3 relative rounded-lg border-2 border-transparent hover:border-amber-200 dark:hover:border-amber-800 transition-all duration-200 h-[140px]",
+                                                                              isSelected
+                                                                                  ? "bg-amber-100/40 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800"
+                                                                                  : "bg-white dark:bg-amber-900/20 hover:bg-stone-100 dark:hover:bg-bg00/70",
+                                                                          )}
+                                                                      >
+                                                                        {isSelected && (
+                                                                            <Check className="h-4 w-4 text-amber-600 absolute top-2 right-2" />
+                                                                        )}
+                                                                        <div className="flex-1 min-h-0">
+                                                          <span className="font-medium text-sm mb-2 line-clamp-1 block">
+                                                            {option.name[language]}
+                                                          </span>
+                                                                          <div className="flex items-center mb-3">
+                                                                            <Badge
+                                                                                className={`text-xs ${getPriceTypeBadge(option.price.type).bgColor} mr-2`}
+                                                                            >
+                                                                              {getPriceTypeBadge(option.price.type).text}
+                                                                            </Badge>
+                                                                            <span className="font-medium">
+                                                              {formatPrice(
+                                                                  convertPrice(
+                                                                      option.price.amount,
+                                                                      (option.price.currency || "USD") as Currency,
+                                                                  ),
+                                                                  currency,
+                                                              )}
+                                                            </span>
+                                                                          </div>
+                                                                        </div>
+                                                                        <div className="flex gap-2 mt-auto">
+                                                                          <button
+                                                                              type="button"
+                                                                              onClick={() => toggleService(service.id, option.id)}
+                                                                              className={cn(
+                                                                                  "flex-1 px-3 py-2 text-xs rounded-md transition-colors",
+                                                                                  isSelected
+                                                                                      ? "bg-amber-500 text-white hover:bg-amber-600"
+                                                                                      : "bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-600",
+                                                                              )}
+                                                                          >
+                                                                            {isSelected
+                                                                                ? t("venueBook.selected")
+                                                                                : t("venueBook.select")}
+                                                                          </button>
+                                                                          <button
+                                                                              type="button"
+                                                                              onClick={() => handleViewOptionDetails(service, option)}
+                                                                              className="px-3 py-2 text-xs rounded-md bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
+                                                                          >
+                                                                            <Info className="h-3 w-3" />
+                                                                          </button>
+                                                                        </div>
+                                                                      </div>
+                                                                  )
+                                                                })}
+                                                              </div>
+                                                          ) : (
+                                                              <p className="text-sm text-muted-foreground">
+                                                                {t("venueBook.noOptionsAvailable")}
+                                                              </p>
+                                                          )}
+                                                        </div>
+                                                    ))}
+                                                  </div>
+                                                </div>
+                                            )
+                                          })
+                                        })()}
+                                      </div>
+                                  )}
+                                </div>
+                            )
+                          })
+                      ) : (
+                          <div className="text-center p-8 bg-stone-50 dark:bg-stone-900/20 rounded-lg">
+                            <p className="text-muted-foreground">{t("venueDetail.noServices")}</p>
+                          </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-bg00 rounded-xl border border-amber-100 dark:border-bg00 shadow-sm">
+                    <h2 className="text-xl font-semibold">{t("venueBook.contactDetails")}</h2>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div ref={firstNameRef} className="space-y-2">
+                        <label className="text-sm font-medium" htmlFor="first-name">
+                          {t("venueBook.firstName")} <span className="text-red-500">*</span>
+                        </label>
+                        <Input
+                            id="first-name"
+                            value={formValues.firstName}
+                            onChange={(e) => handleFormChange("firstName", e.target.value)}
+                            onBlur={(e) => handleFieldBlur("firstName", e.target.value)}
+                            className={cn(
+                                "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
+                                validationErrors.firstName && touchedFields.firstName
+                                    ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                                    : "",
+                            )}
+                            required
+                        />
+                        {validationErrors.firstName && touchedFields.firstName && (
+                            <p className="text-sm text-red-500 flex items-center">
+                              <AlertCircle className="h-4 w-4 mr-1" />
+                              {validationErrors.firstName}
+                            </p>
+                        )}
+                      </div>
+
+                      <div ref={lastNameRef} className="space-y-2">
+                        <label className="text-sm font-medium" htmlFor="last-name">
+                          {t("venueBook.lastName")} <span className="text-red-500">*</span>
+                        </label>
+                        <Input
+                            id="last-name"
+                            value={formValues.lastName}
+                            onChange={(e) => handleFormChange("lastName", e.target.value)}
+                            onBlur={(e) => handleFieldBlur("lastName", e.target.value)}
+                            className={cn(
+                                "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
+                                validationErrors.lastName && touchedFields.lastName
+                                    ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                                    : "",
+                            )}
+                            required
+                        />
+                        {validationErrors.lastName && touchedFields.lastName && (
+                            <p className="text-sm text-red-500 flex items-center">
+                              <AlertCircle className="h-4 w-4 mr-1" />
+                              {validationErrors.lastName}
+                            </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div ref={emailRef} className="space-y-2">
+                      <label className="text-sm font-medium" htmlFor="email">
+                        {t("venueBook.email")} <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                          id="email"
+                          type="email"
+                          value={formValues.email}
+                          onChange={(e) => handleFormChange("email", e.target.value)}
+                          onBlur={(e) => handleFieldBlur("email", e.target.value)}
+                          className={cn(
+                              "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
+                              validationErrors.email && touchedFields.email
+                                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                                  : "",
+                          )}
+                          required
+                      />
+                      {validationErrors.email && touchedFields.email && (
+                          <p className="text-sm text-red-500 flex items-center">
+                            <AlertCircle className="h-4 w-4 mr-1" />
+                            {validationErrors.email}
+                          </p>
+                      )}
+                    </div>
+
+                    <div ref={phoneRef} className="space-y-2">
+                      <label className="text-sm font-medium" htmlFor="phone">
+                        {t("venueBook.phone")} <span className="text-red-500">*</span>
+                      </label>
+                      <div className="flex gap-2">
+                        <select
+                            value={formValues.phonePrefix}
+                            onChange={(e) => handleFormChange("phonePrefix", e.target.value)}
+                            className={cn(
+                                "h-10 w-32 px-3 py-2 text-sm border border-input bg-background rounded-md ring-offset-background",
+                                "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                                "disabled:cursor-not-allowed disabled:opacity-50",
+                                "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
+                            )}
+                        >
+                          {phonePrefix.map((prefix) => (
+                              <option key={prefix.code} value={prefix.code}>
+                                {prefix.flag} {prefix.code}
+                              </option>
+                          ))}
+                        </select>
+                        <Input
+                            id="phone"
+                            type="tel"
+                            value={formValues.phone}
+                            onChange={(e) => handlePhoneChange(e.target.value)}
+                            onBlur={(e) => handleFieldBlur("phone", e.target.value)}
+                            className={cn(
+                                "flex-1 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
+                                validationErrors.phone && touchedFields.phone
+                                    ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                                    : "",
+                            )}
+                            placeholder="69 123 4567"
+                            required
+                        />
+                      </div>
+                      {validationErrors.phone && touchedFields.phone && (
+                          <p className="text-sm text-red-500 flex items-center">
+                            <AlertCircle className="h-4 w-4 mr-1" />
+                            {validationErrors.phone}
+                          </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-bg00 rounded-xl border border-amber-100 dark:border-bg00 shadow-sm">
+                    <h2 className="text-xl font-semibold">{t("venueBook.additionalInfo")}</h2>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium" htmlFor="special-requests">
+                        {t("venueBook.specialRequests")}
+                      </label>
+                      <Textarea
+                          id="special-requests"
+                          value={specialRequests}
+                          onChange={(e) => setSpecialRequests(e.target.value)}
+                          placeholder={t("venueBook.specialRequestsPlaceholder")}
+                          className="min-h-[100px] focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
+                      />
+                    </div>
+                  </div>
+                </form>
+
+                <div className="space-y-6">
+                  {/* Booking Summary Card */}
+                  <div className="sticky top-6 venue-card p-6 space-y-5 bg-white dark:bg-bg00 rounded-xl border border-amber-100 dark:border-bg00 shadow-sm">
+                    <h2 className="text-xl font-semibold">{t("venueBook.summary")}</h2>
+
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-4">
+                        <div className="w-20 h-20 rounded-lg overflow-hidden bg-amber-100 dark:bg-amber-900/20 flex-shrink-0">
+                          <img
+                              src={
+                                venue.media && venue.media.length > 0
+                                    ? formatImageUrl(venue.media[0].url)
+                                    : "/placeholder.svg"
+                              }
+                              alt={venue.name[language]}
+                              className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">{venue.name[language]}</h3>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {venue.address ? `${venue.address.city}, ${venue.address.country}` : ""}
+                          </p>
+                          <div className="flex items-center mt-2">
+                            <Badge className={`${getPriceTypeBadge(venue.price.type).bgColor} mr-2`}>
+                              {getPriceTypeBadge(venue.price.type).text}
+                            </Badge>
+                            <span className="font-medium">{basePrice}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3 pt-2">
+                        <div className="flex items-center text-sm">
+                          <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <span className="truncate">{startDate ? format(startDate, "PPP") : t("venueBook.date")}</span>
+                        </div>
+
+                        <div className="flex items-center text-sm">
+                          <Clock className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <span className="truncate">
+                          {startDate ? format(startDate, "p") : ""} - {endDate ? format(endDate, "p") : ""}
+                            {duration > 0 && ` (${duration} ${t("venueBook.hours")})`}
+                        </span>
+                        </div>
+
+                        <div className="flex items-center text-sm">
+                          <Users className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <span className="truncate">
+                          {guests} {t("venueBook.guests")}
+                        </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full cta-button mt-6 bg-amber-500 hover:bg-amber-600 hover:tranbg-y-[-2px] transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={handleSubmit}
+                    >
+                      {isSubmitting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {t("venueBook.processing")}
+                          </>
+                      ) : (
+                          <>
+                            {t("venueBook.continueToBook")} <ArrowRight className="ml-2 h-4 w-4" />
+                          </>
+                      )}
+                    </Button>
+
+                    <p className="text-xs text-muted-foreground text-center mt-4">{t("venueBook.cancellationPolicy")}</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        {/* Service Option Details Modal */}
-        {selectedOptionDetails && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-amber-100 dark:border-amber-800/30">
-              <div className="p-6">
-                {/* Modal Header */}
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-xl font-semibold">{selectedOptionDetails.option.name[language]}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {t("venueBook.serviceBy")} {selectedOptionDetails.service.provider.firstName}{" "}
-                      {selectedOptionDetails.service.provider.lastName}
-                    </p>
-                  </div>
-                  <button
-                    onClick={closeOptionDetails}
-                    className="p-2 hover:bg-amber-100 dark:hover:bg-amber-900/30 rounded-lg transition-colors"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-
-                {/* Option Details */}
-                <div className="space-y-6">
-                  {/* Description */}
-                  <div>
-                    <h4 className="font-medium mb-2">{t("venueBook.description")}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {selectedOptionDetails.option.description[language]}
-                    </p>
-                  </div>
-
-                  {/* Pricing */}
-                  <div>
-                    <h4 className="font-medium mb-2">{t("venueBook.pricing")}</h4>
-                    <div className="flex items-center gap-2">
-                      <Badge className={`${getPriceTypeBadge(selectedOptionDetails.option.price.type).bgColor}`}>
-                        {getPriceTypeBadge(selectedOptionDetails.option.price.type).text}
-                      </Badge>
-                      <span className="font-medium text-lg">
-                        {formatPrice(
-                          convertPrice(
-                            selectedOptionDetails.option.price.amount,
-                            (selectedOptionDetails.option.price.currency || "USD") as Currency,
-                          ),
-                          currency,
-                        )}
-                      </span>
+          {/* Service Option Details Modal */}
+          {selectedOptionDetails && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                  <div className="bg-white dark:bg-deep-brown rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-amber-100 dark:border-amber-800/30">
+                  <div className="p-6">
+                    {/* Modal Header */}
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <h3 className="text-xl font-semibold">{selectedOptionDetails.option.name[language]}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {t("venueBook.serviceBy")} {selectedOptionDetails.service.provider.firstName}{" "}
+                          {selectedOptionDetails.service.provider.lastName}
+                        </p>
+                      </div>
+                      <button
+                          onClick={closeOptionDetails}
+                          className="p-2 hover:bg-amber-100 dark:hover:bg-amber-900/30 rounded-lg transition-colors"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
                     </div>
-                    {selectedOptionDetails.option.price.type === "perPerson" && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {t("venueBook.totalForGuests", {
-                          total: formatPrice(
+
+                    {/* Option Details */}
+                    <div className="space-y-6">
+                      {/* Description */}
+                      <div>
+                        <h4 className="font-medium mb-2">{t("venueBook.description")}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedOptionDetails.option.description[language]}
+                        </p>
+                      </div>
+
+                      {/* Pricing */}
+                      <div>
+                        <h4 className="font-medium mb-2">{t("venueBook.pricing")}</h4>
+                        <div className="flex items-center gap-2">
+                          <Badge className={`${getPriceTypeBadge(selectedOptionDetails.option.price.type).bgColor}`}>
+                            {getPriceTypeBadge(selectedOptionDetails.option.price.type).text}
+                          </Badge>
+                          <span className="font-medium text-lg">
+                        {formatPrice(
                             convertPrice(
-                              selectedOptionDetails.option.price.amount * guests,
-                              (selectedOptionDetails.option.price.currency || "USD") as Currency,
+                                selectedOptionDetails.option.price.amount,
+                                (selectedOptionDetails.option.price.currency || "USD") as Currency,
                             ),
                             currency,
-                          ),
-                          guests: guests,
-                        })}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Service Information */}
-                  <div>
-                    <h4 className="font-medium mb-2">{t("venueBook.serviceInformation")}</h4>
-                    <div className="space-y-2 text-sm">
-                      <div>
-                        <span className="font-medium">{t("venueBook.serviceName")}: </span>
-                        <span>{selectedOptionDetails.service.name[language]}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">{t("venueBook.serviceType")}: </span>
-                        <span>
-                          {serviceTypeNames[selectedOptionDetails.service.type]?.[language] ||
-                            selectedOptionDetails.service.type}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="font-medium">{t("venueBook.serviceDescription")}: </span>
-                        <span className="text-muted-foreground">
-                          {selectedOptionDetails.service.description[language]}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Provider Information */}
-                  <div>
-                    <h4 className="font-medium mb-2">{t("venueBook.providerInformation")}</h4>
-                    <div className="flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage
-                          src={
-                            selectedOptionDetails.service.provider.profilePicture
-                              ? formatImageUrl(selectedOptionDetails.service.provider.profilePicture)
-                              : "/placeholder.svg?height=48&width=48"
-                          }
-                          alt={`${selectedOptionDetails.service.provider.firstName} ${selectedOptionDetails.service.provider.lastName}`}
-                        />
-                        <AvatarFallback>
-                          {selectedOptionDetails.service.provider.firstName?.charAt(0)}
-                          {selectedOptionDetails.service.provider.lastName?.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <h5 className="font-medium">
-                          {selectedOptionDetails.service.provider.firstName}{" "}
-                          {selectedOptionDetails.service.provider.lastName}
-                        </h5>
-                        <p className="text-sm text-muted-foreground">{selectedOptionDetails.service.provider.email}</p>
-                        {selectedOptionDetails.service.provider.phoneNumber && (
-                          <p className="text-sm text-muted-foreground">
-                            {selectedOptionDetails.service.provider.phoneNumber}
-                          </p>
+                        )}
+                      </span>
+                        </div>
+                        {selectedOptionDetails.option.price.type === "perPerson" && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {t("venueBook.totalForGuests", {
+                                total: formatPrice(
+                                    convertPrice(
+                                        selectedOptionDetails.option.price.amount * guests,
+                                        (selectedOptionDetails.option.price.currency || "USD") as Currency,
+                                    ),
+                                    currency,
+                                ),
+                                guests: guests,
+                              })}
+                            </p>
                         )}
                       </div>
-                      <Button variant="outline" size="sm" className="hover:border-amber-300 bg-transparent">
-                        <MessageSquare className="h-4 w-4 mr-1" />
-                        {t("venueBook.contact")}
+
+                      {/* Service Information */}
+                      <div>
+                        <h4 className="font-medium mb-2">{t("venueBook.serviceInformation")}</h4>
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="font-medium">{t("venueBook.serviceName")}: </span>
+                            <span>{selectedOptionDetails.service.name[language]}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium">{t("venueBook.serviceType")}: </span>
+                            <span>
+                          {serviceTypeNames[selectedOptionDetails.service.type]?.[language] ||
+                              selectedOptionDetails.service.type}
+                        </span>
+                          </div>
+                          <div>
+                            <span className="font-medium">{t("venueBook.serviceDescription")}: </span>
+                            <span className="text-muted-foreground">
+                          {selectedOptionDetails.service.description[language]}
+                        </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Provider Information */}
+                      <div>
+                        <h4 className="font-medium mb-2">{t("venueBook.providerInformation")}</h4>
+                        <div className="flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage
+                                src={
+                                  selectedOptionDetails.service.provider.profilePicture
+                                      ? formatImageUrl(selectedOptionDetails.service.provider.profilePicture)
+                                      : "/placeholder.svg?height=48&width=48"
+                                }
+                                alt={`${selectedOptionDetails.service.provider.firstName} ${selectedOptionDetails.service.provider.lastName}`}
+                            />
+                            <AvatarFallback>
+                              {selectedOptionDetails.service.provider.firstName?.charAt(0)}
+                              {selectedOptionDetails.service.provider.lastName?.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <h5 className="font-medium">
+                              {selectedOptionDetails.service.provider.firstName}{" "}
+                              {selectedOptionDetails.service.provider.lastName}
+                            </h5>
+                            <p className="text-sm text-muted-foreground">{selectedOptionDetails.service.provider.email}</p>
+                            {selectedOptionDetails.service.provider.phoneNumber && (
+                                <p className="text-sm text-muted-foreground">
+                                  {selectedOptionDetails.service.provider.phoneNumber}
+                                </p>
+                            )}
+                          </div>
+                          <Button variant="outline" size="sm" className="hover:border-amber-300 bg-transparent">
+                            <MessageSquare className="h-4 w-4 mr-1" />
+                            {t("venueBook.contact")}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Additional Metadata */}
+                      {selectedOptionDetails.option.metadata &&
+                          Object.keys(selectedOptionDetails.option.metadata).length > 0 && (
+                              <div>
+                                <h4 className="font-medium mb-2">{t("venueBook.additionalDetails")}</h4>
+                                <div className="space-y-1 text-sm">
+                                  {Object.entries(selectedOptionDetails.option.metadata).map(([key, value]) => (
+                                      <div key={key}>
+                                        <span className="font-medium capitalize">{key.replace(/([A-Z])/g, " $1")}: </span>
+                                        <span className="text-muted-foreground">{String(value)}</span>
+                                      </div>
+                                  ))}
+                                </div>
+                              </div>
+                          )}
+
+                      {/* Service Media */}
+                      {selectedOptionDetails.service.media && selectedOptionDetails.service.media.length > 0 && (
+                          <div>
+                            <h4 className="font-medium mb-2">{t("venueBook.serviceImages")}</h4>
+                            <div className="relative">
+                              <div
+                                  className="aspect-video rounded-lg overflow-hidden bg-amber-100 dark:bg-amber-900/20 cursor-pointer"
+                                  onClick={() => {
+                                    setSelectedImageGallery(selectedOptionDetails.service.media)
+                                    setCurrentImageIndex(0)
+                                  }}
+                              >
+                                <img
+                                    src={
+                                        formatImageUrl(selectedOptionDetails.service.media[currentImageIndex]?.url) ||
+                                        "/placeholder.svg" ||
+                                        "/placeholder.svg" ||
+                                        "/placeholder.svg" ||
+                                        "/placeholder.svg"
+                                    }
+                                    alt="Service"
+                                    className="w-full h-full object-cover transition-opacity duration-500"
+                                />
+                              </div>
+                              {selectedOptionDetails.service.media.length > 1 && (
+                                  <div className="flex justify-center mt-2 gap-1">
+                                    {selectedOptionDetails.service.media.map((_, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => setCurrentImageIndex(index)}
+                                            className={cn(
+                                                "w-2 h-2 rounded-full transition-colors",
+                                                index === currentImageIndex ? "bg-amber-500" : "bg-stone-300 dark:bg-stone-600",
+                                            )}
+                                        />
+                                    ))}
+                                  </div>
+                              )}
+                              <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full text-sm">
+                                {currentImageIndex + 1} / {selectedOptionDetails.service.media.length}
+                              </div>
+                            </div>
+                          </div>
+                      )}
+                    </div>
+
+                    {/* Modal Actions */}
+                    <div className="flex gap-3 mt-6 pt-6 border-t border-amber-100 dark:border-amber-800/30">
+                      <Button variant="outline" onClick={closeOptionDetails} className="flex-1 bg-transparent">
+                        {t("common.close")}
+                      </Button>
+                      <Button
+                          onClick={() => {
+                            const isSelected = selectedServices[selectedOptionDetails.service.id]?.includes(
+                                selectedOptionDetails.option.id,
+                            )
+                            toggleService(selectedOptionDetails.service.id, selectedOptionDetails.option.id)
+                            if (!isSelected) {
+                              closeOptionDetails()
+                            }
+                          }}
+                          className={cn(
+                              "flex-1",
+                              selectedServices[selectedOptionDetails.service.id]?.includes(selectedOptionDetails.option.id)
+                                  ? "bg-red-500 hover:bg-red-600 text-white"
+                                  : "bg-amber-500 hover:bg-amber-600 text-white",
+                          )}
+                      >
+                        {selectedServices[selectedOptionDetails.service.id]?.includes(selectedOptionDetails.option.id)
+                            ? t("venueBook.removeFromSelection")
+                            : t("venueBook.addToSelection")}
                       </Button>
                     </div>
                   </div>
+                </div>
+              </div>
+          )}
+          {/* Image Gallery Modal */}
+          {selectedImageGallery && (
+              <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
+                <div className="relative w-full h-full flex items-center justify-center p-4">
+                  {/* Close button */}
+                  <button
+                      onClick={() => setSelectedImageGallery(null)}
+                      className="absolute top-4 right-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
 
-                  {/* Additional Metadata */}
-                  {selectedOptionDetails.option.metadata &&
-                    Object.keys(selectedOptionDetails.option.metadata).length > 0 && (
-                      <div>
-                        <h4 className="font-medium mb-2">{t("venueBook.additionalDetails")}</h4>
-                        <div className="space-y-1 text-sm">
-                          {Object.entries(selectedOptionDetails.option.metadata).map(([key, value]) => (
-                            <div key={key}>
-                              <span className="font-medium capitalize">{key.replace(/([A-Z])/g, " $1")}: </span>
-                              <span className="text-muted-foreground">{String(value)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                  {/* Service Media */}
-                  {selectedOptionDetails.service.media && selectedOptionDetails.service.media.length > 0 && (
-                    <div>
-                      <h4 className="font-medium mb-2">{t("venueBook.serviceImages")}</h4>
-                      <div className="relative">
-                        <div
-                          className="aspect-video rounded-lg overflow-hidden bg-amber-100 dark:bg-amber-900/20 cursor-pointer"
-                          onClick={() => {
-                            setSelectedImageGallery(selectedOptionDetails.service.media)
-                            setCurrentImageIndex(0)
-                          }}
-                        >
-                          <img
-                            src={
-                              formatImageUrl(selectedOptionDetails.service.media[currentImageIndex]?.url) ||
-                              "/placeholder.svg" ||
-                              "/placeholder.svg" ||
-                              "/placeholder.svg" ||
-                              "/placeholder.svg"
+                  {/* Navigation buttons */}
+                  {selectedImageGallery.length > 1 && (
+                      <>
+                        <button
+                            onClick={() =>
+                                setCurrentImageIndex((prev) => (prev === 0 ? selectedImageGallery.length - 1 : prev - 1))
                             }
-                            alt="Service"
-                            className="w-full h-full object-cover transition-opacity duration-500"
-                          />
-                        </div>
-                        {selectedOptionDetails.service.media.length > 1 && (
-                          <div className="flex justify-center mt-2 gap-1">
-                            {selectedOptionDetails.service.media.map((_, index) => (
-                              <button
-                                key={index}
+                            className="absolute left-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+                        >
+                          <ChevronLeft className="h-6 w-6" />
+                        </button>
+                        <button
+                            onClick={() => setCurrentImageIndex((prev) => (prev + 1) % selectedImageGallery.length)}
+                            className="absolute right-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+                        >
+                          <ChevronRight className="h-6 w-6" />
+                        </button>
+                      </>
+                  )}
+
+                  {/* Main image */}
+                  <div className="max-w-4xl max-h-full">
+                    <img
+                        src={formatImageUrl(selectedImageGallery[currentImageIndex]?.url) || "/placeholder.svg"}
+                        alt="Service Gallery"
+                        className="max-w-full max-h-full object-contain"
+                    />
+                  </div>
+
+                  {/* Image counter */}
+                  <div className="absolute bottom-4 left-1/2 transform -tranbg-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                    {currentImageIndex + 1} / {selectedImageGallery.length}
+                  </div>
+
+                  {/* Thumbnail strip */}
+                  {selectedImageGallery.length > 1 && (
+                      <div className="absolute bottom-16 left-1/2 transform -tranbg-x-1/2 flex gap-2 max-w-md overflow-x-auto">
+                        {selectedImageGallery.map((media, index) => (
+                            <button
+                                key={media.id}
                                 onClick={() => setCurrentImageIndex(index)}
                                 className={cn(
-                                  "w-2 h-2 rounded-full transition-colors",
-                                  index === currentImageIndex ? "bg-amber-500" : "bg-stone-300 dark:bg-stone-600",
+                                    "flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors",
+                                    index === currentImageIndex ? "border-amber-500" : "border-transparent hover:border-amber-400",
                                 )}
+                            >
+                              <img
+                                  src={formatImageUrl(media.url) || "/placeholder.svg"}
+                                  alt="Thumbnail"
+                                  className="w-full h-full object-cover"
                               />
-                            ))}
-                          </div>
-                        )}
-                        <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full text-sm">
-                          {currentImageIndex + 1} / {selectedOptionDetails.service.media.length}
-                        </div>
+                            </button>
+                        ))}
                       </div>
-                    </div>
                   )}
                 </div>
-
-                {/* Modal Actions */}
-                <div className="flex gap-3 mt-6 pt-6 border-t border-amber-100 dark:border-amber-800/30">
-                  <Button variant="outline" onClick={closeOptionDetails} className="flex-1 bg-transparent">
-                    {t("common.close")}
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      const isSelected = selectedServices[selectedOptionDetails.service.id]?.includes(
-                        selectedOptionDetails.option.id,
-                      )
-                      toggleService(selectedOptionDetails.service.id, selectedOptionDetails.option.id)
-                      if (!isSelected) {
-                        closeOptionDetails()
-                      }
-                    }}
-                    className={cn(
-                      "flex-1",
-                      selectedServices[selectedOptionDetails.service.id]?.includes(selectedOptionDetails.option.id)
-                        ? "bg-red-500 hover:bg-red-600 text-white"
-                        : "bg-amber-500 hover:bg-amber-600 text-white",
-                    )}
-                  >
-                    {selectedServices[selectedOptionDetails.service.id]?.includes(selectedOptionDetails.option.id)
-                      ? t("venueBook.removeFromSelection")
-                      : t("venueBook.addToSelection")}
-                  </Button>
-                </div>
               </div>
-            </div>
-          </div>
-        )}
-        {/* Image Gallery Modal */}
-        {selectedImageGallery && (
-          <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
-            <div className="relative w-full h-full flex items-center justify-center p-4">
-              {/* Close button */}
-              <button
-                onClick={() => setSelectedImageGallery(null)}
-                className="absolute top-4 right-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
-              >
-                <X className="h-6 w-6" />
-              </button>
-
-              {/* Navigation buttons */}
-              {selectedImageGallery.length > 1 && (
-                <>
-                  <button
-                    onClick={() =>
-                      setCurrentImageIndex((prev) => (prev === 0 ? selectedImageGallery.length - 1 : prev - 1))
-                    }
-                    className="absolute left-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
-                  >
-                    <ChevronLeft className="h-6 w-6" />
-                  </button>
-                  <button
-                    onClick={() => setCurrentImageIndex((prev) => (prev + 1) % selectedImageGallery.length)}
-                    className="absolute right-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
-                  >
-                    <ChevronRight className="h-6 w-6" />
-                  </button>
-                </>
-              )}
-
-              {/* Main image */}
-              <div className="max-w-4xl max-h-full">
-                <img
-                  src={formatImageUrl(selectedImageGallery[currentImageIndex]?.url) || "/placeholder.svg"}
-                  alt="Service Gallery"
-                  className="max-w-full max-h-full object-contain"
-                />
-              </div>
-
-              {/* Image counter */}
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-                {currentImageIndex + 1} / {selectedImageGallery.length}
-              </div>
-
-              {/* Thumbnail strip */}
-              {selectedImageGallery.length > 1 && (
-                <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex gap-2 max-w-md overflow-x-auto">
-                  {selectedImageGallery.map((media, index) => (
-                    <button
-                      key={media.id}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={cn(
-                        "flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors",
-                        index === currentImageIndex ? "border-amber-500" : "border-transparent hover:border-amber-400",
-                      )}
-                    >
-                      <img
-                        src={formatImageUrl(media.url) || "/placeholder.svg"}
-                        alt="Thumbnail"
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-        {/* Confirmation Modal */}
-        {showConfirmationModal && confirmationData && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-slate-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-amber-100 dark:border-amber-800/30">
-              <div className="p-6">
-                {/* Modal Header */}
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-xl font-semibold">{t("venueBook.confirmBooking") || "Confirm Your Booking"}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {t("venueBook.reviewDetailsBeforeConfirming") ||
-                        "Please review the details below before confirming your booking"}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setShowConfirmationModal(false)
-                      setConfirmationData(null)
-                    }}
-                    className="p-2 hover:bg-amber-100 dark:hover:bg-amber-900/30 rounded-lg transition-colors"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-
-                {/* Price Breakdown */}
-                <div className="space-y-6">
-                  {/* Venue Details */}
-                  <div className="border border-amber-100 dark:border-amber-800/30 rounded-lg p-4">
-                    <h4 className="font-medium mb-3 flex items-center">
-                      <Building2 className="h-4 w-4 mr-2 text-amber-600" />
-                      {t("venueBook.venueRental") || "Venue Rental"}
-                    </h4>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="text-sm font-medium">{venue?.name[language]}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {confirmationData.breakdown.venue.type === "perPerson"
-                              ? `${formatPrice(confirmationData.breakdown.venue.originalAmount, confirmationData.breakdown.venue.originalCurrency as Currency)} ${t("venueBook.perPerson")}`
-                              : confirmationData.breakdown.venue.type === "hourly"
-                                ? `${formatPrice(confirmationData.breakdown.venue.originalAmount, confirmationData.breakdown.venue.originalCurrency as Currency)} ${t("venueBook.perHour")}`
-                                : t("business.pricing.fixed")}
-                            {confirmationData.breakdown.venue.type === "perPerson" &&
-                              ` × ${guests} ${t("venueBook.guests")}`}
-                            {confirmationData.breakdown.venue.type === "hourly" &&
-                              ` × ${confirmationData.breakdown.venue.hours} ${t("venueBook.hours")}`}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-medium">
-                            {formatPrice(confirmationData.breakdown.venue.convertedAmount, currency)}
-                          </div>
-                        </div>
+          )}
+          {/* Confirmation Modal */}
+          {showConfirmationModal && confirmationData && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white dark:bg-deep-brown rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-amber-100 dark:border-amber-800/30">
+                  <div className="p-6">
+                    {/* Modal Header */}
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <h3 className="text-xl font-semibold">{t("venueBook.confirmBooking") || "Confirm Your Booking"}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {t("venueBook.reviewDetailsBeforeConfirming") ||
+                              "Please review the details below before confirming your booking"}
+                        </p>
                       </div>
+                      <button
+                          onClick={() => {
+                            setShowConfirmationModal(false)
+                            setConfirmationData(null)
+                          }}
+                          className="p-2 hover:bg-amber-100 dark:hover:bg-amber-900/30 rounded-lg transition-colors"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
                     </div>
-                  </div>
 
-                  {/* Service Options */}
-                  {confirmationData.breakdown.services.length > 0 && (
-                    <div className="border border-amber-100 dark:border-amber-800/30 rounded-lg p-4">
-                      <h4 className="font-medium mb-3 flex items-center">
-                        <Sparkles className="h-4 w-4 mr-2 text-amber-600" />
-                        {t("venueBook.selectedServices") || "Selected Services"}
-                      </h4>
-                      <div className="space-y-3">
-                        {confirmationData.breakdown.services.map((service: any, index: number) => (
-                          <div key={index} className="flex justify-between items-start">
+                    {/* Price Breakdown */}
+                    <div className="space-y-6">
+                      {/* Venue Details */}
+                      <div className="border border-amber-100 dark:border-amber-800/30 rounded-lg p-4">
+                        <h4 className="font-medium mb-3 flex items-center">
+                          <Building2 className="h-4 w-4 mr-2 text-amber-600" />
+                          {t("venueBook.venueRental") || "Venue Rental"}
+                        </h4>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-start">
                             <div className="flex-1">
-                              <div className="text-sm font-medium">
-                                {service.serviceName[language]} - {service.optionName[language]}
-                              </div>
+                              <div className="text-sm font-medium">{venue?.name[language]}</div>
                               <div className="text-xs text-muted-foreground">
-                                {service.type === "perPerson"
-                                  ? `${formatPrice(service.originalAmount, service.originalCurrency as Currency)} ${t("venueBook.perPerson")}`
-                                  : service.type === "hourly"
-                                    ? `${formatPrice(service.originalAmount, service.originalCurrency as Currency)} ${t("venueBook.perHour")}`
-                                    : t("business.pricing.fixed")}
-                                {service.type === "perPerson" && ` × ${guests} ${t("venueBook.guests")}`}
-                                {service.type === "hourly" && ` × ${service.hours} ${t("venueBook.hours")}`}
+                                {confirmationData.breakdown.venue.type === "perPerson"
+                                    ? `${formatPrice(confirmationData.breakdown.venue.originalAmount, confirmationData.breakdown.venue.originalCurrency as Currency)} ${t("venueBook.perPerson")}`
+                                    : confirmationData.breakdown.venue.type === "hourly"
+                                        ? `${formatPrice(confirmationData.breakdown.venue.originalAmount, confirmationData.breakdown.venue.originalCurrency as Currency)} ${t("venueBook.perHour")}`
+                                        : t("business.pricing.fixed")}
+                                {confirmationData.breakdown.venue.type === "perPerson" &&
+                                    ` × ${guests} ${t("venueBook.guests")}`}
+                                {confirmationData.breakdown.venue.type === "hourly" &&
+                                    ` × ${confirmationData.breakdown.venue.hours} ${t("venueBook.hours")}`}
                               </div>
                             </div>
                             <div className="text-right">
                               <div className="text-sm font-medium">
-                                {formatPrice(service.convertedAmount, currency)}
+                                {formatPrice(confirmationData.breakdown.venue.convertedAmount, currency)}
                               </div>
                             </div>
                           </div>
-                        ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
 
-                  {/* Price Breakdown */}
-                  <div className="border border-amber-100 dark:border-amber-800/30 rounded-lg p-4 bg-amber-50 dark:bg-amber-900/20">
-                    <h4 className="font-medium mb-3 flex items-center">
-                      <DollarSign className="h-4 w-4 mr-2 text-amber-600" />
-                      {t("venueBook.priceBreakdown") || "Price Breakdown"}
-                    </h4>
-                    <div className="space-y-2">
-                      {/* Venue Total */}
-                      <div className="flex justify-between text-sm">
-                        <span>{t("venueBook.venueTotal") || "Venue Total"}</span>
-                        <div className="text-right">
+                      {/* Service Options */}
+                      {confirmationData.breakdown.services.length > 0 && (
+                          <div className="border border-amber-100 dark:border-amber-800/30 rounded-lg p-4">
+                            <h4 className="font-medium mb-3 flex items-center">
+                              <Sparkles className="h-4 w-4 mr-2 text-amber-600" />
+                              {t("venueBook.selectedServices") || "Selected Services"}
+                            </h4>
+                            <div className="space-y-3">
+                              {confirmationData.breakdown.services.map((service: any, index: number) => (
+                                  <div key={index} className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                      <div className="text-sm font-medium">
+                                        {service.serviceName[language]} - {service.optionName[language]}
+                                      </div>
+                                      <div className="text-xs text-muted-foreground">
+                                        {service.type === "perPerson"
+                                            ? `${formatPrice(service.originalAmount, service.originalCurrency as Currency)} ${t("venueBook.perPerson")}`
+                                            : service.type === "hourly"
+                                                ? `${formatPrice(service.originalAmount, service.originalCurrency as Currency)} ${t("venueBook.perHour")}`
+                                                : t("business.pricing.fixed")}
+                                        {service.type === "perPerson" && ` × ${guests} ${t("venueBook.guests")}`}
+                                        {service.type === "hourly" && ` × ${service.hours} ${t("venueBook.hours")}`}
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <div className="text-sm font-medium">
+                                        {formatPrice(service.convertedAmount, currency)}
+                                      </div>
+                                    </div>
+                                  </div>
+                              ))}
+                            </div>
+                          </div>
+                      )}
+
+                      {/* Price Breakdown */}
+                      <div className="border border-amber-100 dark:border-amber-800/30 rounded-lg p-4 bg-amber-50 dark:bg-amber-900/20">
+                        <h4 className="font-medium mb-3 flex items-center">
+                          <DollarSign className="h-4 w-4 mr-2 text-amber-600" />
+                          {t("venueBook.priceBreakdown") || "Price Breakdown"}
+                        </h4>
+                        <div className="space-y-2">
+                          {/* Venue Total */}
+                          <div className="flex justify-between text-sm">
+                            <span>{t("venueBook.venueTotal") || "Venue Total"}</span>
+                            <div className="text-right">
                           <span className="font-medium">
                             {formatPrice(confirmationData.breakdown.venue.convertedAmount, currency)}
                           </span>
-                        </div>
-                      </div>
+                            </div>
+                          </div>
 
-                      {/* Services Total */}
-                      {confirmationData.breakdown.services.length > 0 && (
-                        <div className="flex justify-between text-sm">
-                          <span>{t("venueBook.servicesTotal") || "Services Total"}</span>
-                          <div className="text-right">
+                          {/* Services Total */}
+                          {confirmationData.breakdown.services.length > 0 && (
+                              <div className="flex justify-between text-sm">
+                                <span>{t("venueBook.servicesTotal") || "Services Total"}</span>
+                                <div className="text-right">
                             <span className="font-medium">
                               {formatPrice(
-                                confirmationData.breakdown.services.reduce(
-                                  (sum: number, service: any) => sum + service.convertedAmount,
-                                  0,
-                                ),
-                                currency,
+                                  confirmationData.breakdown.services.reduce(
+                                      (sum: number, service: any) => sum + service.convertedAmount,
+                                      0,
+                                  ),
+                                  currency,
                               )}
                             </span>
-                          </div>
-                        </div>
-                      )}
+                                </div>
+                              </div>
+                          )}
 
-                      {/* Total */}
-                      <div className="border-t border-amber-200 dark:border-amber-800/50 pt-2 flex justify-between font-semibold">
-                        <span>{t("venueBook.total") || "Total"}</span>
-                        <div className="text-right">
+                          {/* Total */}
+                          <div className="border-t border-amber-200 dark:border-amber-800/50 pt-2 flex justify-between font-semibold">
+                            <span>{t("venueBook.total") || "Total"}</span>
+                            <div className="text-right">
                           <span className="text-lg">
                             {formatPrice(confirmationData.breakdown.totals.total, currency)}
                           </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Currency Summary */}
+                      {/* Currency Summary */}
 
-                  {/* Booking Summary with USD Info */}
-                  <div className="border border-orange-200 dark:border-orange-800/30 rounded-lg p-4 bg-orange-50 dark:bg-orange-900/20">
-                    <h4 className="font-medium mb-3 text-orange-800 dark:text-orange-200">
-                      💰 {t("venueBook.finalBookingTotal") || "Final Booking Total"}
-                    </h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">{t("venueBook.youWillPay") || "You will pay"}:</span>
-                        <span className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                      {/* Booking Summary with USD Info */}
+                      <div className="border border-orange-200 dark:border-orange-800/30 rounded-lg p-4 bg-orange-50 dark:bg-orange-900/20">
+                        <h4 className="font-medium mb-3 text-orange-800 dark:text-orange-200">
+                          💰 {t("venueBook.finalBookingTotal") || "Final Booking Total"}
+                        </h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">{t("venueBook.youWillPay") || "You will pay"}:</span>
+                            <span className="text-lg font-bold text-orange-600 dark:text-orange-400">
                           {formatPrice(confirmationData.breakdown.totals.total, currency)}
                         </span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
+                          </div>
+                          <div className="flex justify-between items-center text-sm">
                         <span className="text-muted-foreground">
                           {t("venueBook.equivalentInUSD") || "Equivalent in USD"}:
                         </span>
-                        <span className="font-medium text-muted-foreground">
+                            <span className="font-medium text-muted-foreground">
                           ${confirmationData.breakdown.totals.totalUSD.toFixed(2)} USD
                         </span>
+                          </div>
+                          <div className="text-xs text-muted-foreground pt-2 border-t border-orange-200 dark:border-orange-800/50">
+                            <strong>{t("venueBook.note")}:</strong> {t("venueBook.noteMessage")}{" "}
+                            <strong>${confirmationData.breakdown.totals.totalUSD.toFixed(2)} USD</strong>{" "}
+                            {t("venueBook.noteMessage2")}.
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground pt-2 border-t border-orange-200 dark:border-orange-800/50">
-                        <strong>{t("venueBook.note")}:</strong> {t("venueBook.noteMessage")}{" "}
-                        <strong>${confirmationData.breakdown.totals.totalUSD.toFixed(2)} USD</strong>{" "}
-                        {t("venueBook.noteMessage2")}.
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Booking Details Summary */}
-                  <div className="border border-amber-100 dark:border-amber-800/30 rounded-lg p-4">
-                    <h4 className="font-medium mb-3">{t("venueBook.bookingDetails") || "Booking Details"}</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-muted-foreground">{t("venueBook.eventType")}:</span>
-                        <div className="font-medium">{t(`venueBook.${eventType}`)}</div>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">{t("venueBook.guests")}:</span>
-                        <div className="font-medium">{guests} guests</div>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">{t("venueBook.startDate")}:</span>
-                        <div className="font-medium">{startDate ? format(startDate, "PPP p") : ""}</div>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">{t("venueBook.endDate")}:</span>
-                        <div className="font-medium">{endDate ? format(endDate, "PPP p") : ""}</div>
-                      </div>
-                    </div>
-                    {/* Special Requests */}
-                    {confirmationData.bookingData.specialRequests && (
-                      <div className="mt-4 pt-4 border-t border-amber-100 dark:border-amber-800/30">
-                        <div className="text-sm">
+                      {/* Booking Details Summary */}
+                      <div className="border border-amber-100 dark:border-amber-800/30 rounded-lg p-4">
+                        <h4 className="font-medium mb-3">{t("venueBook.bookingDetails") || "Booking Details"}</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-muted-foreground">{t("venueBook.eventType")}:</span>
+                            <div className="font-medium">{t(`venueBook.${eventType}`)}</div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">{t("venueBook.guests")}:</span>
+                            <div className="font-medium">{guests} guests</div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">{t("venueBook.startDate")}:</span>
+                            <div className="font-medium">{startDate ? format(startDate, "PPP p") : ""}</div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">{t("venueBook.endDate")}:</span>
+                            <div className="font-medium">{endDate ? format(endDate, "PPP p") : ""}</div>
+                          </div>
+                        </div>
+                        {/* Special Requests */}
+                        {confirmationData.bookingData.specialRequests && (
+                            <div className="mt-4 pt-4 border-t border-amber-100 dark:border-amber-800/30">
+                              <div className="text-sm">
                           <span className="font-medium text-muted-foreground">
                             {t("venueBook.specialRequests") || "Special Requests"}:
                           </span>
-                          <p className="mt-1 text-foreground">{confirmationData.bookingData.specialRequests}</p>
-                        </div>
+                                <p className="mt-1 text-foreground">{confirmationData.bookingData.specialRequests}</p>
+                              </div>
+                            </div>
+                        )}
                       </div>
-                    )}
+                    </div>
+
+                    {/* Modal Actions */}
+                    <div className="flex gap-3 mt-6 pt-6 border-t border-amber-100 dark:border-amber-800/30">
+                      <Button
+                          variant="outline"
+                          onClick={() => {
+                            setShowConfirmationModal(false)
+                            setConfirmationData(null)
+                          }}
+                          className="flex-1"
+                      >
+                        {t("common.cancel") || "Cancel"}
+                      </Button>
+                      <Button
+                          onClick={handleConfirmBooking}
+                          disabled={isSubmitting}
+                          className="flex-1 bg-amber-500 hover:bg-amber-600 text-white"
+                      >
+                        {isSubmitting ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              {t("venueBook.processing") || "Processing..."}
+                            </>
+                        ) : (
+                            <>
+                              {t("venueBook.confirmAndBook") || "Confirm & Book"}
+                              <CheckCircle className="ml-2 h-4 w-4" />
+                            </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </div>
-
-                {/* Modal Actions */}
-                <div className="flex gap-3 mt-6 pt-6 border-t border-amber-100 dark:border-amber-800/30">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowConfirmationModal(false)
-                      setConfirmationData(null)
-                    }}
-                    className="flex-1"
-                  >
-                    {t("common.cancel") || "Cancel"}
-                  </Button>
-                  <Button
-                    onClick={handleConfirmBooking}
-                    disabled={isSubmitting}
-                    className="flex-1 bg-amber-500 hover:bg-amber-600 text-white"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {t("venueBook.processing") || "Processing..."}
-                      </>
-                    ) : (
-                      <>
-                        {t("venueBook.confirmAndBook") || "Confirm & Book"}
-                        <CheckCircle className="ml-2 h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                </div>
               </div>
-            </div>
-          </div>
-        )}
-      </section>
-    </>
+          )}
+        </section>
+      </>
   )
 }
