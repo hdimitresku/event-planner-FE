@@ -17,4 +17,4 @@ export * from './serviceService';
 export * from './bookingService';
 
 // User and authentication services
-export * from './userService'; 
+export * from './userService';

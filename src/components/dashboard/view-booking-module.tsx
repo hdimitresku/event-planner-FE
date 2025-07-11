@@ -5,4 +5,4 @@ export function ViewBookingModule() {
       // ... existing code ...
     </div>
   )
-} 
+}

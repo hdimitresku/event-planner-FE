@@ -169,4 +169,4 @@ export function ViewBookingModal({ booking, isOpen, onClose }: ViewBookingModalP
       </DialogContent>
     </Dialog>
   )
-} 
+}

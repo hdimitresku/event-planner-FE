@@ -117,4 +117,4 @@ export interface BookingCreateData {
   serviceOptionIds: string[]
   specialRequests?: string
   metadata?: Record<string, any>
-} 
+}

@@ -94,4 +94,4 @@ export interface ServiceCreateData {
   options: Omit<ServiceOption, 'id'>[];
   availableForVenueTypes?: string[];
   media?: File[];       // For upload
-} 
+}

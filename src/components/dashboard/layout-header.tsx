@@ -28,4 +28,4 @@ export function LayoutHeader({ currentUser }: LayoutHeaderProps) {
       </div>
     </CardHeader>
   )
-} 
+}

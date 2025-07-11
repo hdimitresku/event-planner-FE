@@ -97,4 +97,4 @@ export function useCurrency() {
     throw new Error("useCurrency must be used within a CurrencyProvider")
   }
   return context
-} 
+}

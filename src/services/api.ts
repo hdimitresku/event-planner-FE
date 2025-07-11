@@ -735,4 +735,4 @@ const mockUser: User = {
   phoneNumber: "+1234567890",
   createdAt: "2023-01-01T00:00:00Z",
   updatedAt: "2023-01-01T00:00:00Z"
-}; 
+};

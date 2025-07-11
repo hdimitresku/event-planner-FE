@@ -703,4 +703,4 @@
 //   } catch (error: any) {
 //     return { success: false, error: error.message || 'Business registration failed' };
 //   }
-// }; 
+// };

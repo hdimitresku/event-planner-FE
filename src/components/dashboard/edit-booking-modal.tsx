@@ -163,4 +163,4 @@ export function EditBookingModal({ booking, isOpen, onClose, onSave }: EditBooki
       </DialogContent>
     </Dialog>
   )
-} 
+}

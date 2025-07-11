@@ -15,4 +15,4 @@ export * from './service';
 export * from './booking';
 
 // User-related models
-export * from './user'; 
+export * from './user';

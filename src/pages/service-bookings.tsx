@@ -7,4 +7,4 @@ const formatDate = (dateString: string) => {
   } catch (error) {
     return dateString
   }
-} 
+}
