@@ -1,8 +1,5 @@
 "use client"
-
-import { Button } from "../components/ui/button"
-import { Search, Eye, Palette, CreditCard, PartyPopper, ArrowRight, ChevronRight } from 'lucide-react'
-import { Link } from "react-router-dom"
+import { Search, Eye, Palette, CreditCard, PartyPopper } from "lucide-react"
 import { useLanguage } from "../context/language-context"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../components/ui/accordion"
 import { useState } from "react"
@@ -15,28 +12,28 @@ export default function HowItWorksPage() {
     {
       id: "item-1",
       image: "/placeholder.svg?height=600&width=800&text=FAQ+1",
-      alt: "FAQ Question 1"
+      alt: "FAQ Question 1",
     },
     {
       id: "item-2",
       image: "/placeholder.svg?height=600&width=800&text=FAQ+2",
-      alt: "FAQ Question 2"
+      alt: "FAQ Question 2",
     },
     {
       id: "item-3",
       image: "/placeholder.svg?height=600&width=800&text=FAQ+3",
-      alt: "FAQ Question 3"
+      alt: "FAQ Question 3",
     },
     {
       id: "item-4",
       image: "/placeholder.svg?height=600&width=800&text=FAQ+4",
-      alt: "FAQ Question 4"
+      alt: "FAQ Question 4",
     },
     {
       id: "item-5",
       image: "/placeholder.svg?height=600&width=800&text=FAQ+5",
-      alt: "FAQ Question 5"
-    }
+      alt: "FAQ Question 5",
+    },
   ]
 
   const handleAccordionChange = (value: string) => {
@@ -47,7 +44,7 @@ export default function HowItWorksPage() {
     <div className="relative min-h-screen bg-background">
       {/* Beautiful background styling */}
       <div className="fixed inset-0 overflow-hidden opacity-40 dark:opacity-10 pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-sky-300 to-sky-400 dark:bg-sky-700 blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-amber-300 to-orange-400 dark:bg-amber-700 blur-3xl"></div>
         <div className="absolute top-40 -left-20 w-60 h-60 rounded-full bg-gradient-to-tr from-emerald-300 to-emerald-400 dark:bg-emerald-700 blur-3xl"></div>
         <div className="absolute bottom-20 left-1/2 w-40 h-40 rounded-full bg-gradient-to-r from-violet-200 to-purple-300 dark:bg-purple-700 blur-2xl opacity-60"></div>
       </div>
@@ -57,10 +54,10 @@ export default function HowItWorksPage() {
 
       {/* Main content */}
       <div className="relative z-10">
-        <section className="relative w-full py-16 md:py-24 lg:py-32 overflow-hidden bg-gradient-to-br from-gray-100 via-sky-50 to-emerald-50 dark:from-slate-900 dark:to-slate-800">
+        <section className="relative w-full py-16 md:py-24 lg:py-32 overflow-hidden bg-gradient-to-br from-stone-100 via-amber-50 to-orange-50 dark:from-slate-900 dark:to-slate-800">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-2">
+              <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 rounded-full mb-2">
                 <span>{t("howItWorks.badge") || "Simple Process"}</span>
               </div>
               <div className="space-y-2 max-w-3xl">
@@ -81,17 +78,18 @@ export default function HowItWorksPage() {
               {/* Step 1 */}
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div className="order-2 md:order-1 space-y-6">
-                  <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-2">
+                  <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 rounded-full mb-2">
                     <span>Step 1</span>
                   </div>
                   <div className="flex items-center mb-4">
-                    <div className="bg-sky-500 dark:bg-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4 shadow-sm">
+                    <div className="bg-amber-500 dark:bg-amber-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4 shadow-sm">
                       <Search className="h-6 w-6" />
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-50">{t("howItWorks.step1.title")}</h3>
+                    <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-50">
+                      {t("howItWorks.step1.title")}
+                    </h3>
                   </div>
                   <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">{t("howItWorks.step1.description")}</p>
-                  
                 </div>
                 <div className="order-1 md:order-2 rounded-xl overflow-hidden shadow-lg border border-gray-100 dark:border-gray-700">
                   <div className="relative">
@@ -128,14 +126,16 @@ export default function HowItWorksPage() {
                   </div>
                 </div>
                 <div className="space-y-6">
-                  <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-2">
+                  <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 rounded-full mb-2">
                     <span>Step 2</span>
                   </div>
                   <div className="flex items-center mb-4">
-                    <div className="bg-sky-500 dark:bg-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4 shadow-sm">
+                    <div className="bg-amber-500 dark:bg-amber-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4 shadow-sm">
                       <Eye className="h-6 w-6" />
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-50">{t("howItWorks.step2.title")}</h3>
+                    <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-50">
+                      {t("howItWorks.step2.title")}
+                    </h3>
                   </div>
                   <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">{t("howItWorks.step2.description")}</p>
                 </div>
@@ -144,14 +144,16 @@ export default function HowItWorksPage() {
               {/* Step 3 */}
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div className="order-2 md:order-1 space-y-6">
-                  <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-2">
+                  <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 rounded-full mb-2">
                     <span>Step 3</span>
                   </div>
                   <div className="flex items-center mb-4">
-                    <div className="bg-sky-500 dark:bg-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4 shadow-sm">
+                    <div className="bg-amber-500 dark:bg-amber-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4 shadow-sm">
                       <Palette className="h-6 w-6" />
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-50">{t("howItWorks.step3.title")}</h3>
+                    <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-50">
+                      {t("howItWorks.step3.title")}
+                    </h3>
                   </div>
                   <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">{t("howItWorks.step3.description")}</p>
                 </div>
@@ -190,14 +192,16 @@ export default function HowItWorksPage() {
                   </div>
                 </div>
                 <div className="space-y-6">
-                  <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-2">
+                  <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 rounded-full mb-2">
                     <span>Step 4</span>
                   </div>
                   <div className="flex items-center mb-4">
-                    <div className="bg-sky-500 dark:bg-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4 shadow-sm">
+                    <div className="bg-amber-500 dark:bg-amber-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4 shadow-sm">
                       <CreditCard className="h-6 w-6" />
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-50">{t("howItWorks.step4.title")}</h3>
+                    <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-50">
+                      {t("howItWorks.step4.title")}
+                    </h3>
                   </div>
                   <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">{t("howItWorks.step4.description")}</p>
                 </div>
@@ -206,14 +210,16 @@ export default function HowItWorksPage() {
               {/* Step 5 */}
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div className="order-2 md:order-1 space-y-6">
-                  <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-2">
+                  <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 rounded-full mb-2">
                     <span>Step 5</span>
                   </div>
                   <div className="flex items-center mb-4">
-                    <div className="bg-sky-500 dark:bg-sky-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4 shadow-sm">
+                    <div className="bg-amber-500 dark:bg-amber-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mr-4 shadow-sm">
                       <PartyPopper className="h-6 w-6" />
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-50">{t("howItWorks.step5.title")}</h3>
+                    <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-50">
+                      {t("howItWorks.step5.title")}
+                    </h3>
                   </div>
                   <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">{t("howItWorks.step5.description")}</p>
                 </div>
@@ -237,7 +243,7 @@ export default function HowItWorksPage() {
           </div>
         </section>
 
-        <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-sky-200 to-white dark:from-slate-900 dark:to-slate-800">
+        <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-amber-200 to-white dark:from-slate-900 dark:to-slate-800">
           <div className="container px-4 md:px-6">
             <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
               <div className="relative aspect-video overflow-hidden rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
@@ -248,11 +254,7 @@ export default function HowItWorksPage() {
                       activeFaq === item.id ? "opacity-100" : "opacity-0"
                     }`}
                   >
-                    <img
-                      src={item.image}
-                      alt={item.alt}
-                      className="object-cover w-full h-full"
-                    />
+                    <img src={item.image || "/placeholder.svg"} alt={item.alt} className="object-cover w-full h-full" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                     <div className="absolute bottom-4 left-4 bg-white dark:bg-slate-800 rounded-lg px-3 py-1 text-sm font-medium text-gray-800 dark:text-gray-50 shadow-sm">
                       {t("howItWorks.faq.videoTag") || "Watch Demo"}
@@ -261,19 +263,21 @@ export default function HowItWorksPage() {
                 ))}
               </div>
               <div className="space-y-6">
-                <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/40 rounded-full mb-2">
+                <div className="inline-flex items-center px-3 py-1 text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 rounded-full mb-2">
                   <span>{t("howItWorks.faq.badge") || "Common Questions"}</span>
                 </div>
-                <h2 className="text-3xl font-bold tracking-tighter text-gray-800 dark:text-gray-50">{t("howItWorks.faq.title")}</h2>
-                <Accordion 
-                  type="single" 
-                  collapsible 
+                <h2 className="text-3xl font-bold tracking-tighter text-gray-800 dark:text-gray-50">
+                  {t("howItWorks.faq.title")}
+                </h2>
+                <Accordion
+                  type="single"
+                  collapsible
                   className="w-full"
                   value={activeFaq}
                   onValueChange={handleAccordionChange}
                 >
                   <AccordionItem value="item-1" className="border-b border-gray-200 dark:border-gray-700">
-                    <AccordionTrigger className="text-gray-800 dark:text-gray-50 font-medium hover:text-sky-500 dark:hover:text-sky-400">
+                    <AccordionTrigger className="text-gray-800 dark:text-gray-50 font-medium hover:text-amber-500 dark:hover:text-amber-400">
                       {t("howItWorks.faq.q1")}
                     </AccordionTrigger>
                     <AccordionContent className="text-gray-600 dark:text-gray-300">
@@ -281,7 +285,7 @@ export default function HowItWorksPage() {
                     </AccordionContent>
                   </AccordionItem>
                   <AccordionItem value="item-2" className="border-b border-gray-200 dark:border-gray-700">
-                    <AccordionTrigger className="text-gray-800 dark:text-gray-50 font-medium hover:text-sky-500 dark:hover:text-sky-400">
+                    <AccordionTrigger className="text-gray-800 dark:text-gray-50 font-medium hover:text-amber-500 dark:hover:text-amber-400">
                       {t("howItWorks.faq.q2")}
                     </AccordionTrigger>
                     <AccordionContent className="text-gray-600 dark:text-gray-300">
@@ -289,7 +293,7 @@ export default function HowItWorksPage() {
                     </AccordionContent>
                   </AccordionItem>
                   <AccordionItem value="item-3" className="border-b border-gray-200 dark:border-gray-700">
-                    <AccordionTrigger className="text-gray-800 dark:text-gray-50 font-medium hover:text-sky-500 dark:hover:text-sky-400">
+                    <AccordionTrigger className="text-gray-800 dark:text-gray-50 font-medium hover:text-amber-500 dark:hover:text-amber-400">
                       {t("howItWorks.faq.q3")}
                     </AccordionTrigger>
                     <AccordionContent className="text-gray-600 dark:text-gray-300">
@@ -297,7 +301,7 @@ export default function HowItWorksPage() {
                     </AccordionContent>
                   </AccordionItem>
                   <AccordionItem value="item-4" className="border-b border-gray-200 dark:border-gray-700">
-                    <AccordionTrigger className="text-gray-800 dark:text-gray-50 font-medium hover:text-sky-500 dark:hover:text-sky-400">
+                    <AccordionTrigger className="text-gray-800 dark:text-gray-50 font-medium hover:text-amber-500 dark:hover:text-amber-400">
                       {t("howItWorks.faq.q4")}
                     </AccordionTrigger>
                     <AccordionContent className="text-gray-600 dark:text-gray-300">
@@ -305,7 +309,7 @@ export default function HowItWorksPage() {
                     </AccordionContent>
                   </AccordionItem>
                   <AccordionItem value="item-5" className="border-b border-gray-200 dark:border-gray-700">
-                    <AccordionTrigger className="text-gray-800 dark:text-gray-50 font-medium hover:text-sky-500 dark:hover:text-sky-400">
+                    <AccordionTrigger className="text-gray-800 dark:text-gray-50 font-medium hover:text-amber-500 dark:hover:text-amber-400">
                       {t("howItWorks.faq.q5")}
                     </AccordionTrigger>
                     <AccordionContent className="text-gray-600 dark:text-gray-300">
@@ -318,7 +322,7 @@ export default function HowItWorksPage() {
           </div>
         </section>
 
-        <section className="w-full py-16 md:py-24 lg:py-32 bg-sky-200 dark:bg-slate-700/30">
+        <section className="w-full py-16 md:py-24 lg:py-32 bg-amber-200 dark:bg-slate-700/30">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2 max-w-3xl">
@@ -326,7 +330,8 @@ export default function HowItWorksPage() {
                   {t("howItWorks.cta.title")}
                 </h2>
                 <p className="max-w-[900px] text-gray-800 dark:text-gray-50 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  {t("howItWorks.cta.description") || "Ready to find the perfect venue for your next event? Start browsing now."}
+                  {t("howItWorks.cta.description") ||
+                    "Ready to find the perfect venue for your next event? Start browsing now."}
                 </p>
               </div>
             </div>
