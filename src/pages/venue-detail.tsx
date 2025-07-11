@@ -147,21 +147,23 @@ export default function VenueDetailPage() {
 
     return venue.metadata.blockedDates.map((date) => {
       // Handle both string and ISO date formats
-      const startDate = typeof date.startDate === "string"
-        ? date.startDate.includes("T")
-          ? parseISO(date.startDate)
-          : new Date(date.startDate)
-        : date.startDate
+      const startDate =
+        typeof date.startDate === "string"
+          ? date.startDate.includes("T")
+            ? parseISO(date.startDate)
+            : new Date(date.startDate)
+          : date.startDate
 
-      const endDate = typeof date.endDate === "string"
-        ? date.endDate.includes("T")
-          ? parseISO(date.endDate)
-          : new Date(date.endDate)
-        : date.endDate
+      const endDate =
+        typeof date.endDate === "string"
+          ? date.endDate.includes("T")
+            ? parseISO(date.endDate)
+            : new Date(date.endDate)
+          : date.endDate
 
       return {
         start: startDate,
-        end: endDate || startDate // If no end date, use start date as end date
+        end: endDate || startDate, // If no end date, use start date as end date
       }
     })
   }
@@ -170,7 +172,7 @@ export default function VenueDetailPage() {
   const isDateAvailable = (date: Date) => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    
+
     if (date < today) return false
 
     // Check if the date falls within any blocked range
@@ -194,25 +196,29 @@ export default function VenueDetailPage() {
     today.setHours(0, 0, 0, 0)
 
     // If today is not blocked, return today
-    if (!blockedDates.some(({ start, end }) => {
-      const startDate = new Date(start)
-      const endDate = new Date(end)
-      startDate.setHours(0, 0, 0, 0)
-      endDate.setHours(23, 59, 59, 999)
-      return today >= startDate && today <= endDate
-    })) {
+    if (
+      !blockedDates.some(({ start, end }) => {
+        const startDate = new Date(start)
+        const endDate = new Date(end)
+        startDate.setHours(0, 0, 0, 0)
+        endDate.setHours(23, 59, 59, 999)
+        return today >= startDate && today <= endDate
+      })
+    ) {
       return today
     }
 
     // Find the first available date after today
     let currentDate = addDays(today, 1)
-    while (blockedDates.some(({ start, end }) => {
-      const startDate = new Date(start)
-      const endDate = new Date(end)
-      startDate.setHours(0, 0, 0, 0)
-      endDate.setHours(23, 59, 59, 999)
-      return currentDate >= startDate && currentDate <= endDate
-    })) {
+    while (
+      blockedDates.some(({ start, end }) => {
+        const startDate = new Date(start)
+        const endDate = new Date(end)
+        startDate.setHours(0, 0, 0, 0)
+        endDate.setHours(23, 59, 59, 999)
+        return currentDate >= startDate && currentDate <= endDate
+      })
+    ) {
       currentDate = addDays(currentDate, 1)
     }
     return currentDate
@@ -499,7 +505,6 @@ export default function VenueDetailPage() {
     const apiUrl = import.meta.env.VITE_API_IMAGE_URL || process.env.REACT_APP_API_IMAGE_URL || ""
     return `${apiUrl}/${url.replace(/\\/g, "/")}`
   }
-
 
   // Get price display based on price type and language
   const getPriceDisplay = (venue: Venue) => {
@@ -899,10 +904,7 @@ export default function VenueDetailPage() {
                       ) : (
                         <div className="services-container max-h-[400px] overflow-y-auto pr-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                           {availableServiceTypes.map((serviceType) => (
-                            <div
-                              key={serviceType.type}
-                              className="space-y-2 bg-muted/50 p-4 rounded-lg"
-                            >
+                            <div key={serviceType.type} className="space-y-2 bg-muted/50 p-4 rounded-lg">
                               <div className="flex items-center">
                                 {getServiceTypeIcon(serviceType.icon)}
                                 <h3 className="font-medium">
@@ -939,4 +941,17 @@ export default function VenueDetailPage() {
                           <Button variant="outline" size="sm" className="mt-2 bg-transparent">
                             <MessageSquare className="h-4 w-4 mr-2" />
                             {t("venueDetail.contactHost")}
-                          \
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
