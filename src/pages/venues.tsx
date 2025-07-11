@@ -600,8 +600,8 @@ export default function VenuesPage() {
     <div className="relative min-h-screen bg-background">
       {/* Beautiful background styling */}
       <div className="fixed inset-0 overflow-hidden opacity-40 dark:opacity-10 pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-sky-300 to-sky-400 dark:bg-sky-700 blur-3xl"></div>
-        <div className="absolute top-40 -left-20 w-60 h-60 rounded-full bg-gradient-to-tr from-emerald-300 to-emerald-400 dark:bg-emerald-700 blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-amber-300 to-amber-400 dark:bg-amber-900 blur-3xl"></div>
+        <div className="absolute top-40 -left-20 w-60 h-60 rounded-full bg-gradient-to-tr from-primary to-secondary dark:bg-amber-900 blur-3xl"></div>
         <div className="absolute bottom-20 left-1/2 w-40 h-40 rounded-full bg-gradient-to-r from-violet-200 to-purple-300 dark:bg-purple-700 blur-2xl opacity-60"></div>
       </div>
 
