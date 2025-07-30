@@ -748,6 +748,9 @@ export default function ServiceBookingsPage() {
   const bookingsByService = services.map((service) => {
     const serviceBookings = bookings.filter((booking) => booking.serviceId === service.id)
     const pendingCount = serviceBookings.filter((b) => b.status === "pending").length
+    const completedCount = serviceBookings.filter((b) => b.status === "completed").length
+    const cancelledCount = serviceBookings.filter((b) => b.status === "cancelled").length
+    const cancelledServiceBookings = serviceBookings.filter((b) => getServiceStatus(b) === "cancelled" || getServiceStatus(b) === "rejected").length
     const confirmedCount = serviceBookings.filter((b) => b.status === "confirmed").length
     const totalCount = serviceBookings.length
 
@@ -756,6 +759,9 @@ export default function ServiceBookingsPage() {
       pendingCount,
       confirmedCount,
       totalCount,
+      completedCount,
+      cancelledCount,
+      cancelledServiceBookings,
     }
   })
 
@@ -1279,7 +1285,7 @@ export default function ServiceBookingsPage() {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {bookingsByService.map(({ service, pendingCount, confirmedCount, totalCount }) => (
+            {bookingsByService.map(({ service, pendingCount, confirmedCount, totalCount, completedCount, cancelledCount, cancelledServiceBookings }) => (
               <div key={service.id} className="bg-background border rounded-lg p-4 shadow-sm">
                 <div className="flex items-center gap-3 mb-2">
                   {getServiceIcon(service.type, service.icon)}
@@ -1291,15 +1297,26 @@ export default function ServiceBookingsPage() {
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div>
                     <div className="text-lg font-semibold text-primary">{totalCount}</div>
-                    <div className="text-xs text-muted-foreground">Total</div>
+                    <div className="text-xs text-muted-foreground">{t("total.bookings")}</div>
                   </div>
                   <div>
                     <div className="text-lg font-semibold text-warning">{pendingCount}</div>
-                    <div className="text-xs text-muted-foreground">Pending</div>
+                    <div className="text-xs text-muted-foreground">{t("pending.bookings")}</div>
                   </div>
                   <div>
                     <div className="text-lg font-semibold text-success">{confirmedCount}</div>
-                    <div className="text-xs text-muted-foreground">Confirmed</div>
+                    <div className="text-xs text-muted-foreground">{t("confirmed.bookings")}</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-semibold text-blue-500">{completedCount}</div>
+                    <div className="text-xs text-muted-foreground">{t("completed.bookings")}</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-semibold text-rose-600">{cancelledCount}</div>
+                    <div className="text-xs text-muted-foreground">{t("cancelled.bookings")}</div>
+                  </div>               <div>
+                    <div className="text-lg font-semibold text-rose-600">{cancelledServiceBookings}</div>
+                    <div className="text-xs text-muted-foreground">{t("cancelled.bookings.services")}</div>
                   </div>
                 </div>
               </div>
@@ -1314,8 +1331,8 @@ export default function ServiceBookingsPage() {
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               {confirmAction?.type === "approve"
-                ? t("business.serviceBookings.confirmApprove") || "Confirm Service Approval"
-                : t("business.serviceBookings.confirmDecline") || "Confirm Service Decline"}
+                  ? t("business.serviceBookings.confirmApprove") || "Confirm Service Approval"
+                  : t("business.serviceBookings.confirmDecline") || "Confirm Service Decline"}
             </DialogTitle>
             <DialogDescription>
               {confirmAction?.type === "approve"

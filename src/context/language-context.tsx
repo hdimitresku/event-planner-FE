@@ -667,6 +667,13 @@ const translations: Translations = {
 
     "business.bookings.startDate": "Start Date",
     "business.bookings.endDate": "End Date",
+    "venueBook.bookingCreated": "Booking Created",
+    "total.bookings": "Total",
+    "pending.bookings": "Pending",
+    "confirmed.bookings": "Confirmed",
+    "completed.bookings": "Completed",
+    "cancelled.bookings": "Cancelled",
+    "cancelled.bookings.services": "Cancelled Service Bookings",
 
     "business.bookings.advancedFilters": "Advanced Filters",
     "business.bookings.advancedFiltersDescription": "Show additional filters for bookings.",
@@ -2127,12 +2134,15 @@ const translations: Translations = {
     "business.bookings.noCompletedBookings": "Nuk ka rezervime të përfunduara",
     "business.bookings.noUpcomingBookings": "Nuk ka rezervime të ardhshme",
     "business.bookings.noCanceledBookings": "Nuk ka rezervime të anuluara",
-
     "business.bookings.bookingId": "ID e rezervimit",
-
-
+    "venueBook.bookingCreated": "Rezervimi u krijua me sukses",
     "business.bookings.specialRequests": "Kërkesa të veçanta",
-
+    "total.bookings": "Totali",
+    "pending.bookings": "Në pritje",
+    "confirmed.bookings": "Konfirmuara",
+    "completed.bookings": "Përfunduara",
+    "cancelled.bookings": "Anuluara",
+    "cancelled.bookings.services": "Sherbimet e anuluara",
     "business.bookings.view": "Shiko",
     "business.bookings.edit": "Ndrysho",
     "business.venueBookings.totalPrice": "Çmimi total i ambientit",
@@ -2191,7 +2201,7 @@ const translations: Translations = {
     "business.services.noInactiveServices": "Asnjë shërbim joaktiv",
     "business.services.allServicesActive": "Të gjitha shërbimet janë aktive",
     "business.serviceNew.createService": "Krijo Shërbim",
-    "venueBook.selected": "E Zgjedhur",
+    "venueBook.selected": "Zgjedhur",
     "venueBook.venueDetails": "Detajet e Ambientit",
     "venueBook.backToVenue": "Kthehu te Ambienti",
     "dashboard.settings.uploadPhoto": "Ngarko Fotografi",

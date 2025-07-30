@@ -1640,16 +1640,16 @@ export default function VenueBookPage() {
                                                         </p>
                                                       </div>
                                                     </div>
-                                                    <div className="flex items-center">
-                                                      <Button
-                                                          variant="outline"
-                                                          size="sm"
-                                                          className="text-xs hover:border-amber-300 bg-transparent"
-                                                      >
-                                                        <MessageSquare className="h-3 w-3 mr-1" />
-                                                        {t("venueBook.contactProvider")}
-                                                      </Button>
-                                                    </div>
+                                                    {/*<div className="flex items-center">*/}
+                                                    {/*  <Button*/}
+                                                    {/*      variant="outline"*/}
+                                                    {/*      size="sm"*/}
+                                                    {/*      className="text-xs hover:border-amber-300 bg-transparent"*/}
+                                                    {/*  >*/}
+                                                    {/*    <MessageSquare className="h-3 w-3 mr-1" />*/}
+                                                    {/*    {t("venueBook.contactProvider")}*/}
+                                                    {/*  </Button>*/}
+                                                    {/*</div>*/}
                                                   </div>
 
                                                   {/* All Services from this Provider */}
@@ -2453,11 +2453,11 @@ export default function VenueBookPage() {
                             <div className="font-medium">{guests} guests</div>
                           </div>
                           <div>
-                            <span className="text-muted-foreground">{t("venueBook.startDate")}:</span>
+                            <span className="text-muted-foreground">{t("business.bookings.startDate")}:</span>
                             <div className="font-medium">{startDate ? format(startDate, "PPP p") : ""}</div>
                           </div>
                           <div>
-                            <span className="text-muted-foreground">{t("venueBook.endDate")}:</span>
+                            <span className="text-muted-foreground">{t("business.bookings.endDate")}:</span>
                             <div className="font-medium">{endDate ? format(endDate, "PPP p") : ""}</div>
                           </div>
                         </div>

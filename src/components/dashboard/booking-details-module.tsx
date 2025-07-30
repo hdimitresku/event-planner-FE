@@ -239,10 +239,9 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
   const calculateTotalPrice = () => {
     const venuePrice = calculateVenuePrice()
     const serviceOptionsTotal = calculateServiceOptionsTotal()
-    const serviceFee = Number.parseFloat(booking.serviceFee?.toString() || "0")
     const discount = Number.parseFloat(booking.discount?.toString() || "0")
 
-    return venuePrice + serviceOptionsTotal + serviceFee - discount
+    return venuePrice + serviceOptionsTotal - discount
   }
 
   const getStatusBadge = (status: BookingStatus) => {
@@ -668,15 +667,6 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                   <div className="flex items-center justify-between">
                     <span className="text-sm">{t("dashboard.serviceOptions") || "Service Options"}</span>
                     <span className="font-medium">{formatPrice(serviceOptionsTotal, venue?.price?.currency || "USD")}</span>
-                  </div>
-                )}
-
-                {booking.serviceFee && Number.parseFloat(booking.serviceFee.toString()) > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">{t("dashboard.serviceFee") || "Service Fee"}</span>
-                    <span className="font-medium">
-                      {formatPrice(Number.parseFloat(booking.serviceFee.toString()), venue?.price?.currency || "USD")}
-                    </span>
                   </div>
                 )}
 

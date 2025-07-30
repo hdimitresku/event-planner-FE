@@ -1076,6 +1076,8 @@ export default function BusinessBookingsPage() {
                   const venueBookings = venue.bookings || []
                   const pendingCount = venueBookings.filter((b: any) => b.status === "pending").length
                   const confirmedCount = venueBookings.filter((b: any) => b.status === "confirmed").length
+                  const completedCount = venueBookings.filter((b: any) => b.status === "completed").length
+                    const cancelledCount = venueBookings.filter((b: any) => b.status === "cancelled").length
                   const totalCount = venueBookings.length
 
                   return (
@@ -1087,16 +1089,25 @@ export default function BusinessBookingsPage() {
                         <div className="grid grid-cols-3 gap-2 text-center">
                           <div>
                             <div className="text-lg font-semibold text-primary">{totalCount}</div>
-                            <div className="text-xs text-muted-foreground">Total</div>
+                            <div className="text-xs text-muted-foreground">{t("total.bookings")}</div>
                           </div>
                           <div>
                             <div className="text-lg font-semibold text-warning">{pendingCount}</div>
-                            <div className="text-xs text-muted-foreground">Pending</div>
+                            <div className="text-xs text-muted-foreground">{t("pending.bookings")}</div>
                           </div>
                           <div>
                             <div className="text-lg font-semibold text-success">{confirmedCount}</div>
-                            <div className="text-xs text-muted-foreground">Confirmed</div>
+                            <div className="text-xs text-muted-foreground">{t("confirmed.bookings")}</div>
                           </div>
+                          <div>
+                            <div className="text-lg font-semibold text-blue-500">{completedCount}</div>
+                            <div className="text-xs text-muted-foreground">{t("completed.bookings")}</div>
+                          </div>
+                          <div>
+                            <div className="text-lg font-semibold text-rose-600">{cancelledCount}</div>
+                            <div className="text-xs text-muted-foreground">{t("cancelled.bookings")}</div>
+                          </div>
+
                         </div>
                       </div>
                   )

@@ -305,7 +305,6 @@ export default function Dashboard() {
               <div className="flex items-center text-xs sm:text-sm">
                 <CreditCard className="mr-2 h-4 w-4" />
                 <span className="mr-2 font-medium">{formatPrice(Number.parseFloat(booking.totalAmount), "USD")}</span>
-                <span className="text-xs text-muted-foreground">(Service Fee: {formatPrice(Number.parseFloat(booking.serviceFee), "USD")})</span>
               </div>
             </div>
             <div className="mt-4 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 justify-between">
