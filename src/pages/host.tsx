@@ -1,4 +1,5 @@
 "use client"
+
 import { useLanguage } from "../context/language-context"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Button } from "../components/ui/button"
@@ -11,10 +12,10 @@ export default function HostPage() {
   const { language } = useLanguage()
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="py-16 md:py-24 bg-gradient-to-b from-primary/10 to-background">
-        <div className="container max-w-6xl mx-auto px-4">
+    <div className="min-h-screen bg-background py-16">
+      <div className="container max-w-6xl mx-auto px-4">
+        <div className="space-y-16">
+          {/* Hero Section */}
           <div className="text-center space-y-6">
             <h1 className="text-3xl md:text-5xl font-bold text-foreground">
               {language === "sq" ? "Bëhu Partner me RezervoAmbientin" : "Become a Partner with RezervoAmbientin"}
@@ -25,140 +26,139 @@ export default function HostPage() {
                 : "Do you have an event venue? Join the RezervoAmbientin platform and showcase your venue to thousands of visitors every month."}
             </p>
           </div>
-        </div>
-      </section>
 
-      {/* Benefits Section */}
-      <section className="py-16">
-        <div className="container max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-              {language === "sq" ? "Përfitimet e Partneritetit" : "Partnership Benefits"}
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <Users className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">
-                  {language === "sq" ? "Mijëra Vizitorë" : "Thousands of Visitors"}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {language === "sq"
-                    ? "Ekspozimi ndaj mijëra përdoruesve çdo muaj"
-                    : "Exposure to thousands of users every month"}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <Calendar className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">{language === "sq" ? "Menaxhim i Lehtë" : "Easy Management"}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {language === "sq" ? "Menaxho rezervimet online pa stres" : "Manage bookings online without stress"}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <TrendingUp className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">{language === "sq" ? "Rritje të Ardhurash" : "Revenue Growth"}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {language === "sq" ? "Rrit të ardhurat pa ndërmjetës" : "Increase revenue without intermediaries"}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <Star className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">{language === "sq" ? "Kontrolli i Plotë" : "Full Control"}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {language === "sq"
-                    ? "Ti vendos çmimet, kushtet dhe oraret"
-                    : "You set prices, conditions, and schedules"}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="py-16 bg-muted/30">
-        <div className="container max-w-4xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-              {language === "sq" ? "Si Funksionon" : "How It Works"}
-            </h2>
-          </div>
-
-          <div className="space-y-8">
-            <div className="flex items-start gap-4">
-              <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold flex-shrink-0">
-                1
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-2">
-                  {language === "sq" ? "Regjistrohuni Falas" : "Register for Free"}
-                </h3>
-                <p className="text-muted-foreground">
-                  {language === "sq"
-                    ? "Plotësoni formularin e regjistrimit dhe na dërgoni informacionin për ambientin tuaj."
-                    : "Fill out the registration form and send us information about your venue."}
-                </p>
-              </div>
+          {/* Benefits Section */}
+          <div className="space-y-12">
+            <div className="text-center">
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+                {language === "sq" ? "Përfitimet e Partneritetit" : "Partnership Benefits"}
+              </h2>
             </div>
 
-            <div className="flex items-start gap-4">
-              <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold flex-shrink-0">
-                2
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-2">
-                  {language === "sq" ? "Verifikimi dhe Aktivizimi" : "Verification and Activation"}
-                </h3>
-                <p className="text-muted-foreground">
-                  {language === "sq"
-                    ? "Ekipi ynë do të verifikojë informacionin dhe do të aktivizojë profilin tuaj."
-                    : "Our team will verify the information and activate your profile."}
-                </p>
-              </div>
-            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <Users className="h-8 w-8 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground mb-2">
+                    {language === "sq" ? "Mijëra Vizitorë" : "Thousands of Visitors"}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {language === "sq"
+                      ? "Ekspozimi ndaj mijëra përdoruesve çdo muaj"
+                      : "Exposure to thousands of users every month"}
+                  </p>
+                </CardContent>
+              </Card>
 
-            <div className="flex items-start gap-4">
-              <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold flex-shrink-0">
-                3
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-2">
-                  {language === "sq" ? "Filloni të Merrni Rezervime" : "Start Receiving Bookings"}
-                </h3>
-                <p className="text-muted-foreground">
-                  {language === "sq"
-                    ? "Ambienti juaj do të jetë i dukshëm për mijëra përdorues dhe do të filloni të merrni rezervime."
-                    : "Your venue will be visible to thousands of users and you will start receiving bookings."}
-                </p>
-              </div>
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <Calendar className="h-8 w-8 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground mb-2">
+                    {language === "sq" ? "Menaxhim i Lehtë" : "Easy Management"}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {language === "sq" ? "Menaxho rezervimet online pa stres" : "Manage bookings online without stress"}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <TrendingUp className="h-8 w-8 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground mb-2">
+                    {language === "sq" ? "Rritje të Ardhurash" : "Revenue Growth"}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {language === "sq" ? "Rrit të ardhurat pa ndërmjetës" : "Increase revenue without intermediaries"}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <Star className="h-8 w-8 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground mb-2">
+                    {language === "sq" ? "Kontrolli i Plotë" : "Full Control"}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {language === "sq"
+                      ? "Ti vendos çmimet, kushtet dhe oraret"
+                      : "You set prices, conditions, and schedules"}
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Registration Form */}
-      <section className="py-16">
-        <div className="container max-w-2xl mx-auto px-4">
+          {/* How It Works */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl md:text-3xl text-center">
+                {language === "sq" ? "Si Funksionon" : "How It Works"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-8">
+                <div className="flex items-start gap-4">
+                  <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold flex-shrink-0">
+                    1
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg text-foreground mb-2">
+                      {language === "sq" ? "Regjistrohuni Falas" : "Register for Free"}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {language === "sq"
+                        ? "Plotësoni formularin e regjistrimit dhe na dërgoni informacionin për ambientin tuaj."
+                        : "Fill out the registration form and send us information about your venue."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold flex-shrink-0">
+                    2
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg text-foreground mb-2">
+                      {language === "sq" ? "Verifikimi dhe Aktivizimi" : "Verification and Activation"}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {language === "sq"
+                        ? "Ekipi ynë do të verifikojë informacionin dhe do të aktivizojë profilin tuaj."
+                        : "Our team will verify the information and activate your profile."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold flex-shrink-0">
+                    3
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg text-foreground mb-2">
+                      {language === "sq" ? "Filloni të Merrni Rezervime" : "Start Receiving Bookings"}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {language === "sq"
+                        ? "Ambienti juaj do të jetë i dukshëm për mijëra përdorues dhe do të filloni të merrni rezervime."
+                        : "Your venue will be visible to thousands of users and you will start receiving bookings."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Registration Form */}
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl text-center">
@@ -166,47 +166,59 @@ export default function HostPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <form className="space-y-6">
+              <form className="space-y-6 max-w-2xl mx-auto">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="firstName">{language === "sq" ? "Emri" : "First Name"}</Label>
+                    <Label htmlFor="firstName" className="text-foreground">
+                      {language === "sq" ? "Emri" : "First Name"}
+                    </Label>
                     <Input id="firstName" placeholder={language === "sq" ? "Emri juaj" : "Your first name"} />
                   </div>
                   <div>
-                    <Label htmlFor="lastName">{language === "sq" ? "Mbiemri" : "Last Name"}</Label>
+                    <Label htmlFor="lastName" className="text-foreground">
+                      {language === "sq" ? "Mbiemri" : "Last Name"}
+                    </Label>
                     <Input id="lastName" placeholder={language === "sq" ? "Mbiemri juaj" : "Your last name"} />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="text-foreground">
+                    Email
+                  </Label>
                   <Input id="email" type="email" placeholder="info@ambienti.com" />
                 </div>
 
                 <div>
-                  <Label htmlFor="phone">{language === "sq" ? "Telefoni" : "Phone"}</Label>
+                  <Label htmlFor="phone" className="text-foreground">
+                    {language === "sq" ? "Telefoni" : "Phone"}
+                  </Label>
                   <Input id="phone" placeholder="+355 69 123 4567" />
                 </div>
 
                 <div>
-                  <Label htmlFor="venueName">{language === "sq" ? "Emri i Ambientit" : "Venue Name"}</Label>
+                  <Label htmlFor="venueName" className="text-foreground">
+                    {language === "sq" ? "Emri i Ambientit" : "Venue Name"}
+                  </Label>
                   <Input id="venueName" placeholder={language === "sq" ? "Emri i ambientit tuaj" : "Your venue name"} />
                 </div>
 
                 <div>
-                  <Label htmlFor="venueAddress">{language === "sq" ? "Adresa e Ambientit" : "Venue Address"}</Label>
+                  <Label htmlFor="venueAddress" className="text-foreground">
+                    {language === "sq" ? "Adresa e Ambientit" : "Venue Address"}
+                  </Label>
                   <Input id="venueAddress" placeholder={language === "sq" ? "Adresa e plotë" : "Full address"} />
                 </div>
 
                 <div>
-                  <Label htmlFor="capacity">
+                  <Label htmlFor="capacity" className="text-foreground">
                     {language === "sq" ? "Kapaciteti (numri i personave)" : "Capacity (number of people)"}
                   </Label>
                   <Input id="capacity" type="number" placeholder="100" />
                 </div>
 
                 <div>
-                  <Label htmlFor="description">
+                  <Label htmlFor="description" className="text-foreground">
                     {language === "sq" ? "Përshkrimi i Ambientit" : "Venue Description"}
                   </Label>
                   <Textarea
@@ -224,7 +236,7 @@ export default function HostPage() {
                   <div className="flex items-start gap-3">
                     <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
                     <div className="text-sm">
-                      <p className="font-medium mb-1">
+                      <p className="font-medium text-foreground mb-1">
                         {language === "sq" ? "Regjistrimi është falas!" : "Registration is free!"}
                       </p>
                       <p className="text-muted-foreground">
@@ -243,7 +255,7 @@ export default function HostPage() {
             </CardContent>
           </Card>
         </div>
-      </section>
+      </div>
     </div>
   )
 }

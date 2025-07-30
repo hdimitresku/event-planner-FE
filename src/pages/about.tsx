@@ -1,4 +1,5 @@
 "use client"
+
 import { useLanguage } from "../context/language-context"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Button } from "../components/ui/button"
@@ -9,31 +10,27 @@ export default function AboutPage() {
   const { language } = useLanguage()
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="py-16 md:py-24 bg-gradient-to-b from-background to-muted/30">
-        <div className="container max-w-4xl mx-auto px-4 text-center">
-          <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
-            {language === "sq" ? "Rreth Nesh" : "About Us"}
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-            {language === "sq"
-              ? "RezervoAmbientin është platforma e parë në Shqipëri për rezervimin online të ambienteve për evente."
-              : "RezervoAmbientin is the first platform in Albania for online venue booking for events."}
-          </p>
-        </div>
-      </section>
+    <div className="min-h-screen bg-background py-16">
+      <div className="container max-w-4xl mx-auto px-4">
+        <div className="space-y-8">
+          <div className="text-center space-y-4">
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+              {language === "sq" ? "Rreth Nesh" : "About Us"}
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              {language === "sq"
+                ? "RezervoAmbientin është platforma e parë në Shqipëri për rezervimin online të ambienteve për evente."
+                : "RezervoAmbientin is the first platform in Albania for online venue booking for events."}
+            </p>
+          </div>
 
-      {/* Main Content */}
-      <section className="py-16">
-        <div className="container max-w-4xl mx-auto px-4 space-y-12">
           {/* Mission */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">{language === "sq" ? "Misioni Ynë" : "Our Mission"}</CardTitle>
+              <CardTitle>{language === "sq" ? "Misioni Ynë" : "Our Mission"}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground text-lg leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed">
                 {language === "sq"
                   ? "Ne ndihmojmë përdoruesit të gjejnë hapësirën ideale për çdo rast – nga ditëlindjet dhe dasmat, deri te takimet biznesi – me rezervim të shpejtë, të sigurt dhe pa ndërmjetës."
                   : "We help users find the ideal space for every occasion – from birthdays and weddings to business meetings – with fast, secure booking without intermediaries."}
@@ -44,7 +41,7 @@ export default function AboutPage() {
           {/* How It Works */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">{language === "sq" ? "Si Funksionon" : "How It Works"}</CardTitle>
+              <CardTitle>{language === "sq" ? "Si Funksionon" : "How It Works"}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -101,7 +98,7 @@ export default function AboutPage() {
           {/* Contact Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">{language === "sq" ? "Na Kontaktoni" : "Contact Us"}</CardTitle>
+              <CardTitle>{language === "sq" ? "Na Kontaktoni" : "Contact Us"}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 gap-6">
@@ -109,14 +106,14 @@ export default function AboutPage() {
                   <div className="flex items-center gap-3">
                     <Mail className="h-5 w-5 text-primary" />
                     <div>
-                      <p className="font-medium">Email</p>
+                      <p className="font-medium text-foreground">Email</p>
                       <p className="text-muted-foreground">info@rezervoambientin.com</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Phone className="h-5 w-5 text-primary" />
                     <div>
-                      <p className="font-medium">{language === "sq" ? "Telefon" : "Phone"}</p>
+                      <p className="font-medium text-foreground">{language === "sq" ? "Telefon" : "Phone"}</p>
                       <p className="text-muted-foreground">+355 684090041</p>
                     </div>
                   </div>
@@ -125,14 +122,14 @@ export default function AboutPage() {
                   <div className="flex items-center gap-3">
                     <MapPin className="h-5 w-5 text-primary" />
                     <div>
-                      <p className="font-medium">{language === "sq" ? "Adresa" : "Address"}</p>
+                      <p className="font-medium text-foreground">{language === "sq" ? "Adresa" : "Address"}</p>
                       <p className="text-muted-foreground">Tiranë</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Globe className="h-5 w-5 text-primary" />
                     <div>
-                      <p className="font-medium">Website</p>
+                      <p className="font-medium text-foreground">Website</p>
                       <p className="text-muted-foreground">www.rezervoambientin.com</p>
                     </div>
                   </div>
@@ -144,7 +141,7 @@ export default function AboutPage() {
           {/* Partnership */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">{language === "sq" ? "Bëhu Partner" : "Become a Partner"}</CardTitle>
+              <CardTitle>{language === "sq" ? "Bëhu Partner" : "Become a Partner"}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -154,19 +151,19 @@ export default function AboutPage() {
                     : "Do you have an event venue? Join the RezervoAmbientin platform and showcase your venue to thousands of visitors every month."}
                 </p>
                 <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-muted-foreground">
                     {language === "sq"
                       ? "Ti vendos çmimet, kushtet dhe oraret. Ne të ndihmojmë të gjesh klientë pa ndërmjetës dhe pa stres."
                       : "You set the prices, conditions, and schedules. We help you find clients without intermediaries and without stress."}
                   </p>
                   <div className="space-y-1 text-sm">
-                    <p>
+                    <p className="text-muted-foreground">
                       📤{" "}
                       {language === "sq"
                         ? "Regjistrimi është falas dhe pa angazhim të menjëhershëm."
                         : "Registration is free and without immediate commitment."}
                     </p>
-                    <p>
+                    <p className="text-muted-foreground">
                       🎯{" "}
                       {language === "sq"
                         ? "Rrit dukshmërinë dhe menaxho më lehtë rezervimet online."
@@ -187,9 +184,7 @@ export default function AboutPage() {
           {/* Legal */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">
-                {language === "sq" ? "Termat dhe Kushtet" : "Terms and Conditions"}
-              </CardTitle>
+              <CardTitle>{language === "sq" ? "Termat dhe Kushtet" : "Terms and Conditions"}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -222,7 +217,7 @@ export default function AboutPage() {
             </CardContent>
           </Card>
         </div>
-      </section>
+      </div>
     </div>
   )
 }
