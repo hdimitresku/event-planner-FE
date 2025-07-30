@@ -26,7 +26,6 @@ import {
   CheckCircle,
   ArrowUpDown,
   SlidersHorizontal,
-  Building2,
 } from "lucide-react"
 import {
   Dialog,
@@ -630,7 +629,7 @@ export default function BusinessBookingsPage() {
             {/* Sort Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="transition-all hover:bg-primary/10 hover:text-primary">
+                <Button variant="outline" className="transition-all hover:bg-primary/10 hover:text-primary bg-transparent">
                   <ArrowUpDown className="mr-2 h-4 w-4" />
                   {t("business.bookings.sort") || "Sort"}
                   {sortOption.field !== "startDate" && (
@@ -704,7 +703,7 @@ export default function BusinessBookingsPage() {
             {/* Date Filter */}
             <Dialog open={isDateFilterOpen} onOpenChange={setIsDateFilterOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="transition-all hover:bg-primary/10 hover:text-primary">
+                <Button variant="outline" className="transition-all hover:bg-primary/10 hover:text-primary bg-transparent">
                   <Calendar className="mr-2 h-4 w-4" />
                   {t("business.bookings.filterByDate") || "Filter by Date"}
                   {(dateFilter.startDate || dateFilter.endDate) && (
@@ -768,7 +767,7 @@ export default function BusinessBookingsPage() {
             {/* Advanced Filter */}
             <Dialog open={isAdvancedFilterOpen} onOpenChange={setIsAdvancedFilterOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="transition-all hover:bg-primary/10 hover:text-primary">
+                <Button variant="outline" className="transition-all hover:bg-primary/10 hover:text-primary bg-transparent">
                   <SlidersHorizontal className="mr-2 h-4 w-4" />
                   {t("business.bookings.advancedFilters") || "Filters"}
                   {countActiveFilters() > 0 && (
@@ -954,7 +953,7 @@ export default function BusinessBookingsPage() {
               </DialogContent>
             </Dialog>
 
-            <Button variant="outline" className="transition-all hover:bg-primary/10 hover:text-primary">
+            <Button variant="outline" className="transition-all hover:bg-primary/10 hover:text-primary bg-transparent">
               <Clock className="mr-2 h-4 w-4" />
               {t("business.bookings.export") || "Export"}
             </Button>
@@ -1076,6 +1075,7 @@ export default function BusinessBookingsPage() {
                   const venueBookings = venue.bookings || []
                   const pendingCount = venueBookings.filter((b: any) => b.status === "pending").length
                   const confirmedCount = venueBookings.filter((b: any) => b.status === "confirmed").length
+                  const cancelledCount = venueBookings.filter((b: any) => b.status === "cancelled").length
                   const totalCount = venueBookings.length
 
                   return (
@@ -1084,7 +1084,7 @@ export default function BusinessBookingsPage() {
                         <p className="text-sm text-muted-foreground mb-3">
                           {venue.address.street}, {venue.address.city}, {venue.address.state}
                         </p>
-                        <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="grid grid-cols-4 gap-2 text-center">
                           <div>
                             <div className="text-lg font-semibold text-primary">{totalCount}</div>
                             <div className="text-xs text-muted-foreground">Total</div>
@@ -1096,6 +1096,10 @@ export default function BusinessBookingsPage() {
                           <div>
                             <div className="text-lg font-semibold text-success">{confirmedCount}</div>
                             <div className="text-xs text-muted-foreground">Confirmed</div>
+                          </div>
+                          <div>
+                            <div className="text-lg font-semibold text-destructive">{cancelledCount}</div>
+                            <div className="text-xs text-muted-foreground">Cancelled</div>
                           </div>
                         </div>
                       </div>
@@ -1281,7 +1285,7 @@ export default function BusinessBookingsPage() {
                         <>
                           <Button
                               variant="outline"
-                              className="border-green-600 text-green-600 hover:bg-green-50"
+                              className="border-green-600 text-green-600 hover:bg-green-50 bg-transparent"
                               onClick={() => handleApproveBooking(selectedBooking.id)}
                           >
                             <Check className="mr-1 h-4 w-4" />
@@ -1289,7 +1293,7 @@ export default function BusinessBookingsPage() {
                           </Button>
                           <Button
                               variant="outline"
-                              className="border-red-600 text-red-600 hover:bg-red-50"
+                              className="border-red-600 text-red-600 hover:bg-red-50 bg-transparent"
                               onClick={() => handleDeclineBooking(selectedBooking.id)}
                           >
                             <X className="mr-1 h-4 w-4" />
@@ -1387,564 +1391,4 @@ export default function BusinessBookingsPage() {
                       {/* Header */}
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-4">
-                          <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5">
-                            <img
-                                src={booking.image || "/placeholder.svg"}
-                                alt={booking.venueName[language] || booking.venueName.en}
-                                className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-lg text-foreground">
-                              {booking.venueName[language] || booking.venueName.en}
-                            </h3>
-                            <p className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Building2 className="h-3.5 w-3.5" />
-                              {t(`business.venueTypes.${booking.venue?.type}`)} • {booking.venue?.address?.city}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {t("business.bookings.bookingId") || "ID"}: {booking.id}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <Badge className={getStatusBadgeClass(booking.status)}>
-                            {booking.status === "confirmed"
-                                ? t("business.bookings.confirmed") || "Confirmed"
-                                : booking.status === "pending"
-                                    ? t("business.bookings.pending") || "Pending"
-                                    : booking.status === "completed"
-                                        ? t("business.bookings.completed") || "Completed"
-                                        : t("business.bookings.cancelled") || "Cancelled"}
-                          </Badge>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-foreground">
-                              {calculateVenuePrice(booking)}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {t("business.venueBookings.totalPrice") || "Total Price"}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Details Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                        <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                          <div className="p-2 bg-primary/10 rounded-full">
-                            <User className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{booking.customer.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{booking.customer.email}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                          <div className="p-2 bg-blue-500/10 rounded-full">
-                            <CalendarDays className="h-4 w-4 text-blue-500" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{formatDate(booking.startDate)} - {formatDate(booking.endDate)}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                          <div className="p-2 bg-green-500/10 rounded-full">
-                            <Users className="h-4 w-4 text-green-500" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">
-                              {booking.numberOfGuests} {t("business.bookings.guests")}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{t(`venueBook.${booking.eventType}`) || "Event"}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                        <div className="p-2 bg-orange-500/10 rounded-full">
-                            <DollarSign className="h-4 w-4 text-orange-500" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{t(`business.venueBookings.basePrice`)}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {t(`venues.filters.priceType.${booking.venue?.price?.type}`)}: {formatPrice(booking.venue?.price?.amount, booking.venue?.price?.currency)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex gap-2 justify-end pt-2 border-t border-border/50">
-                        {booking.status === "pending" && (
-                            <>
-                              <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-green-600 border-green-200 hover:bg-green-50 hover:border-green-300"
-                                  onClick={() => openApproveConfirmation(booking)}
-                                  disabled={actionLoading === booking.id}
-                              >
-                                {actionLoading === booking.id ? (
-                                    <LoadingSpinner size="sm" />
-                                ) : (
-                                    <>
-                                      <Check className="mr-1 h-3 w-3" />
-                                      {t("business.bookings.approve") || "Approve"}
-                                    </>
-                                )}
-                              </Button>
-                              <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-                                  onClick={() => openDeclineConfirmation(booking)}
-                                  disabled={actionLoading === booking.id}
-                              >
-                                {actionLoading === booking.id ? (
-                                    <LoadingSpinner size="sm" />
-                                ) : (
-                                    <>
-                                      <X className="mr-1 h-3 w-3" />
-                                      {t("business.bookings.decline") || "Decline"}
-                                    </>
-                                )}
-                              </Button>
-                            </>
-                        )}
-                        <Button variant="outline" size="sm" onClick={() => handleViewBooking(booking)}>
-                          {t("business.common.view") || "View"}
-                        </Button>
-                        {(booking.status === "confirmed" || booking.status === "pending") && (
-                            <Button variant="outline" size="sm" onClick={() => handleEditBooking(booking)}>
-                              <PencilLine className="mr-1 h-3 w-3" />
-                              {t("business.common.edit") || "Edit"}
-                            </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="completed" className="space-y-4">
-            <div className="space-y-4">
-              {loading && <LoadingSpinner size="lg" text="Loading bookings..." className="py-8" />}
-
-              {!loading && filteredBookings.length === 0 && (
-                  <div className="text-center py-12 bg-secondary/30 rounded-lg">
-                    <h3 className="text-lg font-medium">{t("business.bookings.noBookingsFound") || "No bookings found"}</h3>
-                    <p className="text-muted-foreground mt-2">
-                      {t("business.bookings.noCompletedBookings") || "No completed bookings yet"}
-                    </p>
-                  </div>
-              )}
-              {filteredBookings.map((booking) => (
-                  <div
-                      key={booking.id}
-                      className="bg-background border rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
-                  >
-                    <div className="p-6">
-                      {/* Header */}
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-4">
-                          <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5">
-                            <img
-                                src={booking.image || "/placeholder.svg"}
-                                alt={booking.venueName[language] || booking.venueName.en}
-                                className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-lg text-foreground">
-                              {booking.venueName[language] || booking.venueName.en}
-                            </h3>
-                            <p className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Building2 className="h-3.5 w-3.5" />
-                              {t(`business.venueTypes.${booking.venue?.type}`)} • {booking.venue?.address?.city}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {t("business.bookings.bookingId") || "ID"}: {booking.id}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <Badge className={getStatusBadgeClass(booking.status)}>
-                            {t("business.bookings.completed") || "Completed"}
-                          </Badge>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-foreground">
-                              {calculateVenuePrice(booking)}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {t("business.venueBookings.totalPrice") || "Total Price"}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Details Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                        <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                          <div className="p-2 bg-primary/10 rounded-full">
-                            <User className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{booking.customer.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{booking.customer.email}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                          <div className="p-2 bg-blue-500/10 rounded-full">
-                            <CalendarDays className="h-4 w-4 text-blue-500" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{formatDate(booking.startDate)} - {formatDate(booking.endDate)}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                          <div className="p-2 bg-green-500/10 rounded-full">
-                            <Users className="h-4 w-4 text-green-500" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">
-                              {booking.numberOfGuests} {t("business.bookings.guests")}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{t(`venueBook.${booking.eventType}`) || "Event"}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                        <div className="p-2 bg-orange-500/10 rounded-full">
-                            <DollarSign className="h-4 w-4 text-orange-500" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{t(`business.venueBookings.basePrice`)}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {t(`venues.filters.priceType.${booking.venue?.price?.type}`)}: {formatPrice(booking.venue?.price?.amount, booking.venue?.price?.currency)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex gap-2 justify-end pt-2 border-t border-border/50">
-                        <Button variant="outline" size="sm" onClick={() => handleViewBooking(booking)}>
-                          {t("business.common.view") || "View"}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="cancelled" className="space-y-4">
-            <div className="space-y-4">
-              {loading && <LoadingSpinner size="lg" text="Loading bookings..." className="py-8" />}
-
-              {!loading && filteredBookings.length === 0 && (
-                  <div className="text-center py-12 bg-secondary/30 rounded-lg">
-                    <h3 className="text-lg font-medium">{t("business.bookings.noBookingsFound") || "No bookings found"}</h3>
-                    <p className="text-muted-foreground mt-2">
-                      {t("business.bookings.noCancelledBookings") || "No cancelled bookings"}
-                    </p>
-                  </div>
-              )}
-              {filteredBookings.map((booking) => (
-                  <div
-                      key={booking.id}
-                      className="bg-background border rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
-                  >
-                    <div className="p-6">
-                      {/* Header */}
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-4">
-                          <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5">
-                            <img
-                                src={booking.image || "/placeholder.svg"}
-                                alt={booking.venueName[language] || booking.venueName.en}
-                                className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-lg text-foreground">
-                              {booking.venueName[language] || booking.venueName.en}
-                            </h3>
-                            <p className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Building2 className="h-3.5 w-3.5" />
-                              {t(`business.venueTypes.${booking.venue?.type}`)} • {booking.venue?.address?.city}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {t("business.bookings.bookingId") || "ID"}: {booking.id}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <Badge className={getStatusBadgeClass(booking.status)}>
-                            {t("business.bookings.cancelled") || "Cancelled"}
-                          </Badge>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-foreground">
-                              {calculateVenuePrice(booking)}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {t("business.venueBookings.totalPrice") || "Total Price"}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Details Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                        <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                          <div className="p-2 bg-primary/10 rounded-full">
-                            <User className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{booking.customer.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{booking.customer.email}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                          <div className="p-2 bg-blue-500/10 rounded-full">
-                            <CalendarDays className="h-4 w-4 text-blue-500" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{formatDate(booking.startDate)} - {formatDate(booking.endDate)}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                          <div className="p-2 bg-green-500/10 rounded-full">
-                            <Users className="h-4 w-4 text-green-500" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">
-                              {booking.numberOfGuests} {t("business.bookings.guests")}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{t(`venueBook.${booking.eventType}`) || "Event"}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                        <div className="p-2 bg-orange-500/10 rounded-full">
-                            <DollarSign className="h-4 w-4 text-orange-500" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{t(`business.venueBookings.basePrice`)}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {t(`venues.filters.priceType.${booking.venue?.price?.type}`)}: {formatPrice(booking.venue?.price?.amount, booking.venue?.price?.currency)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex gap-2 justify-end pt-2 border-t border-border/50">
-                        <Button variant="outline" size="sm" onClick={() => handleViewBooking(booking)}>
-                          {t("business.common.view") || "View"}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="all" className="space-y-4">
-            <div className="space-y-4">
-              {loading && <LoadingSpinner size="lg" text="Loading bookings..." className="py-8" />}
-
-              {!loading && filteredBookings.length === 0 && (
-                  <div className="text-center py-12 bg-secondary/30 rounded-lg">
-                    <h3 className="text-lg font-medium">{t("business.bookings.noBookingsFound") || "No bookings found"}</h3>
-                    <p className="text-muted-foreground mt-2">
-                      {t("business.bookings.noBookingsAvailable") || "No bookings available"}
-                    </p>
-                  </div>
-              )}
-              {filteredBookings.map((booking) => (
-                  <div
-                      key={booking.id}
-                      className="bg-background border rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
-                  >
-                    <div className="p-6">
-                      {/* Header */}
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-4">
-                          <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5">
-                            <img
-                                src={booking.image || "/placeholder.svg"}
-                                alt={booking.venueName[language] || booking.venueName.en}
-                                className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-lg text-foreground">
-                              {booking.venueName[language] || booking.venueName.en}
-                            </h3>
-                            <p className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Building2 className="h-3.5 w-3.5" />
-                              {t(`business.venueTypes.${booking.venue?.type}`)} • {booking.venue?.address?.city}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {t("business.bookings.bookingId") || "ID"}: {booking.id}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <Badge className={getStatusBadgeClass(booking.status)}>
-                            {booking.status === "confirmed"
-                                ? t("business.bookings.confirmed") || "Confirmed"
-                                : booking.status === "pending"
-                                    ? t("business.bookings.pending") || "Pending"
-                                    : booking.status === "completed"
-                                        ? t("business.bookings.completed") || "Completed"
-                                        : t("business.bookings.cancelled") || "Cancelled"}
-                          </Badge>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-foreground">
-                              {calculateVenuePrice(booking)}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {t("business.venueBookings.totalPrice") || "Total Price"}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Details Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                        <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                          <div className="p-2 bg-primary/10 rounded-full">
-                            <User className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{booking.customer.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{booking.customer.email}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                          <div className="p-2 bg-blue-500/10 rounded-full">
-                            <CalendarDays className="h-4 w-4 text-blue-500" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{formatDate(booking.startDate)} - {formatDate(booking.endDate)}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                          <div className="p-2 bg-green-500/10 rounded-full">
-                            <Users className="h-4 w-4 text-green-500" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">
-                              {booking.numberOfGuests} {t("business.bookings.guests")}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{t(`venueBook.${booking.eventType}`) || "Event"}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                          <div className="p-2 bg-orange-500/10 rounded-full">
-                            <DollarSign className="h-4 w-4 text-orange-500" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{t(`business.venueBookings.basePrice`)}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {t(`venues.filters.priceType.${booking.venue?.price?.type}`)}: {formatPrice(booking.venue?.price?.amount, booking.venue?.price?.currency)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex gap-2 justify-end pt-2 border-t border-border/50">
-                        {booking.status === "pending" && (
-                            <>
-                              <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-green-600 border-green-200 hover:bg-green-50 hover:border-green-300"
-                                  onClick={() => openApproveConfirmation(booking)}
-                                  disabled={actionLoading === booking.id}
-                              >
-                                {actionLoading === booking.id ? (
-                                    <LoadingSpinner size="sm" />
-                                ) : (
-                                    <>
-                                      <Check className="mr-1 h-3 w-3" />
-                                      {t("business.bookings.approve") || "Approve"}
-                                    </>
-                                )}
-                              </Button>
-                              <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-                                  onClick={() => openDeclineConfirmation(booking)}
-                                  disabled={actionLoading === booking.id}
-                              >
-                                {actionLoading === booking.id ? (
-                                    <LoadingSpinner size="sm" />
-                                ) : (
-                                    <>
-                                      <X className="mr-1 h-3 w-3" />
-                                      {t("business.bookings.decline") || "Decline"}
-                                    </>
-                                )}
-                              </Button>
-                            </>
-                        )}
-                        <Button variant="outline" size="sm" onClick={() => handleViewBooking(booking)}>
-                          {t("business.common.view") || "View"}
-                        </Button>
-                        {(booking.status === "confirmed" || booking.status === "pending") && (
-                            <>
-                              <Button variant="outline" size="sm" onClick={() => handleEditBooking(booking)}>
-                                <PencilLine className="mr-1 h-3 w-3" />
-                                {t("business.common.edit") || "Edit"}
-                              </Button>
-
-                              <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                  onClick={() => openCancelDialog(booking.id)}
-                              >
-                                {t("business.common.cancel") || "Cancel"}
-                              </Button>
-                            </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </BusinessLayout>
-  )
-}
+                \
