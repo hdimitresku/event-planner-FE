@@ -70,7 +70,7 @@ export default function PrivacyPage() {
                             <CardContent>
                                 <p className="text-muted-foreground">
                                     {language === "sq"
-                                        ? "Ne nuk i shesim, qirajmë apo ndajmë informacionin tuaj personal me palë të treta pa pëlqimin tuaj, përveç rasteve kur kërkohet nga ligji ose për të përmbushur rezervimet tuaja."
+                                        ? "Ne nuk i shesim, huazojmë apo ndajmë informacionin tuaj personal me palë të treta pa pëlqimin tuaj, përveç rasteve kur kërkohet nga ligji ose për të përmbushur rezervimet tuaja."
                                         : "We do not sell, rent, or share your personal information with third parties without your consent, except when required by law or to fulfill your bookings."}
                                 </p>
                             </CardContent>
