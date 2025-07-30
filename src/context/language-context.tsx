@@ -721,8 +721,14 @@ const translations: Translations = {
 
     "categories.title": "Explore Venue Categories",
     "categories.subtitle": "Find the perfect space for any occasion",
-    "howItWorks.hero.title": "How VenueSpace Works",
+    "howItWorks.hero.title": "How RezervoAmbientin Works",
+    "howItWorks.badge": "Easy steps to book your venue",
+    "howItWorks.faq.badge": "Frequently Asked Questions",
+    "help.title": "Help & Support",
+    "howItWorks.cta.description": "Follow these easy steps to book a venue and create your dream event.",
     "howItWorks.hero.subtitle": "Booking a venue and customizing your event has never been easier",
+    "business.host": "Host",
+    "business.panel": "Panel",
 
     "howItWorks.step1.title": "Search for Venues",
     "howItWorks.step1.description": "Use filters like location, date, and guest count to find the perfect venue",
@@ -1042,6 +1048,10 @@ const translations: Translations = {
     "signup.accountType": "Account Type",
     "signup.userAccount": "User Account",
     "signup.hostAccount": "Host Account",
+    "signup.readTerms": "Read the terms of service",
+    "signup.readPrivacy": "Read the privacy policy",
+    "signup.agreeUserTerms": "I agree to the terms of service as a user",
+    "signup.agreePartnerTerms": "I agree to the terms of service as a host",
     "nav.profile": "Profile",
     "nav.settings": "Settings",
     "nav.logout": "Logout",
@@ -1647,8 +1657,11 @@ const translations: Translations = {
 
     "categories.title": "Eksploro Kategoritë e Vendeve",
     "categories.subtitle": "Gjej ambientin e përsosur për çdo rast",
-    "howItWorks.hero.title": "Si Funksionon VenueSpace",
+    "howItWorks.hero.title": "Si Funksionon RezervoAmbientin",
     "howItWorks.hero.subtitle": "Rezervimi i një vendi dhe personalizimi i ngjarjes tënde kurrë nuk ka qenë më i lehtë",
+    "howItWorks.badge": "Hapat e Thjeshtë për të Planifikuar Eventin Tënd",
+    "howItWorks.faq.badge": "Pyetjet e Shpeshta",
+    "howItWorks.cta.description": "Ndiq hapat e thjeshtë më sipër për të rezervuar ambientin tënd dhe për të personalizuar ngjarjen tënde.",
 
     "howItWorks.step1.title": "Kërko për Vende",
     "howItWorks.step1.description": "Përdor filtra si vendndodhja, data dhe numri i të ftuarve për të gjetur vendin e përsosur",
@@ -2135,6 +2148,13 @@ const translations: Translations = {
     "signup.accountType": "Lloji i Llogarisë",
     "signup.userAccount": "Llogari Përdoruesi",
     "signup.hostAccount": "Llogari Organizatori",
+    "signup.readTerms": "Lexo kushtet e shërbimit",
+    "signup.readPrivacy": "Lexo politikën e privatësisë",
+    "signup.agreeUserTerms": "Pranoj kushtet e përdorimit si përdorues",
+    "signup.agreePartnerTerms": "Pranoj kushtet e përdorimit si organizator",
+    "business.host": "Paneli",
+    "business.panel": "I Pritësit",
+    "help.title": "Ndihmë",
     "nav.profile": "Profili",
     "nav.settings": "Cilësimet",
     "nav.logout": "Dil",
@@ -2303,7 +2323,7 @@ interface LanguageContextType {
 
 // Create the context with default values
 const LanguageContext = createContext<LanguageContextType>({
-  language: "en",
+  language: "sq",
   setLanguage: () => {
   },
   t: () => "",
@@ -2311,7 +2331,7 @@ const LanguageContext = createContext<LanguageContextType>({
 
 // Provider component that wraps your app and makes the language context available
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguage] = useState<Language>("en")
+  const [language, setLanguage] = useState<Language>("sq")
 
   // Update document title when language changes
   useEffect(() => {

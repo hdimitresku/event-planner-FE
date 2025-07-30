@@ -38,6 +38,10 @@ import FavoritesPage from "./pages/dashboard/favorites"
 import DashboardMessagesPage from "./pages/dashboard/messages"
 import PaymentMethodsPage from "./pages/dashboard/payment-methods"
 import ServiceBookingsPage from "./pages/business/service-bookings"
+import PrivacyPage from "@/pages/privacy.tsx";
+import TermsPage from "@/pages/terms.tsx";
+import AboutPage from "@/pages/about.tsx";
+import HostPage from "@/pages/host.tsx";
 
 function App() {
     return (
@@ -62,6 +66,10 @@ function App() {
                                             <Route path="/venues/:id/book" element={<VenueBookPage />} />
                                             <Route path="/venues/:id/checkout" element={<VenueCheckoutPage />} />
                                             <Route path="/venues/:id/confirmation" element={<VenueConfirmationPage />} />
+                                            <Route path="/privacy" element={<PrivacyPage/>} />
+                                            <Route path="/terms" element={<TermsPage/>} />
+                                            <Route path="/about" element={<AboutPage/>} />
+                                            <Route path="/host" element={<HostPage/>} />
 
                                             {/* Protected routes */}
                                             <Route

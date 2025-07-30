@@ -116,8 +116,8 @@ export function BusinessSidebar({ className }: SidebarProps) {
           <div className="flex h-16 items-center justify-between border-b border-border/50 px-4">
             {!isCollapsed && (
               <Link to="/business" className="flex items-center gap-2 font-bold text-xl">
-                <span className="text-primary">Venue</span>
-                <span className="text-secondary">Space</span>
+                <span className="text-primary">{t("business.host")}</span>
+                <span className="text-secondary">{t("business.panel")}</span>
               </Link>
             )}
             <Button

@@ -7,12 +7,12 @@ export function LanguageSwitcher() {
   const { language, setLanguage } = useLanguage()
 
   const toggleLanguage = () => {
-    setLanguage(language === "en" ? "sq" : "en")
+    setLanguage(language === "sq" ? "en" : "sq")
   }
 
   return (
     <Button variant="ghost" size="sm" onClick={toggleLanguage}>
-      {language === "en" ? "SQ" : "EN"}
+      {language === "sq" ? "EN" : "SQ"}
     </Button>
   )
 }

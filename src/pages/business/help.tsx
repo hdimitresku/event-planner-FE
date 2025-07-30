@@ -198,7 +198,7 @@ export default function HelpPage() {
                 </div>
                 <div>
                   <h3 className="font-medium">{t("help.email")}</h3>
-                  <p className="text-sm text-muted-foreground">support@eventbooking.com</p>
+                  <p className="text-sm text-muted-foreground">support@rezervoambientin.com</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 p-3 border rounded-lg">
@@ -207,23 +207,13 @@ export default function HelpPage() {
                 </div>
                 <div>
                   <h3 className="font-medium">{t("help.phone")}</h3>
-                  <p className="text-sm text-muted-foreground">+1 (555) 123-4567</p>
+                  <p className="text-sm text-muted-foreground">+355 684090041</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-3 border rounded-lg">
-                <div className="rounded-full bg-primary/10 p-2 h-8 w-8 flex items-center justify-center">
-                  <Clock className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-medium">{t("help.supportHours")}</h3>
-                  <p className="text-sm text-muted-foreground">{t("help.weekdays")}</p>
-                  <p className="text-sm text-muted-foreground">{t("help.weekends")}</p>
-                </div>
-              </div>
-              <Button className="w-full">
-                <MessageSquare className="mr-2 h-4 w-4" />
-                {t("help.chat")}
-              </Button>
+              {/*<Button className="w-full">*/}
+              {/*  <MessageSquare className="mr-2 h-4 w-4" />*/}
+              {/*  {t("help.chat")}*/}
+              {/*</Button>*/}
             </CardContent>
           </Card>
         </div>
