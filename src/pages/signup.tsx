@@ -180,14 +180,41 @@ export default function SignupPage() {
             </RadioGroup>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox id="terms" required />
-            <label
-              htmlFor="terms"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              {t("signup.agreeTerms") || "I agree to the terms and conditions"}
-            </label>
+          {formData.role === "host" && (
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
+              <h4 className="font-medium text-blue-900 mb-2">
+                {t("signup.partnerInfo") || "Partner Account Information"}
+              </h4>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>• {t("signup.partnerBenefit1") || "List your venue for free"}</li>
+                <li>• {t("signup.partnerBenefit2") || "Manage bookings online"}</li>
+                <li>• {t("signup.partnerBenefit3") || "Commission-based pricing"}</li>
+                <li>• {t("signup.partnerBenefit4") || "Direct communication with clients"}</li>
+              </ul>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <div className="flex items-start space-x-2">
+              <Checkbox id="terms" required />
+              <label
+                htmlFor="terms"
+                className="text-sm font-medium leading-relaxed peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {formData.role === "host"
+                  ? t("signup.agreePartnerTerms") || "I agree to the Partner Terms and Conditions and Privacy Policy"
+                  : t("signup.agreeUserTerms") || "I agree to the User Terms and Conditions and Privacy Policy"}
+              </label>
+            </div>
+            <div className="text-xs text-gray-500 ml-6">
+              <Link to="/terms" className="text-[#D72638] hover:underline" target="_blank">
+                {t("signup.readTerms") || "Read Terms and Conditions"}
+              </Link>
+              {" • "}
+              <Link to="/privacy" className="text-[#D72638] hover:underline" target="_blank">
+                {t("signup.readPrivacy") || "Privacy Policy"}
+              </Link>
+            </div>
           </div>
 
           {error && <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">{error}</div>}
