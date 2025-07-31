@@ -37,6 +37,8 @@ import {
   X,
   Building2,
   ShoppingCart,
+  UserPlus,
+  LogIn,
 } from "lucide-react"
 import { useLanguage } from "../context/language-context"
 import { EXCHANGE_RATES, useCurrency, type Currency } from "../context/currency-context"
@@ -316,6 +318,7 @@ export default function VenueBookPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [confirmationData, setConfirmationData] = useState<any>(null)
+  const [showAuthModal, setShowAuthModal] = useState(false)
 
   // Phone prefixes with country codes and flags
   const phonePrefix = [
@@ -782,25 +785,10 @@ export default function VenueBookPage() {
         return
       }
 
-      // If user is not logged in, automatically add to cart and show login prompt
+      // If user is not logged in, automatically add to cart and show auth modal
       if (!user) {
         handleAddToCart()
-
-        // Show login/signup prompt
-        toast.info(t("auth.loginToComplete") || "Please log in to complete your booking", {
-          description: t("auth.bookingSavedToCart") || "Your booking has been saved to your cart.",
-          action: {
-            label: t("auth.login") || "Log In",
-            onClick: () =>
-              navigate("/login", {
-                state: {
-                  returnTo: `/venues/${id}/book`,
-                  message: t("auth.completeBookingAfterLogin") || "Complete your booking after logging in",
-                },
-              }),
-          },
-        })
-
+        setShowAuthModal(true)
         setIsSubmitting(false)
         return
       }
@@ -962,13 +950,9 @@ export default function VenueBookPage() {
       }
     })
 
+    // Close any open modals
     setShowConfirmationModal(false)
     setConfirmationData(null)
-
-    toast.success(t("venueBook.addedToCart") || "Added to cart!", {
-      description: t("venueBook.continueBookingAfterLogin") || "You can continue your booking after logging in.",
-      icon: <CheckCircle className="h-4 w-4" />,
-    })
   }
 
   const calculateDuration = () => {
@@ -1199,29 +1183,6 @@ export default function VenueBookPage() {
         }
     }
   }
-
-  // Custom scrollbar styling
-  const scrollbarStyles = `
-  .services-container::-webkit-scrollbar {
-    width: 6px;
-  }
-  .services-container::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .services-container::-webkit-scrollbar-thumb {
-    background-color: rgba(156, 163, 175, 0.5);
-    border-radius: 20px;
-  }
-  .services-container::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(156, 163, 175, 0.7);
-  }
-  .dark .services-container::-webkit-scrollbar-thumb {
-    background-color: rgba(100, 116, 139, 0.5);
-  }
-  .dark .services-container::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(100, 116, 139, 0.7);
-  }
-`
 
   // Auto-scroll effect for service images
   useEffect(() => {
@@ -2104,6 +2065,94 @@ export default function VenueBookPage() {
             </div>
           </div>
         </div>
+
+        {/* Auth Modal for non-logged-in users */}
+        {showAuthModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-deep-brown rounded-xl max-w-md w-full border border-amber-100 dark:border-amber-800/30">
+              <div className="p-6">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center">
+                    <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mr-4">
+                      <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold">{t("venueBook.addedToCart") || "Added to Cart!"}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {t("venueBook.registerToComplete") || "Register to complete your booking"}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowAuthModal(false)}
+                    className="p-2 hover:bg-amber-100 dark:hover:bg-amber-900/30 rounded-lg transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {/* Modal Content */}
+                <div className="space-y-4">
+                  <div className="text-center p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                    <ShoppingCart className="h-8 w-8 text-amber-600 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      {t("venueBook.itemsSavedToCart") ||
+                        "Your booking details have been saved to your cart. Create an account or sign in to complete your booking."}
+                    </p>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="space-y-3">
+                    <Button
+                      onClick={() => {
+                        setShowAuthModal(false)
+                        navigate("/signup", {
+                          state: {
+                            returnTo: `/venues/${id}/book`,
+                            message:
+                              t("auth.completeBookingAfterSignup") ||
+                              "Complete your booking after creating your account",
+                          },
+                        })
+                      }}
+                      className="w-full bg-amber-500 hover:bg-amber-600 text-white"
+                    >
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      {t("auth.createAccount") || "Create Account"}
+                    </Button>
+
+                    <Button
+                      onClick={() => {
+                        setShowAuthModal(false)
+                        navigate("/login", {
+                          state: {
+                            returnTo: `/venues/${id}/book`,
+                            message: t("auth.completeBookingAfterLogin") || "Complete your booking after logging in",
+                          },
+                        })
+                      }}
+                      variant="outline"
+                      className="w-full border-amber-500 text-amber-600 hover:bg-amber-50 bg-transparent"
+                    >
+                      <LogIn className="mr-2 h-4 w-4" />
+                      {t("auth.signIn") || "Sign In"}
+                    </Button>
+
+                    <Button
+                      onClick={() => setShowAuthModal(false)}
+                      variant="ghost"
+                      className="w-full text-muted-foreground hover:text-foreground"
+                    >
+                      {t("common.continueBrowsing") || "Continue Browsing"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Service Option Details Modal */}
         {selectedOptionDetails && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -2321,6 +2370,7 @@ export default function VenueBookPage() {
             </div>
           </div>
         )}
+
         {/* Image Gallery Modal */}
         {selectedImageGallery && (
           <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
@@ -2391,6 +2441,7 @@ export default function VenueBookPage() {
             </div>
           </div>
         )}
+
         {/* Confirmation Modal */}
         {showConfirmationModal && confirmationData && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -2609,7 +2660,10 @@ export default function VenueBookPage() {
 
                   {!user && (
                     <Button
-                      onClick={handleAddToCart}
+                      onClick={() => {
+                        handleAddToCart()
+                        setShowAuthModal(true)
+                      }}
                       variant="outline"
                       className="flex-1 border-amber-500 text-amber-600 hover:bg-amber-50 bg-transparent"
                     >
