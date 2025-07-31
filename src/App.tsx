@@ -42,74 +42,77 @@ import { BusinessAnalyticsPage } from "./pages/business/analytics"
 import { BusinessMessagesPage } from "./pages/business/messages"
 import { BusinessSettingsPage } from "./pages/business/settings"
 import { BusinessHelpPage } from "./pages/business/help"
+import { CartProvider } from "./context/cart-context"
 
 function App() {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <SiteHeader />
-      <main className="flex-1">
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/venues" element={<VenuesPage />} />
-          <Route path="/venues/:id" element={<VenueDetailPage />} />
-          <Route path="/venues/:id/book" element={<VenueBookPage />} />
-          <Route path="/venue-checkout" element={<VenueCheckoutPage />} />
-          <Route path="/venue-confirmation" element={<VenueConfirmationPage />} />
-          <Route path="/services" element={<ServicesPage />} />
-          <Route path="/services/:id/book" element={<ServiceBookingsPage />} />
-          <Route path="/how-it-works" element={<HowItWorksPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/host" element={<HostPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/terms" element={<TermsPage />} />
+    <CartProvider>
+      <div className="min-h-screen bg-background flex flex-col">
+        <SiteHeader />
+        <main className="flex-1">
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/venues" element={<VenuesPage />} />
+            <Route path="/venues/:id" element={<VenueDetailPage />} />
+            <Route path="/venues/:id/book" element={<VenueBookPage />} />
+            <Route path="/venue-checkout" element={<VenueCheckoutPage />} />
+            <Route path="/venue-confirmation" element={<VenueConfirmationPage />} />
+            <Route path="/services" element={<ServicesPage />} />
+            <Route path="/services/:id/book" element={<ServiceBookingsPage />} />
+            <Route path="/how-it-works" element={<HowItWorksPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/host" element={<HostPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
 
-          {/* Auth Routes */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
+            {/* Auth Routes */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
 
-          {/* Customer Dashboard Routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<DashboardPage />} />
-            <Route path="favorites" element={<FavoritesPage />} />
-            <Route path="profile" element={<ProfilePage />} />
-            <Route path="payment-methods" element={<PaymentMethodsPage />} />
-            <Route path="messages" element={<MessagesPage />} />
-          </Route>
+            {/* Customer Dashboard Routes */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<DashboardPage />} />
+              <Route path="favorites" element={<FavoritesPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="payment-methods" element={<PaymentMethodsPage />} />
+              <Route path="messages" element={<MessagesPage />} />
+            </Route>
 
-          {/* Business Dashboard Routes */}
-          <Route
-            path="/business"
-            element={
-              <ProtectedRoute requiredRole="host">
-                <BusinessLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="dashboard" element={<BusinessDashboardPage />} />
-            <Route path="venues" element={<BusinessVenuesPage />} />
-            <Route path="venues/new" element={<BusinessVenueNewPage />} />
-            <Route path="services" element={<BusinessServiceManagementPage />} />
-            <Route path="services/new" element={<BusinessServiceNewPage />} />
-            <Route path="bookings" element={<BusinessBookingsPage />} />
-            <Route path="service-bookings" element={<BusinessServiceBookingsPage />} />
-            <Route path="analytics" element={<BusinessAnalyticsPage />} />
-            <Route path="messages" element={<BusinessMessagesPage />} />
-            <Route path="settings" element={<BusinessSettingsPage />} />
-            <Route path="help" element={<BusinessHelpPage />} />
-          </Route>
-        </Routes>
-      </main>
-      <SiteFooter />
-      <ScrollToTop />
-    </div>
+            {/* Business Dashboard Routes */}
+            <Route
+              path="/business"
+              element={
+                <ProtectedRoute requiredRole="host">
+                  <BusinessLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="dashboard" element={<BusinessDashboardPage />} />
+              <Route path="venues" element={<BusinessVenuesPage />} />
+              <Route path="venues/new" element={<BusinessVenueNewPage />} />
+              <Route path="services" element={<BusinessServiceManagementPage />} />
+              <Route path="services/new" element={<BusinessServiceNewPage />} />
+              <Route path="bookings" element={<BusinessBookingsPage />} />
+              <Route path="service-bookings" element={<BusinessServiceBookingsPage />} />
+              <Route path="analytics" element={<BusinessAnalyticsPage />} />
+              <Route path="messages" element={<BusinessMessagesPage />} />
+              <Route path="settings" element={<BusinessSettingsPage />} />
+              <Route path="help" element={<BusinessHelpPage />} />
+            </Route>
+          </Routes>
+        </main>
+        <SiteFooter />
+        <ScrollToTop />
+      </div>
+    </CartProvider>
   )
 }
 
