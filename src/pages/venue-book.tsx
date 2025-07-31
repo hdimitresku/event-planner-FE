@@ -44,6 +44,8 @@ import { Calendar } from "../components/ui/calendar"
 import { Label } from "../components/ui/label"
 import type { User as UserType } from "../models/user"
 import { useCart } from "../context/cart-context"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
+import { Textarea } from "../components/ui/textarea"
 
 // Define interfaces for the API data structure
 interface LocalizedText {
@@ -334,39 +336,34 @@ export default function VenueBookPage() {
     { code: "+41", country: "CH", name: "Switzerland", flag: "🇨🇭" },
     { code: "+43", country: "AT", name: "Austria", flag: "🇦🇹" },
     { code: "+61", country: "AU", name: "Australia", flag: "🇦🇺" },
-    { code: "+81", country: "JP", name: Japan", flag: "🇯🇵" },
-    { code: "+49\", country: \"AT", name: \"Austria\", flag: "🇦🇹" },
-    { code: "+86\", country: "CN", name: "China\", flag: \"🇨🇳" },
-    { code: "+91\", country: \"IN", name: "India", flag: "🇮🇳" },
-    { code: "+7", country: "RU", name: Russia", flag: "🇷🇺" },
-    { code: "+27", country: "ZA\", name: South Africa\", flag: \"🇿🇦\" },
-    { code: "+64\", country: "NZ", name: New Zealand", flag: "🇳🇿" },\
-    { code: "+82", country: \"KR\", name: South Korea\", flag: "🇰🇷" },\
-    { code: "+47", country: \"NO", name: Norway, flag: "🇳🇴" },
-    { code: "+46", country: "SE", name: Sweden, flag: "🇸🇪" },
-    { code: "+48", country: "PL", name: Poland, flag: "🇵🇱" },
-    { code: "+420", country: "CZ", name: Czech Republic, flag: "🇨🇿" },
-    { code: "+36", country: "HU", name: Hungary, flag: "🇭🇺" },\
-    { code: "+370", country: "LT", name: Lithuania, flag: "🇱🇹" },
-    { code: "+371", country: "LV\", name: Latvia, flag: "🇱🇻" },
-    { code: "+372", country: "EE", name: Estonia, flag: "🇪🇪" },
-    { code: "+358", country: "FI\", name: Finland, flag: "🇫🇮" },
-    { code: "+45", country: "DK", name: Denmark, flag: "🇩🇰" },
-    { code: "+40", country: "RO\", name: Romania, flag: "🇷🇴" },
-    { code: "+48", country: "PL", name: Poland, flag: "🇵🇱" },
-    { code: "+351", country: "PT\", name: Portugal, flag: \"🇵🇹\" },
-    { code: "+352", country: "LU", name: Luxembourg, flag: "🇱🇺" },
-    { code: \"+353\", country: "IE", name: Ireland, flag: "🇮🇪\" },
-    { code: "+380", country: "UA", name: Ukraine, flag: "🇺🇦" },
-    { code: "+254", country: "KE", name: Kenya, flag: "🇰🇪" },
-    { code: "+234", country: "NG", name: Nigeria, flag: "🇳🇬" },
-    { code: "+966", country: "SA", name: Saudi Arabia, flag: "🇸🇦" },
-    { code: "+972", country: "IL", name: Israel, flag: "🇮🇱" },
-    { code: "+65", country: "SG", name: Singapore, flag: "🇸🇬" },
-    { code: "+60", country: "MY", name: Malaysia, flag: "🇲🇾" },
-    { code: "+351", country: "PT", name: Portugal, flag: "🇵🇹" },
-    { code: "+358", country: "FI", name: Finland, flag: "🇫🇮" },
-    { code: "+65", country: "SG", name: Singapore, flag: "🇸🇬" },
+    { code: "+81", country: "JP", name: "Japan", flag: "🇯🇵" },
+    { code: "+86", country: "CN", name: "China", flag: "🇨🇳" },
+    { code: "+91", country: "IN", name: "India", flag: "🇮🇳" },
+    { code: "+7", country: "RU", name: "Russia", flag: "🇷🇺" },
+    { code: "+27", country: "ZA", name: "South Africa", flag: "🇿🇦" },
+    { code: "+64", country: "NZ", name: "New Zealand", flag: "🇳🇿" },
+    { code: "+82", country: "KR", name: "South Korea", flag: "🇰🇷" },
+    { code: "+47", country: "NO", name: "Norway", flag: "🇳🇴" },
+    { code: "+46", country: "SE", name: "Sweden", flag: "🇸🇪" },
+    { code: "+48", country: "PL", name: "Poland", flag: "🇵🇱" },
+    { code: "+420", country: "CZ", name: "Czech Republic", flag: "🇨🇿" },
+    { code: "+36", country: "HU", name: "Hungary", flag: "🇭🇺" },
+    { code: "+370", country: "LT", name: "Lithuania", flag: "🇱🇹" },
+    { code: "+371", country: "LV", name: "Latvia", flag: "🇱🇻" },
+    { code: "+372", country: "EE", name: "Estonia", flag: "🇪🇪" },
+    { code: "+358", country: "FI", name: "Finland", flag: "🇫🇮" },
+    { code: "+45", country: "DK", name: "Denmark", flag: "🇩🇰" },
+    { code: "+40", country: "RO", name: "Romania", flag: "🇷🇴" },
+    { code: "+351", country: "PT", name: "Portugal", flag: "🇵🇹" },
+    { code: "+352", country: "LU", name: "Luxembourg", flag: "🇱🇺" },
+    { code: "+353", country: "IE", name: "Ireland", flag: "🇮🇪" },
+    { code: "+380", country: "UA", name: "Ukraine", flag: "🇺🇦" },
+    { code: "+254", country: "KE", name: "Kenya", flag: "🇰🇪" },
+    { code: "+234", country: "NG", name: "Nigeria", flag: "🇳🇬" },
+    { code: "+966", country: "SA", name: "Saudi Arabia", flag: "🇸🇦" },
+    { code: "+972", country: "IL", name: "Israel", flag: "🇮🇱" },
+    { code: "+65", country: "SG", name: "Singapore", flag: "🇸🇬" },
+    { code: "+60", country: "MY", name: "Malaysia", flag: "🇲🇾" },
   ]
 
   // Function to save booking data to localStorage
@@ -1885,165 +1882,153 @@ export default function VenueBookPage() {
                   </div>
                 </div>
 
-                
-                  
-                    
-                      {t("venueBook.contactDetails")}
-                    
-                  
+                {/* Contact Details Card */}
+<div className="venue-card p-6 space-y-5 bg-white dark:bg-gray-900 rounded-xl border border-amber-100 dark:border-gray-800 shadow-sm">
+  <h2 className="text-xl font-semibold">{t("venueBook.contactDetails")}</h2>
 
-                  
-                    
-                      
-                        {t("venueBook.firstName")} 
-                      
-                      
-                        
-                          
-                            handleFormChange("firstName", e.target.value)}
-                            handleFieldBlur("firstName", e.target.value)}
-                            
-                              "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
-                              validationErrors.firstName && touchedFields.firstName
-                                ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                                : "",
-                            )}
-                            required
-                          
-                        
-                        validationErrors.firstName && touchedFields.firstName && (
-                          
-                            
-                              
-                                validationErrors.firstName
-                              
-                            
-                          
-                        )}
-                      
-                    
+  <div className="grid gap-4 md:grid-cols-2">
+    <div ref={firstNameRef} className="space-y-3">
+      <label className="text-sm font-medium">
+        {t("venueBook.firstName")} <span className="text-red-500">*</span>
+      </label>
+      <div className="relative">
+        <Input
+          type="text"
+          value={formValues.firstName}
+          onChange={(e) => handleFormChange("firstName", e.target.value)}
+          onBlur={(e) => handleFieldBlur("firstName", e.target.value)}
+          className={cn(
+            "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
+            validationErrors.firstName && touchedFields.firstName
+              ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+              : "",
+          )}
+          required
+        />
+      </div>
+      {validationErrors.firstName && touchedFields.firstName && (
+        <p className="text-sm text-red-500 flex items-center">
+          <AlertCircle className="h-4 w-4 mr-1" />
+          {validationErrors.firstName}
+        </p>
+      )}
+    </div>
 
-                    
-                      
-                        {t("venueBook.lastName")} 
-                      
-                      
-                        
-                          
-                            handleFormChange("lastName", e.target.value)}
-                            handleFieldBlur("lastName", e.target.value)}
-                            
-                              "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
-                              validationErrors.lastName && touchedFields.lastName
-                                ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                                : "",
-                            )}
-                            required
-                          
-                        
-                        validationErrors.lastName && touchedFields.lastName && (
-                          
-                            
-                              
-                                validationErrors.lastName
-                              
-                            
-                          
-                        )}
-                      
-                    
-                  
+    <div ref={lastNameRef} className="space-y-3">
+      <label className="text-sm font-medium">
+        {t("venueBook.lastName")} <span className="text-red-500">*</span>
+      </label>
+      <div className="relative">
+        <Input
+          type="text"
+          value={formValues.lastName}
+          onChange={(e) => handleFormChange("lastName", e.target.value)}
+          onBlur={(e) => handleFieldBlur("lastName", e.target.value)}
+          className={cn(
+            "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
+            validationErrors.lastName && touchedFields.lastName
+              ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+              : "",
+          )}
+          required
+        />
+      </div>
+      {validationErrors.lastName && touchedFields.lastName && (
+        <p className="text-sm text-red-500 flex items-center">
+          <AlertCircle className="h-4 w-4 mr-1" />
+          {validationErrors.lastName}
+        </p>
+      )}
+    </div>
+  </div>
 
-                  
-                    
-                      {t("venueBook.email")} 
-                    
-                    
-                      
-                        type="email"
-                        value={formValues.email}
-                        onChange={(e) => handleFormChange("email", e.target.value)}
-                        onBlur={(e) => handleFieldBlur("email", e.target.value)}
-                        className={cn(
-                          "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
-                          validationErrors.email && touchedFields.email
-                            ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                            : "",
-                        )}
-                        required
-                      />
-                    
-                    validationErrors.email && touchedFields.email && (
-                      
-                        
-                          
-                            validationErrors.email
-                          
-                        
-                      
-                    )}
-                  
+  <div ref={emailRef} className="space-y-3">
+    <label className="text-sm font-medium">
+      {t("venueBook.email")} <span className="text-red-500">*</span>
+    </label>
+    <div className="relative">
+      <Input
+        type="email"
+        value={formValues.email}
+        onChange={(e) => handleFormChange("email", e.target.value)}
+        onBlur={(e) => handleFieldBlur("email", e.target.value)}
+        className={cn(
+          "hover:border-amber-300 hover:shadow-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
+          validationErrors.email && touchedFields.email
+            ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+            : "",
+        )}
+        required
+      />
+    </div>
+    {validationErrors.email && touchedFields.email && (
+      <p className="text-sm text-red-500 flex items-center">
+        <AlertCircle className="h-4 w-4 mr-1" />
+        {validationErrors.email}
+      </p>
+    )}
+  </div>
 
-                  
-                    
-                      {t("venueBook.phone")} 
-                    
-                    
-                      
-                        
-                          
-                            {phonePrefix.map((prefix) => (
-                              
-                                {prefix.flag} {prefix.code}
-                              
-                            ))}
-                          
-                      
-                      \
-                        type="tel"\
-                        value={formValues.phone}\
-                        onChange={(e) => handlePhoneChange(e.target.value)}
-                        onBlur={(e) => handleFieldBlur("phone", e.target.value)}
-                        className={cn(
-                          "flex-1 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
-                          validationErrors.phone && touchedFields.phone
-                            ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                            : "",
-                        )}
-                        placeholder="69 123 4567"
-                        required
-                      />
-                    
-                    validationErrors.phone && touchedFields.phone && (
-                      
-                        
-                          
-                            validationErrors.phone
-                          
-                        
-                      
-                    )}
-                  
-                
+  <div ref={phoneRef} className="space-y-3">
+    <label className="text-sm font-medium">
+      {t("venueBook.phone")} <span className="text-red-500">*</span>
+    </label>
+    <div className="flex gap-2">
+      <Select value={formValues.phonePrefix} onValueChange={(value) => handleFormChange("phonePrefix", value)}>
+        <SelectTrigger className="w-[140px]">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {phonePrefix.map((prefix) => (
+            <SelectItem key={prefix.code} value={prefix.code}>
+              {prefix.flag} {prefix.code}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Input
+        type="tel"
+        value={formValues.phone}
+        onChange={(e) => handlePhoneChange(e.target.value)}
+        onBlur={(e) => handleFieldBlur("phone", e.target.value)}
+        className={cn(
+          "flex-1 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors",
+          validationErrors.phone && touchedFields.phone
+            ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+            : "",
+        )}
+        placeholder="69 123 4567"
+        required
+      />
+    </div>
+    {validationErrors.phone && touchedFields.phone && (
+      <p className="text-sm text-red-500 flex items-center">
+        <AlertCircle className="h-4 w-4 mr-1" />
+        {validationErrors.phone}
+      </p>
+    )}
+  </div>
+</div>
 
-                
-                  
-                    {t("venueBook.additionalInfo")}
-                  
+{/* Additional Information Card */}
+<div className="venue-card p-6 space-y-5 bg-white dark:bg-gray-900 rounded-xl border border-amber-100 dark:border-gray-800 shadow-sm">
+  <h2 className="text-xl font-semibold">{t("venueBook.additionalInfo")}</h2>
 
-                  
-                    
-                      {t("venueBook.specialRequests")}
-                    
-                    
-                      
-                        setSpecialRequests(e.target.value)}
-                        placeholder={t("venueBook.specialRequestsPlaceholder")}
-                        className="min-h-[100px] focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
-                      />
-                    
-                  
-                
+  <div className="space-y-3">
+    <label className="text-sm font-medium">
+      {t("venueBook.specialRequests")}
+    </label>
+    <div className="relative">
+      <Textarea
+        value={specialRequests}
+        onChange={(e) => setSpecialRequests(e.target.value)}
+        placeholder={t("venueBook.specialRequestsPlaceholder")}
+        className="min-h-[100px] focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
+      />
+    </div>
+  </div>
+</div>
+
               
 
               
@@ -2136,14 +2121,14 @@ export default function VenueBookPage() {
                         
                       ) : (
                         \
-                          \
-                            {t("venueBook.continueToBook")} 
+                          
+                            {t("venueBook.continueToBook")}
                           
                         
                       )}
                     
                   
-
+\
                   
                     {t("venueBook.cancellationPolicy")}
                   
@@ -2230,7 +2215,7 @@ export default function VenueBookPage() {
                       
                         
                           
-                            {t("venueBook.serviceName")}: 
+                            {t("venueBook.serviceName")}:
                           
                           
                             {selectedOptionDetails.service.name[language]}
@@ -2238,7 +2223,7 @@ export default function VenueBookPage() {
                         
                         
                           
-                            {t("venueBook.serviceType")}: 
+                            {t("venueBook.serviceType")}:
                           
                           
                             {serviceTypeNames[selectedOptionDetails.service.type]?.[language] ||
@@ -2247,7 +2232,7 @@ export default function VenueBookPage() {
                         
                         
                           
-                            {t("venueBook.serviceDescription")}: 
+                            {t("venueBook.serviceDescription")}:
                           
                           
                             {selectedOptionDetails.service.description[language]}
@@ -2313,7 +2298,7 @@ export default function VenueBookPage() {
                               
                                 
                                   
-                                    {key.replace(/([A-Z])/g, " $1")}: 
+                                    {key.replace(/([A-Z])/g, " $1")}:
                                   
                                   
                                     {String(value)}
@@ -2484,7 +2469,7 @@ export default function VenueBookPage() {
           )}
 
         
-          showConfirmationModal && confirmationData && (
+          
             
               
                 
@@ -2639,8 +2624,7 @@ export default function VenueBookPage() {
                     
                       
                         
-                          
-                            💰 {t("venueBook.finalBookingTotal") || "Final Booking Total"}
+                          {t("venueBook.finalBookingTotal") || "Final Booking Total"}
                           
                           
                             
@@ -2749,9 +2733,9 @@ export default function VenueBookPage() {
                                 {t("venueBook.processing") || "Processing..."}
                               
                             
-                          ) : (
+                          ) : (\
                             \
-                              \
+                              
                                 {t("venueBook.confirmAndBook") || "Confirm & Book"}
                                 
                               
@@ -2801,5 +2785,5 @@ export default function VenueBookPage() {
         
       
     
-  )
+  )\
 }
