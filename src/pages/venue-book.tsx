@@ -53,6 +53,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popove
 import { Calendar } from "../components/ui/calendar"
 import { Label } from "../components/ui/label"
 import type { User as UserType } from "../models/user"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 // Define interfaces for the API data structure
 interface LocalizedText {
@@ -309,6 +317,7 @@ export default function VenueBookPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [confirmationData, setConfirmationData] = useState<any>(null)
+  const [showAuthDialog, setShowAuthDialog] = useState(false)
 
   // Phone prefixes with country codes and flags
   const phonePrefix = [
@@ -415,13 +424,13 @@ export default function VenueBookPage() {
         if (!value || value < 1) return t("venueBook.validation.guestsRequired") || "Number of guests is required"
         if (venue && value < venue.capacity.min)
           return (
-              t("venueBook.validation.guestsMin", { min: venue.capacity.min }) ||
-              `Minimum ${venue.capacity.min} guests required`
+            t("venueBook.validation.guestsMin", { min: venue.capacity.min }) ||
+            `Minimum ${venue.capacity.min} guests required`
           )
         if (venue && value > venue.capacity.max)
           return (
-              t("venueBook.validation.guestsMax", { max: venue.capacity.max }) ||
-              `Maximum ${venue.capacity.max} guests allowed`
+            t("venueBook.validation.guestsMax", { max: venue.capacity.max }) ||
+            `Maximum ${venue.capacity.max} guests allowed`
           )
         return undefined
 
@@ -555,7 +564,7 @@ export default function VenueBookPage() {
             // Fetch service types for this venue type
             if (venueData.type) {
               const serviceTypesData = (await serviceService.getServiceTypesByVenueType(
-                  venueData.type,
+                venueData.type,
               )) as ServiceTypesResponse
 
               // Convert service types array to a map for easier lookup
@@ -694,6 +703,26 @@ export default function VenueBookPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!user) {
+      // Save booking data to local storage
+      localStorage.setItem(
+        "bookingData",
+        JSON.stringify({
+          venueId: id,
+          startDate,
+          endDate,
+          guests,
+          selectedServices,
+          eventType,
+          formValues,
+          specialRequests,
+        }),
+      )
+      setShowAuthDialog(true)
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -849,6 +878,10 @@ export default function VenueBookPage() {
       setShowConfirmationModal(false)
       setConfirmationData(null)
     }
+  }
+
+  const handleAuthDialogClose = () => {
+    setShowAuthDialog(false)
   }
 
   const calculateDuration = () => {
@@ -1121,18 +1154,18 @@ export default function VenueBookPage() {
     return venue.metadata.blockedDates.map((date) => {
       // Handle both string and ISO date formats
       const startDate =
-          typeof date.startDate === "string"
-              ? date.startDate.includes("T")
-                  ? parseISO(date.startDate)
-                  : new Date(date.startDate)
-              : date.startDate
+        typeof date.startDate === "string"
+          ? date.startDate.includes("T")
+            ? parseISO(date.startDate)
+            : new Date(date.startDate)
+          : date.startDate
 
       const endDate =
-          typeof date.endDate === "string"
-              ? date.endDate.includes("T")
-                  ? parseISO(date.endDate)
-                  : new Date(date.endDate)
-              : date.endDate
+        typeof date.endDate === "string"
+          ? date.endDate.includes("T")
+            ? parseISO(date.endDate)
+            : new Date(date.endDate)
+          : date.endDate
 
       return {
         start: startDate,
@@ -1185,15 +1218,15 @@ export default function VenueBookPage() {
 
     if (isBefore(closeTime, openTime)) {
       return (
-          isAfter(selectedTime, openTime) ||
-          selectedTime.getTime() === openTime.getTime() ||
-          isBefore(selectedTime, closeTime) ||
-          selectedTime.getTime() === closeTime.getTime()
+        isAfter(selectedTime, openTime) ||
+        selectedTime.getTime() === openTime.getTime() ||
+        isBefore(selectedTime, closeTime) ||
+        selectedTime.getTime() === closeTime.getTime()
       )
     } else {
       return (
-          (isAfter(selectedTime, openTime) || selectedTime.getTime() === openTime.getTime()) &&
-          (isBefore(selectedTime, closeTime) || selectedTime.getTime() === closeTime.getTime())
+        (isAfter(selectedTime, openTime) || selectedTime.getTime() === openTime.getTime()) &&
+        (isBefore(selectedTime, closeTime) || selectedTime.getTime() === closeTime.getTime())
       )
     }
   }
@@ -1235,14 +1268,14 @@ export default function VenueBookPage() {
 
   if (isLoading || !venue) {
     return (
-        <div className="container px-4 md:px-6 py-8">
-          <div className="flex items-center justify-center h-[60vh]">
-            <div className="text-center">
-              <div className="w-16 h-16 border-4 border-t-amber-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-muted-foreground">{t("common.loading")}</p>
-            </div>
+      <div className="container px-4 md:px-6 py-8">
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-t-amber-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-muted-foreground">{t("common.loading")}</p>
           </div>
         </div>
+      </div>
     )
   }
 
@@ -2142,7 +2175,7 @@ export default function VenueBookPage() {
                                         "/placeholder.svg" ||
                                         "/placeholder.svg" ||
                                         "/placeholder.svg"
-                                    }
+                                     || "/placeholder.svg"}
                                     alt="Service"
                                     className="w-full h-full object-cover transition-opacity duration-500"
                                 />
@@ -2154,7 +2187,7 @@ export default function VenueBookPage() {
                                             key={index}
                                             onClick={() => setCurrentImageIndex(index)}
                                             className={cn(
-                                                "w-2 h-2 rounded-full transition-colors",
+                                                "flex-shrink-0 w-2 h-2 rounded-full transition-colors",
                                                 index === currentImageIndex ? "bg-amber-500" : "bg-stone-300 dark:bg-stone-600",
                                             )}
                                         />
@@ -2325,7 +2358,6 @@ export default function VenueBookPage() {
                               </div>
                             </div>
                           </div>
-                        </div>
                       </div>
 
                       {/* Service Options */}
@@ -2453,11 +2485,11 @@ export default function VenueBookPage() {
                             <div className="font-medium">{guests} guests</div>
                           </div>
                           <div>
-                            <span className="text-muted-foreground">{t("business.bookings.startDate")}:</span>
+                            <span className="text-muted-foreground">{t("venueBook.startDate")}:</span>
                             <div className="font-medium">{startDate ? format(startDate, "PPP p") : ""}</div>
                           </div>
                           <div>
-                            <span className="text-muted-foreground">{t("business.bookings.endDate")}:</span>
+                            <span className="text-muted-foreground">{t("venueBook.endDate")}:</span>
                             <div className="font-medium">{endDate ? format(endDate, "PPP p") : ""}</div>
                           </div>
                         </div>
@@ -2510,6 +2542,28 @@ export default function VenueBookPage() {
               </div>
           )}
         </section>
+
+        <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t("auth.createAccountRequired") || \"Create an account to continue"}</DialogTitle>
+              <DialogDescription>
+                {t("auth.createAccountDescription") || \"You need to create an account to complete the booking process. It's quick and easy!"}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>\
+              <Button type="button" variant="secondary" onClick={handleAuthDialogClose}>
+                {t("common.cancel") || "Cancel"}
+              </Button>
+              <Button type="button" onClick={() => {
+                handleAuthDialogClose()
+                navigate('/signup')
+              }}>
+                {t("auth.goToSignup") || "Go to Sign Up"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </>
   )
 }
