@@ -2539,4 +2539,213 @@ export default function VenueBookPage() {
                                 {t("venueBook.priceBreakdown") || "Price Breakdown"}
                               
                             
-\
+                            
+                              
+                                
+                                  {t("venueBook.venueTotal") || "Venue Total"}
+                                
+                                
+                                  
+                                    {formatPrice(confirmationData.breakdown.venue.convertedAmount, currency)}
+                                  
+                                
+                              
+                            
+
+                            
+                              confirmationData.breakdown.services.length > 0 && (
+                                
+                                  
+                                    {t("venueBook.servicesTotal") || "Services Total"}
+                                  
+                                  
+                                    
+                                      {formatPrice(
+                                        confirmationData.breakdown.services.reduce(
+                                          (sum, service) => sum + service.convertedAmount,
+                                          0,
+                                        ),
+                                        currency,
+                                      )}
+                                    
+                                  
+                                
+                              )}
+
+                            
+                              
+                                {t("venueBook.total")}
+                              
+                              
+                                
+                                  {formatPrice(confirmationData.breakdown.totals.total, currency)}
+                                
+                              
+                            
+                          
+                        
+                      
+
+                    
+                      
+                        
+                          
+                            💰 {t("venueBook.finalBookingTotal") || "Final Booking Total"}
+                          
+                          
+                            
+                              
+                                {t("venueBook.youWillPay") || "You will pay"}:
+                              
+                              
+                                {formatPrice(confirmationData.breakdown.totals.total, currency)}
+                              
+                            
+                            
+                              
+                                {t("venueBook.equivalentInUSD") || "Equivalent in USD"}:
+                              
+                              
+                                ${confirmationData.breakdown.totals.totalUSD.toFixed(2)} USD
+                              
+                            
+                            
+                              
+                                <strong>{t("venueBook.note")}:</strong> {t("venueBook.noteMessage")}{" "}
+                                <strong>${confirmationData.breakdown.totals.totalUSD.toFixed(2)} USD</strong>{" "}
+                                {t("venueBook.noteMessage2")}.
+                              
+                            
+                          
+                        
+                      
+
+                    
+                      
+                        
+                          {t("venueBook.bookingDetails") || "Booking Details"}
+                        
+                        
+                          
+                            
+                              
+                                {t("venueBook.eventType")}:
+                              
+                              
+                                {t(`venueBook.${eventType}`)}
+                              
+                            
+                            
+                              
+                                {t("venueBook.guests")}:
+                              
+                              
+                                {guests} guests
+                              
+                            
+                            
+                              
+                                {t("business.bookings.startDate")}:
+                              
+                              
+                                {startDate ? format(startDate, "PPP p") : ""}
+                              
+                            
+                            
+                              
+                                {t("business.bookings.endDate")}:
+                              
+                              
+                                {endDate ? format(endDate, "PPP p") : ""}
+                              
+                            
+                          
+                          
+                            confirmationData.bookingData.specialRequests && (
+                              
+                                
+                                  
+                                    {t("venueBook.specialRequests") || "Special Requests"}:
+                                  
+                                  
+                                    {confirmationData.bookingData.specialRequests}
+                                  
+                                
+                              
+                            )}
+                          
+                        
+                      
+                    
+
+                  
+                    
+                      
+                        setShowConfirmationModal(false)
+                        setConfirmationData(null)}
+                        className="flex-1"
+                      >
+                        {t("common.cancel") || "Cancel"}
+                      
+                      
+                        
+                          handleConfirmBooking}
+                          disabled={isSubmitting}
+                          className="flex-1 bg-amber-500 hover:bg-amber-600 text-white"
+                        >
+                          {isSubmitting ? (
+                            
+                              
+                                {t("venueBook.processing") || "Processing..."}
+                              
+                            
+                          ) : (
+                            \
+                              \
+                                {t("venueBook.confirmAndBook") || "Confirm & Book"}
+                                
+                              
+                            
+                          )}
+                        
+                      
+                    
+                  
+                
+              
+            
+          )}
+
+        
+          
+            
+              
+                
+                  
+                    {t("auth.createAccountRequired") || "Create an account to continue"}
+                  
+                  
+                    {t("auth.createAccountDescription") ||
+                      "You need to create an account to complete the booking process. Your booking information will be saved and restored after you sign up."}
+                  
+                
+                
+                  
+                    
+                      {t("common.cancel") || "Cancel"}
+                    
+                    
+                      
+                        {t("auth.goToSignup") || "Go to Sign Up"}
+                      
+                    
+                  
+                
+              
+            
+          
+        
+      
+    
+  )\
+}
