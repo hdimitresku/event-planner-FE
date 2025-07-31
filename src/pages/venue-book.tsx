@@ -53,14 +53,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popove
 import { Calendar } from "../components/ui/calendar"
 import { Label } from "../components/ui/label"
 import type { User as UserType } from "../models/user"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../components/ui/dialog"
 
 // Define interfaces for the API data structure
 interface LocalizedText {
@@ -205,24 +197,6 @@ interface ValidationErrors {
   phone?: string
 }
 
-// Booking data interface for localStorage
-interface BookingData {
-  venueId: string
-  startDate: Date | undefined
-  endDate: Date | undefined
-  guests: number
-  selectedServices: Record<string, string[]>
-  eventType: string
-  formValues: {
-    firstName: string
-    lastName: string
-    email: string
-    phone: string
-    phonePrefix: string
-  }
-  specialRequests: string
-}
-
 // Helper function to get icon component by name
 const getIconByName = (iconName: string) => {
   const icons: Record<string, React.ElementType> = {
@@ -306,7 +280,7 @@ export default function VenueBookPage() {
   const [startDate, setStartDate] = useState<Date | undefined>(parseDate(initialStartDate) || new Date())
   const [endDate, setEndDate] = useState<Date | undefined>(parseDate(initialEndDate) || addHours(new Date(), 3))
   const [guests, setGuests] = useState(initialGuests || 50)
-  const [selectedServices, setSelectedServices] = useState<Record<string, string[]>>(initialSelectedServices || {})
+  const [selectedServices, setSelectedServices] = useState<Record<string, string[]>>({})
   const [services, setServices] = useState<Service[]>([])
   const [serviceTypes, setServiceTypes] = useState<Record<string, ServiceType>>({})
   const [venue, setVenue] = useState<Venue | null>(null)
@@ -335,7 +309,6 @@ export default function VenueBookPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [confirmationData, setConfirmationData] = useState<any>(null)
-  const [showAuthDialog, setShowAuthDialog] = useState(false)
 
   // Phone prefixes with country codes and flags
   const phonePrefix = [
@@ -385,54 +358,6 @@ export default function VenueBookPage() {
     { code: "+65", country: "SG", name: "Singapore", flag: "🇸🇬" },
   ]
 
-  // Function to save booking data to localStorage
-  const saveBookingDataToStorage = () => {
-    const bookingData: BookingData = {
-      venueId: id || "",
-      startDate,
-      endDate,
-      guests,
-      selectedServices,
-      eventType,
-      formValues,
-      specialRequests,
-    }
-    localStorage.setItem("pendingBookingData", JSON.stringify(bookingData))
-  }
-
-  // Function to restore booking data from localStorage
-  const restoreBookingDataFromStorage = () => {
-    try {
-      const savedData = localStorage.getItem("pendingBookingData")
-      if (savedData) {
-        const bookingData: BookingData = JSON.parse(savedData)
-
-        // Only restore if it's for the same venue
-        if (bookingData.venueId === id) {
-          setStartDate(bookingData.startDate ? new Date(bookingData.startDate) : undefined)
-          setEndDate(bookingData.endDate ? new Date(bookingData.endDate) : undefined)
-          setGuests(bookingData.guests)
-          setSelectedServices(bookingData.selectedServices)
-          setEventType(bookingData.eventType)
-          setFormValues(bookingData.formValues)
-          setSpecialRequests(bookingData.specialRequests)
-
-          // Clear the saved data after restoring
-          localStorage.removeItem("pendingBookingData")
-
-          toast.success(t("venueBook.dataRestored") || "Your booking data has been restored", {
-            description:
-                t("venueBook.dataRestoredDescription") || "Welcome back! Your booking information has been restored.",
-            icon: <CheckCircle className="h-4 w-4" />,
-          })
-        }
-      }
-    } catch (error) {
-      console.error("Error restoring booking data:", error)
-      localStorage.removeItem("pendingBookingData")
-    }
-  }
-
   // Handle phone number input with automatic 0 removal
   const handlePhoneChange = (value: string) => {
     // Remove leading 0 if present (common in local formats)
@@ -457,7 +382,7 @@ export default function VenueBookPage() {
   const validatePhone = (phone: string): boolean => {
     const phoneRegex = /^[+]?[1-9][\d]{0,15}$/
     // Clean the phone number: remove spaces, dashes, brackets, and leading 0
-    let cleanedPhone = phone.replace(/[\s\-()]/g, "")
+    let cleanedPhone = phone.replace(/[\s\-$$$$]/g, "")
     // Remove leading 0 if present (common in local formats like Albanian)
     if (cleanedPhone.startsWith("0")) {
       cleanedPhone = cleanedPhone.substring(1)
@@ -704,14 +629,11 @@ export default function VenueBookPage() {
             })
           }
         }
-      } else {
-        // If user is not logged in, try to restore data from localStorage
-        restoreBookingDataFromStorage()
       }
     }
 
     fetchUserData()
-  }, [user, id])
+  }, [user])
 
   // Group services by type
   const servicesByType = React.useMemo(() => {
@@ -772,14 +694,6 @@ export default function VenueBookPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!user) {
-      // Save booking data to local storage
-      saveBookingDataToStorage()
-      setShowAuthDialog(true)
-      return
-    }
-
     setIsSubmitting(true)
 
     try {
@@ -899,9 +813,6 @@ export default function VenueBookPage() {
       const response = await bookingService.createBooking(confirmationData.bookingData)
 
       if (response.success && response.bookingId) {
-        // Clear any saved booking data since booking is successful
-        localStorage.removeItem("pendingBookingData")
-
         toast.success(t("common.success"), {
           description: t("venueBook.bookingCreated"),
           icon: <CheckCircle className="h-4 w-4" />,
@@ -938,20 +849,6 @@ export default function VenueBookPage() {
       setShowConfirmationModal(false)
       setConfirmationData(null)
     }
-  }
-
-  const handleAuthDialogClose = () => {
-    setShowAuthDialog(false)
-  }
-
-  const handleGoToSignup = () => {
-    handleAuthDialogClose()
-    navigate("/signup", {
-      state: {
-        returnTo: `/venues/${id}/book`,
-        message: t("auth.completeBookingAfterSignup") || "Complete your booking after creating an account",
-      },
-    })
   }
 
   const calculateDuration = () => {
@@ -1183,6 +1080,29 @@ export default function VenueBookPage() {
     }
   }
 
+  // Custom scrollbar styling
+  const scrollbarStyles = `
+  .services-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  .services-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .services-container::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.5);
+    border-radius: 20px;
+  }
+  .services-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(156, 163, 175, 0.7);
+  }
+  .dark .services-container::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 116, 139, 0.5);
+  }
+  .dark .services-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(100, 116, 139, 0.7);
+  }
+`
+
   // Auto-scroll effect for service images
   useEffect(() => {
     if (selectedOptionDetails?.service.media && selectedOptionDetails.service.media.length > 1) {
@@ -1328,7 +1248,7 @@ export default function VenueBookPage() {
 
   return (
       <>
-        <section className="relative w-full py-16 md:py-24 lg:py-32 overflow-hidden bg-gradient-to-br dark:bg">
+        <section className="relative w-full py-16 md:py-24 lg:py-32 overflow-hidden bg-gradient-to-br  dark:bg">
           {/* Enhanced abstract background elements with warm earth tones */}
           <div className="absolute inset-0 overflow-hidden opacity-40 dark:opacity-10">
             <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-amber-300 to-orange-400 dark:bg-amber-700 blur-3xl"></div>
@@ -1355,7 +1275,7 @@ export default function VenueBookPage() {
               <div className="grid gap-8 md:grid-cols-[1fr_350px]">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Venue Information Card */}
-                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-gray-900 rounded-xl border border-amber-100 dark:border-gray-800 shadow-sm">
+                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-bg00 rounded-xl border border-amber-100 dark:border-bg00 shadow-sm">
                     <div className="flex items-center justify-between">
                       <h2 className="text-xl font-semibold">{t("venueBook.venueDetails")}</h2>
                       <div className="flex items-center">
@@ -1400,7 +1320,7 @@ export default function VenueBookPage() {
                   </div>
 
                   {/* Event Details Card */}
-                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-gray-900 rounded-xl border border-amber-100 dark:border-gray-800 shadow-sm">
+                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-bg00 rounded-xl border border-amber-100 dark:border-bg00 shadow-sm">
                     <h2 className="text-xl font-semibold">{t("venueBook.eventDetails")}</h2>
 
                     <div ref={eventTypeRef} className="space-y-3">
@@ -1431,7 +1351,7 @@ export default function VenueBookPage() {
                               </option>
                           ))}
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                        <ChevronDown className="absolute right-3 top-1/2 -tranbg-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                       </div>
                       {validationErrors.eventType && touchedFields.eventType && (
                           <p className="text-sm text-red-500 flex items-center">
@@ -1610,7 +1530,7 @@ export default function VenueBookPage() {
                   </div>
 
                   {/* Services Section - Grouped by Type */}
-                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-gray-900 rounded-xl border border-amber-100 dark:border-gray-800 shadow-sm">
+                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-bg00 rounded-xl border border-amber-100 dark:border-bg00 shadow-sm">
                     <div>
                       <h2 className="text-xl font-semibold">{t("venueBook.services")}</h2>
                       <p className="text-muted-foreground text-sm mt-1">{t("venueBook.servicesSubtitle")}</p>
@@ -1643,7 +1563,7 @@ export default function VenueBookPage() {
                                       className="service-type-header p-4 bg-amber-50 dark:bg-amber-900/20 flex items-center justify-between cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
                                       onClick={() => toggleTypeExpansion(type)}
                                   >
-                                    <div className="flex items-center justify-between w-full">
+                                    <div className="flex items-center justify-between mb-4">
                                       <div className="flex items-center space-x-2">
                                         <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
                                           {React.createElement(getIconByName(serviceType.icon), {
@@ -1661,12 +1581,6 @@ export default function VenueBookPage() {
                                               {countSelectedOptionsForType(type)} {t("venueBook.selected")}
                                             </Badge>
                                         )}
-                                        <ChevronDown
-                                            className={cn(
-                                                "h-4 w-4 text-muted-foreground transition-transform",
-                                                isTypeExpanded && "rotate-180",
-                                            )}
-                                        />
                                       </div>
                                     </div>
                                   </div>
@@ -1726,6 +1640,16 @@ export default function VenueBookPage() {
                                                         </p>
                                                       </div>
                                                     </div>
+                                                    {/*<div className="flex items-center">*/}
+                                                    {/*  <Button*/}
+                                                    {/*      variant="outline"*/}
+                                                    {/*      size="sm"*/}
+                                                    {/*      className="text-xs hover:border-amber-300 bg-transparent"*/}
+                                                    {/*  >*/}
+                                                    {/*    <MessageSquare className="h-3 w-3 mr-1" />*/}
+                                                    {/*    {t("venueBook.contactProvider")}*/}
+                                                    {/*  </Button>*/}
+                                                    {/*</div>*/}
                                                   </div>
 
                                                   {/* All Services from this Provider */}
@@ -1754,7 +1678,7 @@ export default function VenueBookPage() {
                                                                               "service-option flex flex-col p-3 relative rounded-lg border-2 border-transparent hover:border-amber-200 dark:hover:border-amber-800 transition-all duration-200 h-[140px]",
                                                                               isSelected
                                                                                   ? "bg-amber-100/40 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800"
-                                                                                  : "bg-white dark:bg-amber-900/20 hover:bg-stone-100 dark:hover:bg-gray-800/70",
+                                                                                  : "bg-white dark:bg-amber-900/20 hover:bg-stone-100 dark:hover:bg-bg00/70",
                                                                           )}
                                                                       >
                                                                         {isSelected && (
@@ -1833,7 +1757,7 @@ export default function VenueBookPage() {
                     </div>
                   </div>
 
-                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-gray-900 rounded-xl border border-amber-100 dark:border-gray-800 shadow-sm">
+                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-bg00 rounded-xl border border-amber-100 dark:border-bg00 shadow-sm">
                     <h2 className="text-xl font-semibold">{t("venueBook.contactDetails")}</h2>
 
                     <div className="grid gap-4 md:grid-cols-2">
@@ -1960,7 +1884,7 @@ export default function VenueBookPage() {
                     </div>
                   </div>
 
-                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-gray-900 rounded-xl border border-amber-100 dark:border-gray-800 shadow-sm">
+                  <div className="venue-card p-6 space-y-5 bg-white dark:bg-bg00 rounded-xl border border-amber-100 dark:border-bg00 shadow-sm">
                     <h2 className="text-xl font-semibold">{t("venueBook.additionalInfo")}</h2>
 
                     <div className="space-y-2">
@@ -1980,7 +1904,7 @@ export default function VenueBookPage() {
 
                 <div className="space-y-6">
                   {/* Booking Summary Card */}
-                  <div className="sticky top-6 venue-card p-6 space-y-5 bg-white dark:bg-gray-900 rounded-xl border border-amber-100 dark:border-gray-800 shadow-sm">
+                  <div className="sticky top-6 venue-card p-6 space-y-5 bg-white dark:bg-bg00 rounded-xl border border-amber-100 dark:border-bg00 shadow-sm">
                     <h2 className="text-xl font-semibold">{t("venueBook.summary")}</h2>
 
                     <div className="space-y-4">
@@ -2036,7 +1960,7 @@ export default function VenueBookPage() {
                     <Button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full cta-button mt-6 bg-amber-500 hover:bg-amber-600 hover:translate-y-[-2px] transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full cta-button mt-6 bg-amber-500 hover:bg-amber-600 hover:tranbg-y-[-2px] transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                         onClick={handleSubmit}
                     >
                       {isSubmitting ? (
@@ -2057,11 +1981,10 @@ export default function VenueBookPage() {
               </div>
             </div>
           </div>
-
           {/* Service Option Details Modal */}
           {selectedOptionDetails && (
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white dark:bg-gray-900 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-amber-100 dark:border-amber-800/30">
+                  <div className="bg-white dark:bg-deep-brown rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-amber-100 dark:border-amber-800/30">
                   <div className="p-6">
                     {/* Modal Header */}
                     <div className="flex items-center justify-between mb-6">
@@ -2216,6 +2139,8 @@ export default function VenueBookPage() {
                                     src={
                                         formatImageUrl(selectedOptionDetails.service.media[currentImageIndex]?.url) ||
                                         "/placeholder.svg" ||
+                                        "/placeholder.svg" ||
+                                        "/placeholder.svg" ||
                                         "/placeholder.svg"
                                     }
                                     alt="Service"
@@ -2236,7 +2161,7 @@ export default function VenueBookPage() {
                                     ))}
                                   </div>
                               )}
-                              <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                              <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full text-sm">
                                 {currentImageIndex + 1} / {selectedOptionDetails.service.media.length}
                               </div>
                             </div>
@@ -2275,7 +2200,6 @@ export default function VenueBookPage() {
                 </div>
               </div>
           )}
-
           {/* Image Gallery Modal */}
           {selectedImageGallery && (
               <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
@@ -2318,13 +2242,13 @@ export default function VenueBookPage() {
                   </div>
 
                   {/* Image counter */}
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                  <div className="absolute bottom-4 left-1/2 transform -tranbg-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
                     {currentImageIndex + 1} / {selectedImageGallery.length}
                   </div>
 
                   {/* Thumbnail strip */}
                   {selectedImageGallery.length > 1 && (
-                      <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex gap-2 max-w-md overflow-x-auto">
+                      <div className="absolute bottom-16 left-1/2 transform -tranbg-x-1/2 flex gap-2 max-w-md overflow-x-auto">
                         {selectedImageGallery.map((media, index) => (
                             <button
                                 key={media.id}
@@ -2346,11 +2270,10 @@ export default function VenueBookPage() {
                 </div>
               </div>
           )}
-
           {/* Confirmation Modal */}
           {showConfirmationModal && confirmationData && (
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white dark:bg-gray-900 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-amber-100 dark:border-amber-800/30">
+                <div className="bg-white dark:bg-deep-brown rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-amber-100 dark:border-amber-800/30">
                   <div className="p-6">
                     {/* Modal Header */}
                     <div className="flex items-center justify-between mb-6">
@@ -2487,6 +2410,8 @@ export default function VenueBookPage() {
                         </div>
                       </div>
 
+                      {/* Currency Summary */}
+
                       {/* Booking Summary with USD Info */}
                       <div className="border border-orange-200 dark:border-orange-800/30 rounded-lg p-4 bg-orange-50 dark:bg-orange-900/20">
                         <h4 className="font-medium mb-3 text-orange-800 dark:text-orange-200">
@@ -2584,27 +2509,6 @@ export default function VenueBookPage() {
                 </div>
               </div>
           )}
-
-          {/* Authentication Required Dialog */}
-          <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{t("auth.createAccountRequired") || "Create an account to continue"}</DialogTitle>
-                <DialogDescription>
-                  {t("auth.createAccountDescription") ||
-                      "You need to create an account to complete the booking process. Your booking information will be saved and restored after you sign up."}
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button type="button" variant="secondary" onClick={handleAuthDialogClose}>
-                  {t("common.cancel") || "Cancel"}
-                </Button>
-                <Button type="button" onClick={handleGoToSignup}>
-                  {t("auth.goToSignup") || "Go to Sign Up"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
         </section>
       </>
   )
