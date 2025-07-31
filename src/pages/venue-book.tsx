@@ -334,39 +334,39 @@ export default function VenueBookPage() {
     { code: "+41", country: "CH", name: "Switzerland", flag: "🇨🇭" },
     { code: "+43", country: "AT", name: "Austria", flag: "🇦🇹" },
     { code: "+61", country: "AU", name: "Australia", flag: "🇦🇺" },
-    { code: "+81", country: "JP", name: "Japan", flag: "🇯🇵" },
-    { code: "+49", country: "AT", name: "Austria", flag: "🇦🇹" },
-    { code: "+86", country: "CN", name: "China", flag: "🇨🇳" },
-    { code: "+91", country: "IN", name: "India", flag: "🇮🇳" },
-    { code: "+7", country: "RU", name: "Russia", flag: "🇷🇺" },
-    { code: "+27", country: "ZA", name: "South Africa", flag: "🇿🇦" },
-    { code: "+64", country: "NZ", name: "New Zealand", flag: "🇳🇿" },
-    { code: "+82", country: "KR", name: "South Korea", flag: "🇰🇷" },
-    { code: "+47", country: "NO", name: "Norway", flag: "🇳🇴" },
-    { code: "+46", country: "SE", name: "Sweden", flag: "🇸🇪" },
-    { code: "+48", country: "PL", name: "Poland", flag: "🇵🇱" },
-    { code: "+420", country: "CZ", name: "Czech Republic", flag: "🇨🇿" },
-    { code: "+36", country: "HU", name: "Hungary", flag: "🇭🇺" },
-    { code: "+370", country: "LT", name: "Lithuania", flag: "🇱🇹" },
-    { code: "+371", country: "LV", name: "Latvia", flag: "🇱🇻" },
-    { code: "+372", country: "EE", name: "Estonia", flag: "🇪🇪" },
-    { code: "+358", country: "FI", name: "Finland", flag: "🇫🇮" },
-    { code: "+45", country: "DK", name: "Denmark", flag: "🇩🇰" },
-    { code: "+40", country: "RO", name: "Romania", flag: "🇷🇴" },
-    { code: "+48", country: "PL", name: "Poland", flag: "🇵🇱" },
-    { code: "+351", country: "PT", name: "Portugal", flag: "🇵🇹" },
-    { code: "+352", country: "LU", name: "Luxembourg", flag: "🇱🇺" },
-    { code: "+353", country: "IE", name: "Ireland", flag: "🇮🇪" },
-    { code: "+380", country: "UA", name: "Ukraine", flag: "🇺🇦" },
-    { code: "+254", country: "KE", name: "Kenya", flag: "🇰🇪" },
-    { code: "+234", country: "NG", name: "Nigeria", flag: "🇳🇬" },
-    { code: "+966", country: "SA", name: "Saudi Arabia", flag: "🇸🇦" },
-    { code: "+972", country: "IL", name: "Israel", flag: "🇮🇱" },
-    { code: "+65", country: "SG", name: "Singapore", flag: "🇸🇬" },
-    { code: "+60", country: "MY", name: "Malaysia", flag: "🇲🇾" },
-    { code: "+351", country: "PT", name: "Portugal", flag: "🇵🇹" },
-    { code: "+358", country: "FI", name: "Finland", flag: "🇫🇮" },
-    { code: "+65", country: "SG", name: "Singapore", flag: "🇸🇬" },
+    { code: "+81", country: "JP", name: Japan", flag: "🇯🇵" },
+    { code: "+49\", country: \"AT", name: \"Austria\", flag: "🇦🇹" },
+    { code: "+86\", country: "CN", name: "China\", flag: \"🇨🇳" },
+    { code: "+91\", country: \"IN", name: "India", flag: "🇮🇳" },
+    { code: "+7", country: "RU", name: Russia", flag: "🇷🇺" },
+    { code: "+27", country: "ZA\", name: South Africa\", flag: \"🇿🇦\" },
+    { code: "+64\", country: "NZ", name: New Zealand", flag: "🇳🇿" },\
+    { code: "+82", country: \"KR\", name: South Korea\", flag: "🇰🇷" },\
+    { code: "+47", country: \"NO", name: Norway, flag: "🇳🇴" },
+    { code: "+46", country: "SE", name: Sweden, flag: "🇸🇪" },
+    { code: "+48", country: "PL", name: Poland, flag: "🇵🇱" },
+    { code: "+420", country: "CZ", name: Czech Republic, flag: "🇨🇿" },
+    { code: "+36", country: "HU", name: Hungary, flag: "🇭🇺" },\
+    { code: "+370", country: "LT", name: Lithuania, flag: "🇱🇹" },
+    { code: "+371", country: "LV\", name: Latvia, flag: "🇱🇻" },
+    { code: "+372", country: "EE", name: Estonia, flag: "🇪🇪" },
+    { code: "+358", country: "FI\", name: Finland, flag: "🇫🇮" },
+    { code: "+45", country: "DK", name: Denmark, flag: "🇩🇰" },
+    { code: "+40", country: "RO\", name: Romania, flag: "🇷🇴" },
+    { code: "+48", country: "PL", name: Poland, flag: "🇵🇱" },
+    { code: "+351", country: "PT\", name: Portugal, flag: \"🇵🇹\" },
+    { code: "+352", country: "LU", name: Luxembourg, flag: "🇱🇺" },
+    { code: \"+353\", country: "IE", name: Ireland, flag: "🇮🇪\" },
+    { code: "+380", country: "UA", name: Ukraine, flag: "🇺🇦" },
+    { code: "+254", country: "KE", name: Kenya, flag: "🇰🇪" },
+    { code: "+234", country: "NG", name: Nigeria, flag: "🇳🇬" },
+    { code: "+966", country: "SA", name: Saudi Arabia, flag: "🇸🇦" },
+    { code: "+972", country: "IL", name: Israel, flag: "🇮🇱" },
+    { code: "+65", country: "SG", name: Singapore, flag: "🇸🇬" },
+    { code: "+60", country: "MY", name: Malaysia, flag: "🇲🇾" },
+    { code: "+351", country: "PT", name: Portugal, flag: "🇵🇹" },
+    { code: "+358", country: "FI", name: Finland, flag: "🇫🇮" },
+    { code: "+65", country: "SG", name: Singapore, flag: "🇸🇬" },
   ]
 
   // Function to save booking data to localStorage
@@ -1310,6 +1310,56 @@ export default function VenueBookPage() {
       setBlockedDates(getBlockedDates())
     }
   }, [venue])
+
+  const handleAddToCart = () => {
+    if (!user) {
+      // Create cart item and save to cart
+      const venueCartItem = {
+        id: id || "",
+        venue: venue!,
+        startDate: startDate!,
+        endDate: endDate!,
+        guests,
+        eventType,
+        specialRequests,
+        contactDetails: {
+          firstName: formValues.firstName,
+          lastName: formValues.lastName,
+          email: formValues.email,
+          phone: `${formValues.phonePrefix}${formValues.phone}`,
+        },
+      }
+
+      // Add venue to cart
+      addVenueToCart(venueCartItem)
+
+      // Add selected services to cart
+      Object.entries(selectedServices).forEach(([serviceId, optionIds]) => {
+        const service = services.find((s) => s.id === serviceId)
+        if (service) {
+          optionIds.forEach((optionId) => {
+            const option = service.options.find((opt) => opt.id === optionId)
+            if (option) {
+              addServiceToCart({
+                id: `${serviceId}-${optionId}`,
+                service,
+                option,
+                quantity: 1,
+                venueBookingId: id || "",
+              })
+            }
+          })
+        }
+      })
+
+      setShowConfirmationModal(false)
+      toast.success(t("venueBook.addedToCart") || "Added to cart!", {
+        description: t("venueBook.continueBookingAfterLogin") || "You can continue your booking after logging in.",
+        icon: <CheckCircle className="h-4 w-4" />,
+      })
+      return
+    }
+  }
 
   if (isLoading || !venue) {
     return (
@@ -2539,4 +2589,217 @@ export default function VenueBookPage() {
                                 {t("venueBook.priceBreakdown") || "Price Breakdown"}
                               
                             
-\
+                            
+                              
+                                
+                                  {t("venueBook.venueTotal") || "Venue Total"}
+                                
+                                
+                                  
+                                    {formatPrice(confirmationData.breakdown.venue.convertedAmount, currency)}
+                                  
+                                
+                              
+                            
+
+                            
+                              confirmationData.breakdown.services.length > 0 && (
+                                
+                                  
+                                    {t("venueBook.servicesTotal") || "Services Total"}
+                                  
+                                  
+                                    
+                                      {formatPrice(
+                                        confirmationData.breakdown.services.reduce(
+                                          (sum, service) => sum + service.convertedAmount,
+                                          0,
+                                        ),
+                                        currency,
+                                      )}
+                                    
+                                  
+                                
+                              )}
+
+                            
+                              
+                                {t("venueBook.total")}
+                              
+                              
+                                
+                                  {formatPrice(confirmationData.breakdown.totals.total, currency)}
+                                
+                              
+                            
+                          
+                        
+                      
+
+                    
+                      
+                        
+                          
+                            💰 {t("venueBook.finalBookingTotal") || "Final Booking Total"}
+                          
+                          
+                            
+                              
+                                {t("venueBook.youWillPay") || "You will pay"}:
+                              
+                              
+                                {formatPrice(confirmationData.breakdown.totals.total, currency)}
+                              
+                            
+                            
+                              
+                                {t("venueBook.equivalentInUSD") || "Equivalent in USD"}:
+                              
+                              
+                                ${confirmationData.breakdown.totals.totalUSD.toFixed(2)} USD
+                              
+                            
+                            
+                              
+                                <strong>{t("venueBook.note")}:</strong> {t("venueBook.noteMessage")}{" "}
+                                <strong>${confirmationData.breakdown.totals.totalUSD.toFixed(2)} USD</strong>{" "}
+                                {t("venueBook.noteMessage2")}.
+                              
+                            
+                          
+                        
+                      
+
+                    
+                      
+                        
+                          {t("venueBook.bookingDetails") || "Booking Details"}
+                        
+                        
+                          
+                            
+                              
+                                {t("venueBook.eventType")}:
+                              
+                              
+                                {t(`venueBook.${eventType}`)}
+                              
+                            
+                            
+                              
+                                {t("venueBook.guests")}:
+                              
+                              
+                                {guests} guests
+                              
+                            
+                            
+                              
+                                {t("business.bookings.startDate")}:
+                              
+                              
+                                {startDate ? format(startDate, "PPP p") : ""}
+                              
+                            
+                            
+                              
+                                {t("business.bookings.endDate")}:
+                              
+                              
+                                {endDate ? format(endDate, "PPP p") : ""}
+                              
+                            
+                          
+                          
+                            confirmationData.bookingData.specialRequests && (
+                              
+                                
+                                  
+                                    {t("venueBook.specialRequests") || "Special Requests"}:
+                                  
+                                  
+                                    {confirmationData.bookingData.specialRequests}
+                                  
+                                
+                              
+                            )}
+                          
+                        
+                      
+                    
+
+                  
+                    
+                      
+                        setShowConfirmationModal(false)
+                        setConfirmationData(null)}
+                        className="flex-1"
+                      >
+                        {t("common.cancel") || "Cancel"}
+                      
+                      
+                        
+                          handleConfirmBooking}
+                          disabled={isSubmitting}
+                          className="flex-1 bg-amber-500 hover:bg-amber-600 text-white"
+                        >
+                          {isSubmitting ? (
+                            
+                              
+                                {t("venueBook.processing") || "Processing..."}
+                              
+                            
+                          ) : (
+                            \
+                              \
+                                {t("venueBook.confirmAndBook") || "Confirm & Book"}
+                                
+                              
+                            
+                          )}
+                        
+                      
+                    
+                  
+                
+              
+            
+          )}
+
+        
+          
+            
+              
+                
+                  
+                    {t("auth.createAccountRequired") || "Create an account to continue"}
+                  
+                  
+                    {t("auth.createAccountDescription") ||
+                      "You need to create an account to complete the booking process. Your booking information will be saved and restored after you sign up."}
+                  
+                
+                
+                  
+                    
+                      handleAuthDialogClose}
+                      className="flex-1"
+                    >
+                      {t("common.cancel") || "Cancel"}
+                    
+                    
+                      handleGoToSignup}
+                      className="flex-1"
+                    >
+                      {t("auth.goToSignup") || "Go to Sign Up"}
+                    
+                  
+                
+              
+            
+          
+        
+      
+    
+  )
+}
