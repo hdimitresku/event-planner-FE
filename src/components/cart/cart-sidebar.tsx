@@ -22,7 +22,29 @@ export function CartSidebar() {
 
   const handleCheckout = () => {
     if (currentBooking?.venue) {
-      navigate(`/venues/${currentBooking.venue.venue.id}/checkout`)
+      navigate(`/venues/${currentBooking.venue.venue.id}/book`, {
+        state: {
+          fromCart: true,
+          openConfirmationModal: true,
+          startDate: currentBooking.venue.startDate,
+          endDate: currentBooking.venue.endDate,
+          guests: currentBooking.venue.guests,
+          eventType: currentBooking.venue.eventType,
+          specialRequests: currentBooking.venue.specialRequests,
+          contactDetails: currentBooking.venue.contactDetails,
+          selectedServices: currentBooking.services.reduce(
+            (acc, service) => {
+              const serviceId = service.service.id
+              if (!acc[serviceId]) {
+                acc[serviceId] = []
+              }
+              acc[serviceId].push(service.option.id)
+              return acc
+            },
+            {} as Record<string, string[]>,
+          ),
+        },
+      })
       closeCart()
     }
   }
@@ -65,7 +87,7 @@ export function CartSidebar() {
                           <div className="flex-1">
                             <h5 className="font-medium">{currentBooking.venue.venue.name.en}</h5>
                             <p className="text-sm text-muted-foreground">
-                              {currentBooking.venue.venue.location.address}
+                              {currentBooking.venue.venue.location?.address || currentBooking.venue.venue.address?.city}
                             </p>
                           </div>
                         </div>
@@ -159,7 +181,7 @@ export function CartSidebar() {
 
               <div className="space-y-2">
                 <Button onClick={handleCheckout} className="w-full" size="lg">
-                  {t("cart.proceedToCheckout") || "Proceed to Checkout"}
+                  {t("cart.proceedToBooking") || "Complete Booking"}
                 </Button>
                 <Button onClick={handleContinueShopping} variant="outline" className="w-full bg-transparent">
                   {t("cart.continueShopping") || "Continue Shopping"}

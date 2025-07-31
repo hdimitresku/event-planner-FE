@@ -261,6 +261,10 @@ export default function VenueBookPage() {
     guests: initialGuests,
     eventType: initialEventType,
     selectedServices: initialSelectedServices,
+    fromCart,
+    openConfirmationModal,
+    specialRequests: initialSpecialRequests,
+    contactDetails: initialContactDetails,
   } = location.state || {}
 
   // Parse dates from location state
@@ -283,7 +287,7 @@ export default function VenueBookPage() {
   const [startDate, setStartDate] = useState<Date | undefined>(parseDate(initialStartDate) || new Date())
   const [endDate, setEndDate] = useState<Date | undefined>(parseDate(initialEndDate) || addHours(new Date(), 3))
   const [guests, setGuests] = useState(initialGuests || 50)
-  const [selectedServices, setSelectedServices] = useState<Record<string, string[]>>({})
+  const [selectedServices, setSelectedServices] = useState<Record<string, string[]>>(initialSelectedServices || {})
   const [services, setServices] = useState<Service[]>([])
   const [serviceTypes, setServiceTypes] = useState<Record<string, ServiceType>>({})
   const [venue, setVenue] = useState<Venue | null>(null)
@@ -299,13 +303,13 @@ export default function VenueBookPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [userData, setUserData] = useState<UserType | null>(null)
   const [formValues, setFormValues] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    phonePrefix: "+355", // Albanian prefix as default
+    firstName: initialContactDetails?.firstName || "",
+    lastName: initialContactDetails?.lastName || "",
+    email: initialContactDetails?.email || "",
+    phone: initialContactDetails?.phone?.replace(/^\+\d+/, "") || "",
+    phonePrefix: initialContactDetails?.phone?.match(/^\+\d+/)?.[0] || "+355",
   })
-  const [specialRequests, setSpecialRequests] = useState("")
+  const [specialRequests, setSpecialRequests] = useState(initialSpecialRequests || "")
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({})
   const [blockedDates, setBlockedDates] = useState<Date[]>([])
@@ -610,19 +614,21 @@ export default function VenueBookPage() {
           const currentUser = await userService.getUserById(user.id)
           if (currentUser) {
             setUserData(currentUser)
-            // Autofill form with user data
-            setFormValues({
-              firstName: currentUser.firstName || "",
-              lastName: currentUser.lastName || "",
-              email: currentUser.email || "",
-              phone: currentUser.phoneNumber || "",
-              phonePrefix: "+355", // Albanian prefix as default
-            })
+            // Only autofill if not coming from cart (cart data takes precedence)
+            if (!fromCart) {
+              setFormValues({
+                firstName: currentUser.firstName || "",
+                lastName: currentUser.lastName || "",
+                email: currentUser.email || "",
+                phone: currentUser.phoneNumber || "",
+                phonePrefix: "+355", // Albanian prefix as default
+              })
+            }
           }
         } catch (error) {
           console.error("Error fetching user data:", error)
           // If user is logged in but we can't fetch data, try to use auth context data
-          if (user) {
+          if (user && !fromCart) {
             setFormValues({
               firstName: user.firstName || "",
               lastName: user.lastName || "",
@@ -636,7 +642,62 @@ export default function VenueBookPage() {
     }
 
     fetchUserData()
-  }, [user])
+  }, [user, fromCart])
+
+  // Handle opening confirmation modal when coming from cart
+  useEffect(() => {
+    if (fromCart && openConfirmationModal && venue && !isLoading) {
+      // Validate all fields first
+      const errors = validateAllFields()
+      if (Object.keys(errors).length === 0) {
+        // Calculate breakdown and show modal
+        const breakdown = calculateDetailedBreakdown()
+
+        const { firstName, lastName, email, phone, phonePrefix } = formValues
+        const cleanPhone = phone.startsWith("0") ? phone.substring(1) : phone
+        const fullPhoneNumber = `${phonePrefix}${cleanPhone}`
+
+        const formattedStartDate = startDate ? format(startDate, "yyyy-MM-dd") : ""
+        const formattedEndDate = endDate ? format(endDate, "yyyy-MM-dd") : ""
+        const formattedStartTime = startDate ? format(startDate, "HH:mm") : ""
+        const formattedEndTime = endDate ? format(endDate, "HH:mm") : ""
+
+        const serviceOptionIds = Object.values(selectedServices).flat()
+
+        const bookingData = {
+          venueId: id || "",
+          startDate: formattedStartDate,
+          endDate: formattedEndDate,
+          startTime: formattedStartTime,
+          endTime: formattedEndTime,
+          numberOfGuests: guests,
+          serviceOptionIds,
+          specialRequests,
+          eventType,
+          pricing: {
+            venue: breakdown.venue,
+            services: breakdown.services,
+            totals: breakdown.totals,
+            breakdown: breakdown,
+            totalUSD: breakdown.totals.totalUSD,
+            totalSelectedCurrency: breakdown.totals.total,
+            currency: currency,
+          },
+          metadata: {
+            contactDetails: {
+              firstName,
+              lastName,
+              email,
+              phone: fullPhoneNumber,
+            },
+          },
+        }
+
+        setConfirmationData({ bookingData, breakdown })
+        setShowConfirmationModal(true)
+      }
+    }
+  }, [fromCart, openConfirmationModal, venue, isLoading])
 
   // Group services by type
   const servicesByType = React.useMemo(() => {
@@ -1699,16 +1760,6 @@ export default function VenueBookPage() {
                                               </p>
                                             </div>
                                           </div>
-                                          {/*<div className="flex items-center">*/}
-                                          {/*  <Button*/}
-                                          {/*      variant="outline"*/}
-                                          {/*      size="sm"*/}
-                                          {/*      className="text-xs hover:border-amber-300 bg-transparent"*/}
-                                          {/*  >*/}
-                                          {/*    <MessageSquare className="h-3 w-3 mr-1" />*/}
-                                          {/*    {t("venueBook.contactProvider")}*/}
-                                          {/*  </Button>*/}
-                                          {/*</div>*/}
                                         </div>
 
                                         {/* All Services from this Provider */}
@@ -2016,23 +2067,36 @@ export default function VenueBookPage() {
                     </div>
                   </div>
 
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full cta-button mt-6 bg-amber-500 hover:bg-amber-600 hover:tranbg-y-[-2px] transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    onClick={handleSubmit}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {t("venueBook.processing")}
-                      </>
-                    ) : (
-                      <>
-                        {t("venueBook.continueToBook")} <ArrowRight className="ml-2 h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
+                  <div className="space-y-3">
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full cta-button bg-amber-500 hover:bg-amber-600 hover:tranbg-y-[-2px] transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={handleSubmit}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          {t("venueBook.processing")}
+                        </>
+                      ) : (
+                        <>
+                          {t("venueBook.continueToBook")} <ArrowRight className="ml-2 h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleAddToCart}
+                      className="w-full border-amber-500 text-amber-600 hover:bg-amber-50 bg-transparent"
+                      disabled={!venue || !startDate || !endDate || !eventType || guests < 1}
+                    >
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      {t("venueBook.addToCart") || "Add to Cart"}
+                    </Button>
+                  </div>
 
                   <p className="text-xs text-muted-foreground text-center mt-4">{t("venueBook.cancellationPolicy")}</p>
                 </div>
@@ -2197,9 +2261,6 @@ export default function VenueBookPage() {
                           <img
                             src={
                               formatImageUrl(selectedOptionDetails.service.media[currentImageIndex]?.url) ||
-                              "/placeholder.svg" ||
-                              "/placeholder.svg" ||
-                              "/placeholder.svg" ||
                               "/placeholder.svg" ||
                               "/placeholder.svg"
                             }
@@ -2469,8 +2530,6 @@ export default function VenueBookPage() {
                       </div>
                     </div>
                   </div>
-
-                  {/* Currency Summary */}
 
                   {/* Booking Summary with USD Info */}
                   <div className="border border-orange-200 dark:border-orange-800/30 rounded-lg p-4 bg-orange-50 dark:bg-orange-900/20">
